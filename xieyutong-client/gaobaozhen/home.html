@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>携域通旅行</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0086F6;
+            --secondary: #FF9500;
+            --bg-light: #F5F7FA;
+            --text-dark: #333333;
+            --text-medium: #666666;
+            --text-light: #999999;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Montserrat', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            width: 390px;
+            height: 844px;
+            overflow: hidden;
+            position: relative;
+            background-color: var(--bg-light);
+        }
+        
+        .phone-frame {
+            border-radius: 44px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            height: 100%;
+        }
+        
+        /* 主滚动区域 */
+        .main-scroll-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 83px; /* 底部标签栏高度 */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* 增强iOS滚动体验 */
+            scroll-behavior: smooth; /* 平滑滚动 */
+        }
+        
+        .status-bar {
+            height: 44px;
+            background-color: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            position: fixed; /* 改为fixed，始终显示在顶部 */
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+        }
+        
+        .header {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            position: fixed; /* 改为fixed，始终显示在顶部 */
+            top: 44px; /* 空出statusbar的高度 */
+            left: 0;
+            right: 0;
+            z-index: 15;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        
+        .tab-bar {
+            height: 83px;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #eaeaea;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+        
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 10px;
+            width: 33.33%;
+        }
+        
+        .tab-item.active {
+            color: var(--primary);
+        }
+        
+        .tab-item i {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+        
+        .banner-container {
+            position: relative;
+            height: 100vh; /* 修改为100vh，占满全屏 */
+            overflow: hidden;
+        }
+        
+        .banner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* 添加渐变遮罩，增强文字可读性 */
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 100%);
+            z-index: 2;
+            pointer-events: none; /* 确保不会阻止点击事件 */
+        }
+        
+        /* 在banner底部添加内容入口 */
+        .banner-content {
+            position: absolute;
+            bottom: 15%;
+            left: 0;
+            right: 0;
+            transform: translateY(-60%);
+            padding: 0 20px;
+            color: white;
+            z-index: 3;
+            text-align: center;
+        }
+        
+        .banner-title {
+            font-family: var(--font-heading);
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+        
+        .banner-subtitle {
+            font-family: var(--font-body);
+            font-size: 18px;
+            font-weight: 300;
+            opacity: 0.95;
+            margin-bottom: 30px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+        }
+        
+        .explore-btn {
+            font-family: var(--font-body);
+            background-color: transparent;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-weight: 500;
+            display: inline-block;
+            box-shadow: none;
+            text-decoration: none;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            border: 2px solid white;
+            letter-spacing: 1px;
+        }
+        
+        .explore-btn:active {
+            transform: translateY(2px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 调整分页器位置 */
+        .swiper-pagination {
+            bottom: 20% !important; /* 将分页器位置调整到banner-content下方 */
+            z-index: 5;
+        }
+        
+        .search-bar {
+            position: absolute;
+            top: 44px; /* 与header同高 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 16;
+        }
+        
+        /* Swiper 轮播图样式 */
+        .swiper {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .swiper-slide {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .swiper-pagination-bullet {
+            width: 6px;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+            margin: 0 4px;
+        }
+        
+        .swiper-pagination-bullet-active {
+            background-color: white;
+            width: 18px;
+            border-radius: 3px;
+        }
+        
+        .product-card {
+            background-color: white;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .product-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 18px;
+        }
+        
+        .product-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 16px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: var(--text-dark);
+        }
+        
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-medium);
+        }
+        
+        .product-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price {
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .price-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .promotion-tag {
+            background-color: rgba(255, 149, 0, 0.1);
+            color: var(--secondary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* 内容区域样式调整 */
+        .content-area {
+            padding: 32px 16px;
+            background-color: white;
+            position: relative;
+            z-index: 5; /* 确保内容在banner上方 */
+            margin-top: -80px; /* 创建重叠效果 */
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .section-more {
+            font-size: 14px;
+            color: var(--text-medium);
+        }
+        
+        /* 添加小程序胶囊样式 */
+        .mp-capsule {
+            width: 87px;
+            height: 32px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 5px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .mp-capsule-divider {
+            width: 1px;
+            height: 18px;
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        /* 搜索按钮样式 */
+        .search-btn {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .search-btn:active {
+            transform: scale(0.95);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* 下拉加载更多提示 */
+        .load-more {
+            text-align: center;
+            color: var(--text-medium);
+            font-size: 14px;
+            padding: 16px 0;
+            opacity: 0.7;
+        }
+        
+        .load-more i {
+            margin-right: 6px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 滚动提示 */
+        .scroll-hint {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 20px;
+            opacity: 0.9;
+            animation: bounce 2s infinite;
+            z-index: 5;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            transition: all 0.3s ease;
+        }
+        
+        .scroll-hint:active {
+            transform: translateX(-50%) scale(0.95);
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+            40% {
+                transform: translateY(-8px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-4px) translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="status-bar-left">
+                10:43
+            </div>
+            <div class="status-bar-right">
+                <i class="fas fa-wifi mr-2"></i>
+                <i class="fas fa-signal mr-2"></i>
+                <span>42%</span>
+                <i class="fas fa-battery-half ml-1"></i>
+            </div>
+        </div>
+
+        <!-- 头部悬浮在整个页面上 -->
+        <div class="header">
+            <!-- 左侧搜索按钮 -->
+            <div class="search-btn">
+                <i class="fas fa-search"></i>
+            </div>
+            <!-- 中间留空 -->
+            <div></div>
+            <!-- 右侧胶囊占位 -->
+            <div class="mp-capsule">
+                <div class="mp-capsule-left">
+                    <i class="fas fa-ellipsis-h" style="color: white; font-size: 12px;"></i>
+                </div>
+                <div class="mp-capsule-divider"></div>
+                <div class="mp-capsule-right">
+                    <i class="fas fa-home" style="color: white; font-size: 12px;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主滚动区域 -->
+        <div class="main-scroll-area">
+            <!-- Banner区域 -->
+            <div class="banner-container">
+                <!-- 使用 Swiper 轮播图 -->
+                <div class="swiper mySwiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1635582681213-450e9b127343?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwxfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTUlQjglODMlRTglQkUlQkUlRTYlOEIlODklRTUlQUUlQUIlMjAlRTklQUIlOTglRTYlQjglODV8ZW58MHx8fHwxNzUwNDA1ODYxfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="布达拉宫" class="banner-img">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1653101534971-86943d5e6055?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwxfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTclQkUlOEElRTUlOEQlOTMlRTklOUIlOEQlRTklOTQlOTklMjAlRTYlQjklOTYlRTYlQjMlOEF8ZW58MHx8fHwxNzUwNDA1ODkwfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="羊卓雍错" class="banner-img">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1647876469124-364e51fef318?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwzfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTklOUIlODUlRTklQjIlODElRTglOTclOEYlRTUlQjglODMlRTUlQTQlQTclRTUlQjMlQTElRTglQjAlQjclMjAlRTklQTMlOEUlRTYlOTklQUZ8ZW58MHx8fHwxNzUwNDA1ODcyfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="雅鲁藏布大峡谷" class="banner-img">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 渐变遮罩 -->
+                <div class="banner-overlay"></div>
+                
+                <!-- Banner内容 -->
+                <div class="banner-content">
+                    <h1 class="banner-title">探索世界的奇妙之旅</h1>
+                    <p class="banner-subtitle">定制您的专属高端旅行体验</p>
+                    <a href="#" class="explore-btn">立即探索</a>
+                </div>
+                
+                <!-- 分页器 -->
+                <div class="swiper-pagination"></div>
+                
+                <!-- 滚动提示 -->
+                <div class="scroll-hint">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <!-- 内容区域 -->
+            <div class="content-area">
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1634462882788-1cbc37d79386?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHw4fHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTklOUIlODUlRTklQjIlODElRTglOTclOEYlRTUlQjglODMlRTUlQTQlQTclRTUlQjMlQTElRTglQjAlQjclMjAlRTklQTMlOEUlRTYlOTklQUZ8ZW58MHx8fHwxNzUwNDA1ODcyfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="拉萨+林芝+雅鲁藏布大峡谷" class="product-img">
+                    <div class="product-info">
+                        <h3 class="product-title">拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团</h3>
+                        <div class="product-meta">
+                            <span>
+                                <i class="fas fa-star" style="color: var(--primary);"></i>
+                                5.0分
+                            </span>
+                            <span>已售103人</span>
+                        </div>
+                        <div class="product-price">
+                            <div>
+                                <span class="price">¥8,193</span>
+                                <span class="price-label">/人起</span>
+                            </div>
+                            <span class="promotion-tag">限时优惠</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1653101534971-86943d5e6055?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwxfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTclQkUlOEElRTUlOEQlOTMlRTklOUIlOEQlRTklOTQlOTklMjAlRTYlQjklOTYlRTYlQjMlOEF8ZW58MHx8fHwxNzUwNDA1ODkwfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="羊卓雍错" class="product-img">
+                    <div class="product-info">
+                        <h3 class="product-title">林芝+拉萨+日喀则+布达拉宫+羊卓雍错8日7晚私家团</h3>
+                        <div class="product-meta">
+                            <span>
+                                <i class="fas fa-star" style="color: var(--primary);"></i>
+                                4.9分
+                            </span>
+                            <span>已售89人</span>
+                        </div>
+                        <div class="product-price">
+                            <div>
+                                <span class="price">¥11,186</span>
+                                <span class="price-label">/人起</span>
+                            </div>
+                            <span class="promotion-tag">热门推荐</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1647876469124-364e51fef318?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwzfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTklOUIlODUlRTklQjIlODElRTglOTclOEYlRTUlQjglODMlRTUlQTQlQTclRTUlQjMlQTElRTglQjAlQjclMjAlRTklQTMlOEUlRTYlOTklQUZ8ZW58MHx8fHwxNzUwNDA1ODcyfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="雅鲁藏布大峡谷" class="product-img">
+                    <div class="product-info">
+                        <h3 class="product-title">拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍错+纳木措8日7晚私家团</h3>
+                        <div class="product-meta">
+                            <span>
+                                <i class="fas fa-star" style="color: var(--primary);"></i>
+                                4.8分
+                            </span>
+                            <span>已售156人</span>
+                        </div>
+                        <div class="product-price">
+                            <div>
+                                <span class="price">¥7,116</span>
+                                <span class="price-label">/人起</span>
+                            </div>
+                            <span class="promotion-tag">国内精选</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 添加下拉加载更多提示 -->
+                <div class="load-more">
+                    <i class="fas fa-spinner fa-spin"></i>下拉加载更多
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item active">
+                <i class="fas fa-home"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-route"></i>
+                <span>行程</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script>
+        // 初始化Swiper轮播图
+        var swiper = new Swiper(".mySwiper", {
+            slidesPerView: 1,
+            spaceBetween: 0,
+            loop: true,
+            autoplay: {
+                delay: 5000, // 增加展示时间
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            effect: "fade", // 使用淡入淡出效果
+            fadeEffect: {
+                crossFade: true // 启用交叉淡入淡出
+            }
+        });
+        
+        // 搜索按钮点击事件
+        document.querySelector('.search-btn').addEventListener('click', function() {
+            // 这里可以添加跳转到搜索页面的逻辑
+            alert('跳转到搜索页面');
+        });
+        
+        // 探索按钮点击事件 - 平滑滚动到内容区域
+        document.querySelector('.explore-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const contentArea = document.querySelector('.content-area');
+            const mainScrollArea = document.querySelector('.main-scroll-area');
+            
+            mainScrollArea.scrollTo({
+                top: contentArea.offsetTop - 50,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 滚动提示点击事件
+        document.querySelector('.scroll-hint').addEventListener('click', function() {
+            const contentArea = document.querySelector('.content-area');
+            const mainScrollArea = document.querySelector('.main-scroll-area');
+            
+            mainScrollArea.scrollTo({
+                top: contentArea.offsetTop - 50,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 监听滚动事件，隐藏滚动提示
+        const mainScrollArea = document.querySelector('.main-scroll-area');
+        const scrollHint = document.querySelector('.scroll-hint');
+        
+        mainScrollArea.addEventListener('scroll', function() {
+            if (mainScrollArea.scrollTop > 50) {
+                scrollHint.style.opacity = '0';
+                scrollHint.style.pointerEvents = 'none';
+            } else {
+                scrollHint.style.opacity = '0.9';
+                scrollHint.style.pointerEvents = 'auto';
+            }
+        });
+    </script>
+</body>
+</html> 

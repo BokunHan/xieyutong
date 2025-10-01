@@ -1,0 +1,65 @@
+[
+  {
+    "_id": "review_demo_001",
+    "user_id": "user_demo_001",
+    "product_id": "41767537",
+    "rating": 5,
+    "content": "这次西藏之行真的太棒了！导游非常专业，行程安排合理，布达拉宫的震撼无法言喻。酒店的供氧设施也很贴心，完全没有高原反应。雅鲁藏布大峡谷的美景让人流连忘返，南迦巴瓦峰在夕阳下的金山景色美得令人窒息。强烈推荐给想去西藏的朋友们！",
+    "images": [
+      "https://example.com/review/image1.jpg",
+      "https://example.com/review/image2.jpg",
+      "https://example.com/review/image3.jpg"
+    ],
+    "travel_date": "2024-08-15",
+    "is_real": true,
+    "helpful_count": 23,
+    "status": "approved",
+    "created_at": {
+      "$env": "now"
+    },
+    "updated_at": {
+      "$env": "now"
+    }
+  },
+  {
+    "_id": "review_demo_002",
+    "user_id": "ai_user_001",
+    "product_id": "41767537",
+    "rating": 4,
+    "content": "整体行程很满意，特别是索松村的酒店位置绝佳，可以近距离观赏南迦巴瓦峰。早上起来拉开窗帘就能看到雪山，简直是人间仙境。唯一的小建议是希望能增加一些当地文化体验活动。",
+    "images": [
+      "https://example.com/review/ai_image1.jpg",
+      "https://example.com/review/ai_image2.jpg"
+    ],
+    "travel_date": "2024-09-20",
+    "is_real": false,
+    "helpful_count": 15,
+    "status": "approved",
+    "created_at": {
+      "$env": "now"
+    },
+    "updated_at": {
+      "$env": "now"
+    }
+  },
+  {
+    "_id": "review_demo_003",
+    "user_id": "user_demo_002",
+    "product_id": "41767537",
+    "rating": 5,
+    "content": "第一次去西藏，选择这个团真的选对了！从接机开始就感受到了贴心的服务，车辆很新很干净。住的酒店都有供氧系统，晚上睡觉很安心。雅鲁藏布大峡谷的壮美景色让人惊叹，拍了好多美照。导游小王很幽默，一路上给我们讲了很多藏族文化知识。",
+    "images": [
+      "https://example.com/review/user_image1.jpg"
+    ],
+    "travel_date": "2024-10-05",
+    "is_real": true,
+    "helpful_count": 8,
+    "status": "approved",
+    "created_at": {
+      "$env": "now"
+    },
+    "updated_at": {
+      "$env": "now"
+    }
+  }
+] 

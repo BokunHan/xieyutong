@@ -1,0 +1,13 @@
+{
+  "name": "a-order-service",
+  "version": "1.0.0",
+  "description": "订单管理服务云对象",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common",
+    "uni-pay": "file:../../../uni_modules/uni-pay/uniCloud/cloudfunctions/common/uni-pay"
+  },
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

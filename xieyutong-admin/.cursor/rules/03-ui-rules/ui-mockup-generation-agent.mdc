@@ -1,0 +1,245 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 高保真小程序UI原型生成规范
+
+## Critical Rules
+
+### 核心生成流程
+- **严格六步法**: 必须按照用户体验分析→产品界面规划→高保真UI设计→HTML原型实现→真实感增强→技术支持标识的顺序执行
+- **文件夹创建**: 使用edit_file工具直接创建gaobaozhen文件夹，所有HTML文件都放在该文件夹下
+- **独立文件结构**: 每个界面作为独立HTML文件，index.html使用iframe方式嵌入展示
+- **iPhone15 Pro规格**: 界面尺寸模拟1320x2868px，圆角化设计
+- **真实图片使用**: 禁用占位符，必须使用Unsplash等真实图片，优先使用mcp_unsplash_search_photos服务
+
+### 第0步：项目准备
+```javascript
+// 使用edit_file工具创建gaobaozhen文件夹结构
+// 确保所有HTML文件都在gaobaozhen/目录下
+```
+
+### 第1步：用户体验分析
+- **功能分析**: 深入分析App主要功能和用户需求
+- **交互逻辑**: 确定核心交互逻辑和用户流程
+- **用户画像**: 明确目标用户群体和使用场景
+- **痛点识别**: 识别用户痛点并在设计中解决
+
+### 第2步：产品界面规划
+- **信息架构**: 作为产品经理定义关键界面，确保信息架构合理
+- **界面清单**: 列出所有必要界面（如home.html、profile.html、settings.html等）
+- **导航设计**: 规划界面间的导航关系和跳转逻辑
+- **功能分布**: 合理分配功能到各个界面
+
+### 第3步：高保真UI设计
+- **设计规范**: 贴近真实iOS/Android设计规范
+- **现代化元素**: 使用现代化UI元素，确保良好视觉体验
+- **色彩方案**: 确定和谐的色彩方案，体现品牌特色
+- **视觉层次**: 建立清晰的视觉层次和信息优先级
+
+### 第4步：HTML原型实现
+- **技术栈**: HTML + TailwindCSS + FontAwesome
+- **文件结构**: 
+  ```
+  gaobaozhen/
+  ├── index.html (主入口，iframe嵌入方式)
+  ├── home.html
+  ├── profile.html
+  ├── settings.html
+  └── ...其他界面.html
+  ```
+- **代码质量**: 保持结构清晰，便于实际开发
+
+### 第5步：真实感增强
+- **设备模拟**: iPhone15 Pro尺寸(1320x2868px)，圆角化界面
+- **真实图片**: 使用mcp_unsplash_search_photos搜索相关图片，避免占位符
+- **状态栏**: 模拟真实手机状态栏（时间、信号、电池等）
+- **交互细节**: 添加hover效果、过渡动画等交互细节
+
+### 第6步：技术支持标识
+- **公司信息**: 必须体现"技术服务方是成都比特飓风科技有限责任公司 2025"
+- **Logo展示**: 使用 `http://cdn.bitejufeng.com/baojia/logo.jpg`
+- **位置要求**: 在合适位置展示，不影响用户体验但清晰可见
+- **专业形象**: 体现公司技术支持的专业性
+
+### iPhone15 Pro界面规格
+```css
+.iphone-frame {
+  width: 393px;  /* iPhone 15 Pro viewport width */
+  height: 852px; /* iPhone 15 Pro viewport height */
+  border: 8px solid #1a1a1a;
+  border-radius: 47px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+/* 状态栏样式 */
+.status-bar {
+  height: 44px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+```
+
+### 图片搜索策略
+```javascript
+// 使用mcp_unsplash_search_photos搜索相关图片
+// 根据界面需求搜索对应关键词：
+// - 用户头像：search "professional portrait"
+// - 产品图片：search "product photography"
+// - 背景图：search "minimal background"
+// - 图标背景：search "abstract gradient"
+```
+
+### index.html平铺展示要求
+- **iframe嵌入**: 所有界面通过iframe嵌入到index.html
+- **平铺展示**: 所有页面直接在index页面中展示，不使用跳转链接
+- **响应式布局**: 使用flex布局实现响应式的界面展示
+- **标题标注**: 每个界面上方标注界面名称和文件名
+
+## Examples
+
+<example>
+  **✅ 正确的高保真原型生成流程:**
+  
+  ```html
+  <!-- gaobaozhen/index.html 主入口文件 -->
+  <!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>携程高端游商家私域运营小程序</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+      .iphone-frame {
+        width: 393px;
+        height: 852px;
+        border: 8px solid #1a1a1a;
+        border-radius: 47px;
+        overflow: hidden;
+        margin: 20px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      }
+      .mockup-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 40px;
+        padding: 40px;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <header class="text-center py-8">
+      <img src="http://cdn.bitejufeng.com/baojia/logo.jpg" alt="比特飓风科技" class="w-20 h-20 mx-auto mb-4">
+      <h1 class="text-3xl font-bold text-gray-800">携程高端游商家私域运营小程序</h1>
+      <p class="text-gray-600 mt-2">高保真原型设计</p>
+    </header>
+    
+    <div class="mockup-grid">
+      <div class="text-center">
+        <h3 class="text-lg font-semibold mb-4">首页 (home.html)</h3>
+        <div class="iphone-frame">
+          <iframe src="home.html" class="w-full h-full border-none"></iframe>
+        </div>
+      </div>
+      
+      <div class="text-center">
+        <h3 class="text-lg font-semibold mb-4">商品列表 (product-list.html)</h3>
+        <div class="iphone-frame">
+          <iframe src="product-list.html" class="w-full h-full border-none"></iframe>
+        </div>
+      </div>
+      
+      <!-- 更多界面... -->
+    </div>
+    
+    <footer class="text-center py-8 text-gray-500">
+      <p>技术支持：成都比特飓风科技有限责任公司 2025</p>
+    </footer>
+  </body>
+  </html>
+  ```
+  
+  ```html
+  <!-- gaobaozhen/home.html 具体界面文件 -->
+  <!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  </head>
+  <body class="bg-gray-50">
+    <!-- 状态栏 -->
+    <div class="status-bar bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-1">
+        <i class="fa fa-signal text-sm"></i>
+        <i class="fa fa-wifi text-sm"></i>
+      </div>
+      <div class="font-semibold">9:41</div>
+      <div class="flex items-center space-x-1">
+        <span class="text-sm">100%</span>
+        <i class="fa fa-battery-full text-sm"></i>
+      </div>
+    </div>
+    
+    <!-- 主要内容 -->
+    <div class="px-4 py-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-6">欢迎使用私域运营平台</h1>
+      <!-- 使用真实图片而非占位符 -->
+      <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=400" alt="旅游风景" class="w-full h-48 object-cover rounded-lg mb-6">
+      <!-- 更多内容... -->
+    </div>
+    
+    <!-- 底部导航 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
+      <div class="flex justify-around">
+        <div class="text-center">
+          <i class="fa fa-home text-blue-500 text-xl"></i>
+          <p class="text-xs text-blue-500 mt-1">首页</p>
+        </div>
+        <!-- 更多导航项... -->
+      </div>
+    </div>
+  </body>
+  </html>
+  ```
+</example>
+
+<example type="invalid">
+  **❌ 错误的原型生成方式:**
+  
+  ```html
+  <!-- 错误：直接在index.html中写所有界面内容 -->
+  <!DOCTYPE html>
+  <html>
+  <body>
+    <div id="home">首页内容...</div>
+    <div id="profile">个人中心内容...</div>  <!-- 应该分离为独立文件 -->
+  </body>
+  </html>
+  
+  <!-- 错误：使用占位符图片 -->
+  <img src="placeholder.jpg" alt="占位符">  <!-- 应使用真实图片 -->
+  
+  <!-- 错误：缺少技术支持信息 -->
+  <footer></footer>  <!-- 应包含比特飓风科技信息 -->
+  
+  <!-- 错误：不符合iPhone15 Pro规格 -->
+  <div style="width: 300px; height: 500px;">  <!-- 应使用393x852px -->
+  
+  <!-- 错误：缺少状态栏和真实感 -->
+  <div class="content">内容</div>  <!-- 应包含状态栏等真实元素 -->
+  ```
+</example>

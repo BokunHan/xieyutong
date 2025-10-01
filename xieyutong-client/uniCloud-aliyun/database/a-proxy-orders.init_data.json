@@ -1,0 +1,38 @@
+[
+  {
+    "orderNo": "PO20241225001",
+    "customerPhone": "13800138001",
+    "productId": "ctrip_123456",
+    "productTitle": "云南丽江古城+玉龙雪山双飞5日游",
+    "productSource": "ctrip",
+    "departureDate": "2024-12-30",
+    "amount": 2980.00,
+    "status": "completed",
+    "remarks": "客户特殊要求：安排临江房间",
+    "operatorId": "admin001"
+  },
+  {
+    "orderNo": "PO20241225002",
+    "customerPhone": "13900139002",
+    "productId": "sys_789012",
+    "productTitle": "三亚蜈支洲岛+天涯海角豪华4日游",
+    "productSource": "system",
+    "departureDate": "2025-01-05",
+    "amount": 3580.00,
+    "status": "processing",
+    "remarks": "代下单成功，等待携程确认",
+    "operatorId": "admin002"
+  },
+  {
+    "orderNo": "PO20241225003",
+    "customerPhone": "13700137003",
+    "productId": "ctrip_345678",
+    "productTitle": "九寨沟+黄龙+熊猫基地双飞6日游",
+    "productSource": "ctrip",
+    "departureDate": "2025-01-15",
+    "amount": 4280.00,
+    "status": "pending",
+    "remarks": "客户要求升级酒店",
+    "operatorId": "admin001"
+  }
+] 

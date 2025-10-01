@@ -1,0 +1,16 @@
+{
+  "name": "a-proxy-order-service",
+  "version": "1.0.0",
+  "description": "代下单服务云函数",
+  "main": "index.js",
+  "dependencies": {
+    "uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

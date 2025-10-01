@@ -1,0 +1,104 @@
+{
+  "bsonType": "object",
+  "description": "分销返券表，老客户推荐新人双方获得优惠券",
+  "required": ["referrer_id", "referee_id", "status"],
+  "permission": {
+    "read": "auth.uid == doc.referrer_id || auth.uid == doc.referee_id || role in ['admin', 'super_admin']",
+    "create": "role in ['admin', 'super_admin']",
+    "update": "role in ['admin', 'super_admin']",
+    "delete": "role in ['super_admin']",
+    "count": true
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "referrer_id": {
+      "bsonType": "string",
+      "description": "推荐人用户ID（老客户，获得推荐感谢券）",
+      "title": "推荐人ID",
+      "required": true,
+      "maxLength": 50
+    },
+    "referee_id": {
+      "bsonType": "string",
+      "description": "被推荐人用户ID（被老客户推荐的新人，获得新人专享券）",
+      "title": "被推荐人ID",
+      "required": true,
+      "maxLength": 50
+    },
+    "order_id": {
+      "bsonType": "string",
+      "description": "触发奖励的订单ID",
+      "title": "关联订单ID",
+      "maxLength": 50
+    },
+    "order_amount": {
+      "bsonType": "number",
+      "description": "订单金额",
+      "title": "订单金额",
+      "minimum": 0
+    },
+    "referrer_coupon_id": {
+      "bsonType": "string",
+      "description": "推荐人获得的感谢券ID",
+      "title": "推荐感谢券ID",
+      "maxLength": 50
+    },
+    "referee_coupon_id": {
+      "bsonType": "string",
+      "description": "被推荐新人获得的专享券ID",
+      "title": "新人专享券ID",
+      "maxLength": 50
+    },
+    "referrer_coupon_amount": {
+      "bsonType": "number",
+      "description": "推荐人感谢券金额",
+      "title": "推荐感谢券金额",
+      "minimum": 0,
+      "default": 1000
+    },
+    "referee_coupon_amount": {
+      "bsonType": "number",
+      "description": "被推荐新人专享券金额",
+      "title": "新人专享券金额",
+      "minimum": 0,
+      "default": 1000
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "分销状态",
+      "title": "状态",
+      "enum": ["pending", "confirmed", "completed"],
+      "default": "pending",
+      "required": true
+    },
+    "order_date": {
+      "bsonType": "timestamp",
+      "description": "订单时间"
+    },
+    "coupon_sent_date": {
+      "bsonType": "timestamp",
+      "description": "优惠券发放时间"
+    },
+    "remark": {
+      "bsonType": "string",
+      "description": "备注信息",
+      "maxLength": 200
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+} 

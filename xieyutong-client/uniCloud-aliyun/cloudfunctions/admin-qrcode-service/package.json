@@ -1,0 +1,9 @@
+{
+  "name": "admin-qrcode-service",
+  "version": "1.0.0",
+  "description": "管理端二维码服务云函数",
+  "main": "index.js",
+  "dependencies": {
+    "uni-id-common": "file:../../../../uni_modules/uni-id-common"
+  }
+}

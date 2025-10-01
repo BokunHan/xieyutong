@@ -1,0 +1,190 @@
+{
+  "bsonType": "object",
+  "description": "代下单订单表",
+  "required": ["orderNo", "customerPhone", "productId", "status"],
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "orderNo": {
+      "bsonType": "string",
+      "description": "订单号",
+      "label": "订单号",
+      "trim": "both"
+    },
+    "customerPhone": {
+      "bsonType": "string",
+      "description": "客户手机号",
+      "label": "客户手机号",
+      "trim": "both"
+    },
+    "customerName": {
+      "bsonType": "string",
+      "description": "客户姓名",
+      "label": "客户姓名",
+      "trim": "both"
+    },
+    "productId": {
+      "bsonType": "string",
+      "description": "商品ID",
+      "label": "商品ID",
+      "trim": "both"
+    },
+    "productTitle": {
+      "bsonType": "string",
+      "description": "商品标题",
+      "label": "商品标题"
+    },
+    "productSource": {
+      "bsonType": "string",
+      "description": "商品来源",
+      "label": "商品来源",
+      "enum": [
+        {
+          "text": "系统内部",
+          "value": "system"
+        },
+        {
+          "text": "携程",
+          "value": "ctrip"
+        }
+      ],
+      "defaultValue": "system"
+    },
+    "departureDate": {
+      "bsonType": "string",
+      "description": "出发时间",
+      "label": "出发时间"
+    },
+    "amount": {
+      "bsonType": "double",
+      "description": "订单金额",
+      "label": "订单金额",
+      "minimum": 0,
+      "defaultValue": 0
+    },
+    "adultCount": {
+      "bsonType": "int",
+      "description": "成人数量",
+      "label": "成人数量",
+      "minimum": 0,
+      "defaultValue": 1
+    },
+    "childCount": {
+      "bsonType": "int",
+      "description": "儿童数量",
+      "label": "儿童数量",
+      "minimum": 0,
+      "defaultValue": 0
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "订单状态",
+      "label": "订单状态",
+      "enum": [
+        {
+          "text": "下单成功",
+          "value": "success"
+        },
+        {
+          "text": "下单失败",
+          "value": "failed"
+        }
+      ],
+      "defaultValue": "success"
+    },
+    "remarks": {
+      "bsonType": "string",
+      "description": "备注信息",
+      "label": "备注信息"
+    },
+    "operatorId": {
+      "bsonType": "string",
+      "description": "操作员ID",
+      "label": "操作员ID"
+    },
+    "operatorName": {
+      "bsonType": "string",
+      "description": "操作员姓名",
+      "label": "操作员姓名"
+    },
+    "ctripOrderId": {
+      "bsonType": "string",
+      "description": "携程订单ID",
+      "label": "携程订单ID"
+    },
+    "confirmationCode": {
+      "bsonType": "string",
+      "description": "确认码",
+      "label": "确认码"
+    },
+    "processingLog": {
+      "bsonType": "array",
+      "description": "处理日志",
+      "label": "处理日志",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "action": {
+            "bsonType": "string",
+            "description": "操作"
+          },
+          "message": {
+            "bsonType": "string",
+            "description": "消息"
+          },
+          "timestamp": {
+            "bsonType": "timestamp",
+            "description": "时间戳"
+          },
+          "operatorId": {
+            "bsonType": "string",
+            "description": "操作员ID"
+          }
+        }
+      }
+    },
+    "retryCount": {
+      "bsonType": "int",
+      "description": "重试次数",
+      "label": "重试次数",
+      "minimum": 0,
+      "defaultValue": 0
+    },
+    "retryAt": {
+      "bsonType": "timestamp",
+      "description": "重试时间",
+      "label": "重试时间"
+    },
+    "completedAt": {
+      "bsonType": "timestamp",
+      "description": "完成时间",
+      "label": "完成时间"
+    },
+    "cancelledAt": {
+      "bsonType": "timestamp",
+      "description": "取消时间",
+      "label": "取消时间"
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  },
+  "permission": {
+    "read": true,
+    "create": "auth.uid != null",
+    "update": "auth.uid != null",
+    "delete": "auth.uid != null"
+  }
+} 

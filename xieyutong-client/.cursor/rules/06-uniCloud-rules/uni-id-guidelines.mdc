@@ -1,0 +1,491 @@
+---
+description: ## 何时应用此规则 - 在进行 `uni-id` 相关功能开发时，如用户注册、登录、第三方授权、密码管理等。 - 在配置 `uni-id` 的 `config.json` 文件时。 - 在设计或修改与 `uni-id` 相关的数据库 Schema 时，特别是用户表、角色表、权限表。 - 在处理前端页面访问控制，使用 `uniIdRouter` 时。 - 在调试 `uni-id` 相关的错误和异常时。
+globs: 
+alwaysApply: false
+---
+# uni-id 配置与使用规范
+
+## 1. 核心概念与目标
+
+`uni-id` 是 `uniCloud`生态下的用户身份认证和管理服务。本规范旨在确保在项目中正确、安全、高效地使用 `uni-id`。
+
+### 1.1 uni-id 体系组件解析
+
+`uni-id` 并非单一组件，而是一个分层设计的账户体系解决方案，主要包含以下核心部分：
+
+*   **`uni-id` (DB Schema - 数据库规范):**
+    *   **定义：** `uni-id` 首先定义了一套标准的数据库表结构（例如 `uni-id-users`, `uni-id-roles`, `uni-id-permissions`），用于存储用户信息、角色、权限等关键数据。这是整个账户体系的基石。
+    *   **作用：** 提供了账户数据存储的统一规范，方便开发者快速搭建和扩展。
+
+*   **`uni-id-common` (云端公共模块):**
+    *   **定义：** 封装了服务端账户体系的核心能力，主要聚焦于 **Token 的生成、校验、续期逻辑**，以及用户权限和角色的基础验证机制。
+    *   **作用：** 提供精简、安全的身份与权限验证核心，方便被自定义云函数或云对象引用，保障云端服务安全，不耦合具体业务。
+
+*   **`uni-id-co` (云对象):**
+    *   **定义：** 一套基于 `uni-id` 数据库规范和 `uni-id-common` 核心能力，封装了**具体用户管理业务逻辑**的云对象。
+    *   **作用：** 提供开箱即用的用户管理后端 API，如注册、登录、修改密码、发送验证码、绑定手机/邮箱、获取用户信息等。它是数据库操作 + Token 鉴权 + 业务场景 API 的集合体。二次开发时，通常直接引入并调用此云对象即可：
+        ```javascript
+        const uniIdCo = uniCloud.importObject("uni-id-co")
+        ```
+        参考文档：[uni-id 云对象](mdc:https:/doc.dcloud.net.cn/uniCloud/uni-id/cloud-object.html)
+
+*   **`uni-id-pages` (前端页面模板 + `uni-id-co`):**
+    *   **定义：** 在 `uni-id-co` 提供的后端云对象接口基础上，进一步提供了一套完整的前端 UI 页面模板。
+    *   **作用：** 包含登录页、注册页、个人中心等，适配多端，提供了一个可以直接使用的用户中心解决方案，极大减少前端开发工作量。
+
+**总结层级关系：**
+
+1.  **规范与基础：** `uni-id` 的数据库表规范 (`uni-id-users` 等)。
+2.  **核心能力：** `uni-id-common` 提供底层的 Token 管理和权限校验。
+3.  **业务实现：** `uni-id-co` 封装完整的用户管理后端业务 API。
+4.  **完整应用：** `uni-id-pages` 结合 `uni-id-co` 和预置前端页面，提供端到端解决方案。
+
+更多概览信息，请参考：[uni-id 简介](mdc:https:/doc.dcloud.net.cn/uniCloud/uni-id/summary.html)
+
+## 2. 配置文件 (`config.json`)
+
+`uni-id` 的核心配置文件位于 `uniCloud/cloudfunctions/common/uni-config-center/uni-id/config.json`。
+
+**重要注意事项：**
+-   `config.json` 是一个标准的 JSON 文件，**不支持注释**。
+-   `passwordSecret` 和 `tokenSecret` **极其重要**，必须妥善保管，并且**不应使用示例值**。
+    -   修改 `passwordSecret` 将导致老用户无法通过密码登录。
+    -   修改 `tokenSecret` 将导致所有已下发的 Token 失效。
+-   重新导入 `uni-id` 时，切勿直接覆盖 `config.json` 中的这些密钥配置。
+
+### 2.1 主要配置项说明
+// 如果拷贝此内容切记去除注释
+{
+  "passwordSecret": [
+    {
+      "type": "hmac-sha256",
+      "version": 1
+    }
+  ], // 数据库中password字段是加密存储的，这里的passwordSecret即为加密密码所用的加密算法，详见[密码安全]
+  "passwordStrength": "medium", // 密码强度，新增于 uni-id-pages 1.0.8版本，见下方说明
+  "tokenSecret": "", // 生成token所用的密钥，注意修改为自己的，使用一个较长的字符串即可
+  "requestAuthSecret": "", // URL化请求鉴权签名密钥
+  "tokenExpiresIn": 7200, // 全平台token过期时间，未指定过期时间的平台会使用此值
+  "tokenExpiresThreshold": 3600, // 新增于uni-id 1.1.7版本，checkToken时如果token有效期小于此值且在有效期内则自动获取新token，请注意将新token返回给前端保存（云对象会自动保存符合uniCloud响应体规范的响应内的新token），如果不配置此参数则不开启自动获取新token功能
+  "maxTokenLength": 10, // 数据库用户记录token数组的最大长度，默认为10。新增于uni-id-common 1.0.16
+  "passwordErrorLimit": 6, // 密码错误最大重试次数
+  "passwordErrorRetryTime": 3600, // 密码错误重试次数超限之后的冻结时间
+  "autoSetInviteCode": false, // 是否在用户注册时自动设置邀请码，默认不自动设置
+  "forceInviteCode": false, // 是否强制用户注册时必填邀请码，默认为false
+  "idCardCertifyLimit": 1, // 实名认证相关; 限制每个身份证可以绑定几个账号
+  "realNameCertifyLimit": 5, // 实名认证相关; 限制用户每日认证次数，防止接口被刷
+  "sensitiveInfoEncryptSecret": "", // 敏感信息加密密钥(长度为32位的字符串)，如使用实名认证功能需配置此密钥
+  "frvNeedAlivePhoto": false, // 实名认证相关；是否获取认证照片
+  "userRegisterDefaultRole": [], // 用户注册时的默认角色
+  "app": { // 如果你使用旧版本uni-id公共模块而不是uni-id-common这里可能配置的是app-plus，务必注意调整为app
+    "tokenExpiresIn": 2592000,
+    "tokenExpiresThreshold": 864000,
+    "oauth": {
+      // App微信登录所用到的appid、appsecret需要在微信开放平台获取，注意：不是公众平台而是开放平台
+      "weixin": {
+        "appid": "",
+        "appsecret": ""
+      },
+      // App QQ登录所用到的appid、appsecret需要在腾讯开放平台获取，注意：不是公众平台而是开放平台
+      "qq": {
+        "appid": "",
+        "appsecret": ""
+      },
+      "apple": { // 使用苹果登录时需要
+        "bundleId": ""
+      },
+      "huawei": { // 鸿蒙应用使用华为登录
+        "clientId": "",
+        "clientSecret": ""
+      }
+    }
+  },
+  "web": { // 如果你使用旧版本uni-id公共模块而不是uni-id-common这里可能配置的是h5，务必注意调整为web
+    "tokenExpiresIn": 7200,
+    "tokenExpiresThreshold": 3600,
+    "oauth": {
+      "weixin-h5": { // 微信公众号登录配置
+        "appid": "",
+        "appsecret": ""
+      },
+      "weixin-web": { // 微信PC页面扫码登录配置
+        "appid": "",
+        "appsecret": ""
+      }
+    }
+  },
+  "mp-weixin": {
+    "tokenExpiresIn": 259200,
+    "tokenExpiresThreshold": 86400,
+    "oauth": {
+      // 微信小程序登录所用的appid、appsecret需要在对应的小程序管理控制台获取
+      "weixin": {
+        "appid": "",
+        "appsecret": ""
+      }
+    }
+  },
+  "mp-qq": {
+    "tokenExpiresIn": 259200,
+    "tokenExpiresThreshold": 86400,
+    "oauth": {
+      // QQ小程序登录所用的appid、appsecret需要在对应的小程序管理控制台获取
+      "qq": {
+        "appid": "",
+        "appsecret": ""
+      }
+    }
+  },
+  "mp-alipay": {
+    "tokenExpiresIn": 259200,
+    "tokenExpiresThreshold": 86400,
+    "oauth": {
+      // 支付宝小程序登录用到的appid、privateKey请参考支付宝小程序的文档进行设置或者获取，https://opendocs.alipay.com/open/291/105971#LDsXr
+      "alipay": {
+        "appid": "",
+        "privateKey": "", // 私钥
+        "keyType": "PKCS8" // 私钥类型，如果私钥类型不是PKCS8，需要填写此字段，否则会出现"error:0D0680A8:asn1 encoding routines:ASN1_CHECK_TLEN:wrong tag"错误
+      }
+    }
+  },
+  "mp-harmony": {
+      "oauth": {
+        "huawei": { // 鸿蒙元服务使用华为登录
+          "clientId": "",
+          "clientSecret": ""
+        }
+      }
+  },
+  "service": {
+    "sms": {
+      "name": "", // 应用名称，对应短信模版的name
+      "codeExpiresIn": 180, // 验证码过期时间，单位为秒，注意一定要是60的整数倍
+      "scene": {
+        "bind-mobile-by-sms": { // 对绑定手机号场景的配置，短信验证码场景值参考：https://uniapp.dcloud.net.cn/uniCloud/uni-id/summary.html#sms-scene
+          "templateId": "", // 绑定手机号使用的短信验证码模板
+          "codeExpiresIn": 240 // 绑定手机号验证码过期时间
+        }
+      }
+    },
+    "univerify": {
+      "appid": "" // uni-id-co 1.1.17及以上版本无需填写，当前应用的appid，使用云函数URL化，此项必须配置
+    }
+  }
+}
+
+### 2.2 平台特定配置
+
+可以在 `config.json` 中为不同平台（如 `app`, `web`, `mp-weixin`, `mp-qq`, `mp-alipay`, `mp-harmony`）配置独立的 `tokenExpiresIn`, `tokenExpiresThreshold` 和 `oauth`（第三方登录）参数。
+
+**示例 (`mp-weixin`):**
+```json
+"mp-weixin": {
+  "tokenExpiresIn": 259200,
+  "tokenExpiresThreshold": 86400,
+  "oauth": {
+    "weixin": {
+      "appid": "YOUR_WEIXIN_MP_APPID",
+      "appsecret": "YOUR_WEIXIN_MP_APPSECRET"
+    }
+  }
+}
+```
+**注意：**
+- App微信登录在 `app.oauth.weixin` 中配置，使用微信**开放平台**的 `appid` 和 `appsecret`。
+- 微信小程序登录在 `mp-weixin.oauth.weixin` 中配置，使用微信**小程序管理后台**的 `appid` 和 `appsecret`。
+- 其他平台的 OAuth 配置类似，需从各自开放平台获取凭证。
+
+### 2.3 服务配置 (`service`)
+
+#### 2.3.1 短信服务 (`sms`)
+如果使用 `sendSmsCode` 接口发送短信，需在 uniCloud 控制台开通并充值短信服务，并配置 `service.sms`：
+```json
+"service": {
+  "sms": {
+    "name": "您的应用名称", // 对应短信模板的name
+    "codeExpiresIn": 180, // 全局验证码过期时间 (秒)，必须是60的整数倍
+    "scene": { // 可针对不同场景配置短信模板和过期时间
+      "bind-mobile-by-sms": {
+        "templateId": "YOUR_TEMPLATE_ID",
+        "codeExpiresIn": 240
+      }
+      // 其他场景...
+    }
+  }
+}
+```
+
+#### 2.3.2 一键登录 (`univerify`)
+```json
+"service": {
+  "univerify": {
+    "appid": "YOUR_DCLOUD_APPID" // 使用云函数URL化时必须配置，uni-id-co 1.1.17+ 无需填写
+  }
+}
+```
+
+## 3. 登录方式与配置
+
+登录方式	配置及获取方式
+用户名、手机号、邮箱+密码	配置passwordSecret即可
+手机号+验证码	配置service.sms，在uniCloud控制台短信服务内获取配置信息：短信服务
+手机号一键登录	配置service.univerify，在开发者中心一键登录服务内获取：一键登录
+微信小程序登录	配置mp-weixin.oauth.weixin，在微信公众平台获取：微信公众平台
+微信公众号登录	配置web.oauth.weixin-h5，在微信公众平台获取：微信公众平台
+微信PC页面扫码登录	配置web.oauth.weixin-web，在微信开放平台获取：微信开放平台
+微信APP端登录	配置app.oauth.weixin，在微信开放平台获取：微信开放平台
+QQ 小程序端登录	配置mp-qq.oauth.qq，在QQ开放平台获取：QQ开放平台
+QQ APP端登录	配置app.oauth.qq，在QQ互联获取：QQ互联
+支付宝小程序端登录	配置mp-alipay.oauth.alipay，在支付宝开放平台获取：支付宝开放平台
+Apple APP端登录	配置app.oauth.apple，在Apple开发者中心自行配置：Apple开发者中心
+
+## 4. Token 管理
+
+-   **生成与下发：** 用户登录成功后，云端自动下发 `token` 和有效期。
+-   **前端存储：** `uni-app` 框架自动将 `token` (名为 `uni_id_token`) 保存在客户端存储中。
+-   **自动携带：** 前端每次请求 `uniCloud` (clientDB, callFunction, 云对象) 时，自动携带 `token`。
+-   **自动续期：** 若 `config.json` 中配置了 `tokenExpiresThreshold`，且 `token` 在有效期内但剩余时间小于该阈值，框架会自动续期。续期后的新 `token` 需要返回给前端保存。
+-   **平台差异：** 不同平台的 `token` 有效期通常不同，可在 `config.json` 中为各平台单独配置。
+
+## 5. 用户角色与权限 (RBAC)
+
+`uni-id` 基于 RBAC (Role-Based Access Control) 模型实现权限管理。
+
+### 5.1 RBAC 模型核心：
+-   **用户 (User):** 系统使用者，存储于 `uni-id-users` 表。一个用户可拥有多个角色。
+-   **角色 (Role):** 权限的集合，存储于 `uni-id-roles` 表。一个角色可包含多个权限。
+-   **权限 (Permission):** 具体操作许可，存储于 `uni-id-permissions` 表。
+
+### 5.2 关键表与字段：
+-   **`uni-id-users` 表:**
+    -   `role` (Array): 存储用户拥有的角色ID (`role_id`) 列表。
+-   **`uni-id-roles` 表:**
+    -   `role_id` (String): 角色唯一标识。
+    -   `permission` (Array): 存储该角色拥有的权限ID (`permission_id`) 列表。
+-   **`uni-id-permissions` 表:**
+    -   `permission_id` (String): 权限唯一标识。
+
+### 5.3 clientDB 权限配置：
+可以在 `schema.json` 中使用角色和权限进行细粒度的数据库操作控制。
+```json
+// uni-id-users.schema.json 示例
+{
+  "permission": {
+    // 用户自己 或 拥有 'USER_ADMIN' 角色的人 可更新用户表
+    "update": "doc._id == auth.uid || 'USER_ADMIN' in auth.role",
+    // 用户自己 或 拥有 'USER_EDIT' 权限的人 可更新用户表
+    // "update": "doc._id == auth.uid || 'USER_EDIT' in auth.permission"
+  }
+}
+```
+**注意：**
+-   `'admin'` 是超级管理员角色，拥有所有数据表的全部权限。
+-   权限总数量不得超过 500。
+-   用户的角色权限信息会缓存在 `token` 内。
+
+## 6. 主要数据表
+
+以下是 `uni-id` 体系中的核心数据表：
+
+### 6.1 用户表 (`uni-id-users`)
+存储用户基本信息。
+-   **关键字段：** `_id`, `username`, `password`, `nickname`, `gender`, `role` (角色列表), `status` (用户状态), `mobile`, `mobile_confirmed`, `email`, `email_confirmed`, `avatar`, `wx_unionid`, `wx_openid` (分平台), `qq_unionid`, `qq_openid` (分平台), `ali_openid`, `apple_openid`, `register_date`, `last_login_date`, `inviter_uid`, `my_invite_code`, `register_env` (注册环境信息), `dcloud_appid`。
+-   **索引注意：** `uni-id-users` 表默认包含较多索引，可根据实际使用的登录方式和查询需求，删除不必要的索引以优化写入性能。
+
+### 6.2 验证码表 (`opendb-verify-codes`)
+存储手机和邮箱验证码。
+-   **关键字段：** `mobile`, `email`, `code`, `scene` (验证场景), `state` (验证状态), `expired_date`。
+-   **数据清理：** `uni-id` 不会自动删除此表历史数据，需开发者自行管理。
+
+### 6.3 角色表 (`uni-id-roles`)
+见 5.2 节。
+
+### 6.4 权限表 (`uni-id-permissions`)
+见 5.2 节。
+
+### 6.5 其他表
+还包括日志表 (`uni-id-log`)、积分表 (`uni-id-scores`)、地址表 (`uni-id-address`) 等，可在 uniCloud Web 控制台按需从模板创建。
+
+## 7. uniIdRouter (前端页面访问权限控制)
+
+`uniIdRouter` 是一个运行在前端，用于控制页面访问权限的方案。
+
+### 7.1 配置 (`pages.json`)
+在项目根目录的 `pages.json` 文件中配置 `uniIdRouter`：
+```json
+{
+  "pages": [
+    {
+      "path": "pages/index/index", // 登录页面示例
+      "style": { ... },
+      "needLogin": false // 单个页面配置，优先级高于 uniIdRouter.needLogin
+    },
+    {
+      "path": "pages/user-center/user-center",
+      "style": { ... },
+      "needLogin": true // 此页面需要登录
+    }
+  ],
+  "uniIdRouter": {
+    "loginPage": "pages/index/index", // 指定登录页面路径
+    "needLogin": [ // 需要登录才可访问的页面列表，支持正则
+      "pages/order/.*", // order目录下所有页面需要登录
+      "pages/profile/edit"
+    ],
+    "resToLogin": true // 默认true。云对象或clientDB返回token无效/过期错误时，自动跳转到loginPage
+  }
+}
+```
+
+### 7.2 行为
+-   访问 `needLogin` 配置的页面时，若用户未登录或 `token` 失效，会自动跳转到 `loginPage`。
+-   跳转到登录页时，会携带 `uniIdRedirectUrl` 参数 (原始访问页面路径)，登录成功后可使用此参数跳转回原页面。
+-   可以通过 `uniCloud.onNeedLogin()` API 监听事件并自定义处理逻辑，此时框架不再自动跳转。
+
+## 8. 常见常量值
+
+### 8.1 用户状态 (`uni-id-users.status`)
+-   `0`: 正常
+-   `1`: 禁用/封禁
+-   `2`: 审核中
+-   `3`: 审核拒绝
+-   `4`: 已注销
+
+### 8.2 验证码场景 (`opendb-verify-codes.scene`)
+部分示例：
+-   `login-by-sms`: 短信验证码登录
+-   `reset-pwd-by-sms`: 短信验证码重置密码
+-   `bind-mobile-by-sms`: 短信验证码绑定手机号
+-   `register`: (图形验证码) 用户名密码注册
+
+
+## 何时应用此规则
+- 在进行 `uni-id` 相关功能开发时，如用户注册、登录、第三方授权、密码管理等。
+- 在配置 `uni-id` 的 `config.json` 文件时。
+- 在设计或修改与 `uni-id` 相关的数据库 Schema 时，特别是用户表、角色表、权限表。
+- 在处理前端页面访问控制，使用 `uniIdRouter` 时。
+- 在调试 `uni-id` 相关的错误和异常时。
+
+## 10. uni-id-common 公共模块 (云函数/云对象内使用)
+
+`uni-id-common` 是 `uni-id` 体系中用于 Token 管理的公共模块，主要负责 Token 的校验、生成及刷新。与旧版 `uni-id` 公共模块不同，`uni-id-common` 更轻量，用户注册、登录等功能已移至 `uni-id-co` 云对象。
+
+### 10.1 何时使用
+
+-   当需要在云函数或云对象中进行 Token 校验、生成或刷新操作时。
+-   特别是在云函数URL化或开启云函数单实例多并发的场景下，推荐显式创建 `uni-id-common` 实例并传入客户端信息。
+
+### 10.2 核心API
+
+#### 10.2.1 创建 uni-id 实例 (`createInstance`)
+
+**必须**调用此接口创建实例后才能使用其他 API。
+
+**用法：**
+`uniID.createInstance(CreateInstanceOptions)`
+
+**`CreateInstanceOptions`：**
+-   `context`: 云函数的 `context` 对象。
+-   `clientInfo`: 云对象的 `this.getClientInfo()` 返回值。
+-   `config`: (可选) 完整的 `uni-id` 配置信息，若使用 `config.json` 则无需传入。
+
+**示例（云函数）：**
+```javascript
+// 云函数代码
+const uniID = require('uni-id-common')
+exports.main = async function(event,context) {
+  // 确保 context 中包含 APPID, PLATFORM, LOCALE
+  // context.APPID = '__UNI__xxxxxxx' // 客户端APPID
+  // context.PLATFORM = 'web' // 客户端平台
+  // context.LOCALE = 'zh-Hans' // 客户端语言
+  const uniIDIns = uniID.createInstance({ context });
+  let payload = await uniIDIns.checkToken(event.uniIdToken);
+  if (payload.code) {
+    return payload;
+  }
+  // ...
+}
+```
+
+**示例（云对象）：**
+```javascript
+// 云对象代码
+const uniID = require('uni-id-common')
+module.exports = {
+  _before() {
+    const clientInfo = this.getClientInfo();
+    this.uniID = uniID.createInstance({ clientInfo });
+  },
+  async someMethod() {
+    const checkResult = await this.uniID.checkToken(this.getUniIdToken());
+    if (checkResult.errCode) {
+        return checkResult;
+    }
+    const uid = checkResult.uid;
+    // ...
+  }
+}
+```
+**注意：** 在云函数单实例多并发或URL化场景，为保证获取正确的客户端平台等信息，推荐创建实例时传入 `context` 或 `clientInfo`。
+
+#### 10.2.2 Token 校验 (`checkToken`)
+
+校验客户端请求中的 `uniIdToken`，获取用户 UID、角色、权限等信息。这是服务端获取操作用户身份的核心方法。
+
+**用法：**
+`uniIDIns.checkToken(token, checkTokenOptions)`
+
+**参数：**
+-   `token` (String, 必填): 客户端 `callFunction` 或云对象调用时携带的 `uniIdToken`。
+-   `checkTokenOptions` (Object, 可选):
+    -   `autoRefresh` (Boolean, 可选, 默认 `true`): 是否需要自动判断并刷新 Token。
+
+**响应参数（部分）：**
+-   `errCode` (Number|String): 错误码，`0` 表示成功。
+-   `message` (String): 详细信息。
+-   `uid` (String): 用户 ID (校验成功时返回)。
+-   `token` (String): 新生成的 Token (当满足自动刷新条件且 `config.json` 中配置了 `tokenExpiresThreshold` 时)。
+-   `tokenExpired` (Timestamp): 新 Token 的过期时间 (毫秒)。
+-   `role` (Array): 用户角色列表。
+-   `permission` (Array): 用户权限列表。
+    (注意: `admin` 角色的 `permission` 数组为空，需额外判断)。
+
+**重要：**
+-   **前端参数不可信：** 严禁使用前端直接传递的 `uid` 作为用户身份凭证，必须通过 `checkToken` 从 Token 中解析。
+-   角色权限缓存在 Token 中，可减少查库。
+
+#### 10.2.3 主动刷新 Token (`refreshToken`)
+
+**用法：**
+`uniIDIns.refreshToken(RefreshTokenOptions)`
+
+**`RefreshTokenOptions`：**
+-   `token` (String, 必填): 需要刷新的用户 Token。
+
+**响应参数：**
+-   `token` (String): 新生成的 Token。
+-   `tokenExpired` (Timestamp): 新 Token 的过期时间。
+
+**注意：** 刷新 Token 时会自动更新 Token 内 UID 对应的角色权限。
+
+#### 10.2.4 生成 Token (`createToken`)
+
+**用法：**
+`uniIDIns.createToken(CreateTokenOptions)`
+
+**`CreateTokenOptions`：**
+-   `uid` (String, 必填): 用户 ID。
+-   `role` (Array, 可选): 指定缓存在 Token 内的角色。若不传，则自动获取该 UID 对应的角色。
+-   `permission` (Array, 可选): 指定缓存在 Token 内的权限。若不传，则自动获取该 UID 对应的权限。
+
+**响应参数：**
+-   `token` (String): 生成的 Token。
+-   `tokenExpired` (Number): Token 过期时间对应的时间戳。
+
+## 何时应用此规则
+- 在进行 `uni-id` 相关功能开发时，如用户注册、登录、第三方授权、密码管理等。
+- 在配置 `uni-id` 的 `config.json` 文件时。
+- 在设计或修改与 `uni-id` 相关的数据库 Schema 时，特别是用户表、角色表、权限表。
+- 在处理前端页面访问控制，使用 `uniIdRouter` 时。
+- 在调试 `uni-id` 相关的错误和异常时。
+- 在云函数或云对象中使用 `uni-id-common` 进行 Token 管理时。

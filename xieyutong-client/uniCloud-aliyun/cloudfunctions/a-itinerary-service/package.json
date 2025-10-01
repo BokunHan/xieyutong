@@ -1,0 +1,14 @@
+{
+  "name": "a-itinerary-service",
+  "version": "1.0.0",
+  "description": "行程服务云对象，处理用户行程相关业务逻辑",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+  },
+  "author": "xieyutong",
+  "license": "MIT",
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

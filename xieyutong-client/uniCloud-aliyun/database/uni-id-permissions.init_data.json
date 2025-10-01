@@ -1,0 +1,130 @@
+[
+  {
+    "_id": "perm_view_products",
+    "permission_id": "VIEW_PRODUCTS",
+    "permission_name": "查看商品",
+    "permission_desc": "可以浏览和查看商品信息",
+    "category": "商品管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_manage_products",
+    "permission_id": "MANAGE_PRODUCTS",
+    "permission_name": "管理商品",
+    "permission_desc": "可以添加、编辑、删除商品信息",
+    "category": "商品管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_create_order",
+    "permission_id": "CREATE_ORDER",
+    "permission_name": "创建订单",
+    "permission_desc": "可以下单购买商品",
+    "category": "订单管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_view_own_order",
+    "permission_id": "VIEW_OWN_ORDER",
+    "permission_name": "查看自己的订单",
+    "permission_desc": "可以查看自己的订单信息",
+    "category": "订单管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_view_all_orders",
+    "permission_id": "VIEW_ALL_ORDERS",
+    "permission_name": "查看所有订单",
+    "permission_desc": "可以查看系统中所有订单信息",
+    "category": "订单管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_manage_orders",
+    "permission_id": "MANAGE_ORDERS",
+    "permission_name": "管理订单",
+    "permission_desc": "可以处理、修改、取消订单等操作",
+    "category": "订单管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_update_own_profile",
+    "permission_id": "UPDATE_OWN_PROFILE",
+    "permission_name": "修改个人信息",
+    "permission_desc": "可以修改自己的个人资料",
+    "category": "用户管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_view_users",
+    "permission_id": "VIEW_USERS",
+    "permission_name": "查看用户",
+    "permission_desc": "可以查看用户列表和用户信息",
+    "category": "用户管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_manage_users",
+    "permission_id": "MANAGE_USERS",
+    "permission_name": "管理用户",
+    "permission_desc": "可以编辑用户信息、禁用用户等操作",
+    "category": "用户管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_manage_coupons",
+    "permission_id": "MANAGE_COUPONS",
+    "permission_name": "管理优惠券",
+    "permission_desc": "可以创建、编辑、删除优惠券",
+    "category": "营销管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_send_coupons",
+    "permission_id": "SEND_COUPONS",
+    "permission_name": "发放优惠券",
+    "permission_desc": "可以给用户发放优惠券",
+    "category": "营销管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_view_statistics",
+    "permission_id": "VIEW_STATISTICS",
+    "permission_name": "查看统计数据",
+    "permission_desc": "可以查看运营统计数据和报表",
+    "category": "数据查看",
+    "status": "active"
+  },
+  {
+    "_id": "perm_manage_roles",
+    "permission_id": "MANAGE_ROLES",
+    "permission_name": "管理角色",
+    "permission_desc": "可以创建、编辑、删除用户角色",
+    "category": "系统管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_manage_permissions",
+    "permission_id": "MANAGE_PERMISSIONS",
+    "permission_name": "管理权限",
+    "permission_desc": "可以创建、编辑、删除系统权限",
+    "category": "系统管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_manage_system",
+    "permission_id": "MANAGE_SYSTEM",
+    "permission_name": "系统管理",
+    "permission_desc": "可以进行系统级别的设置和配置",
+    "category": "系统管理",
+    "status": "active"
+  },
+  {
+    "_id": "perm_view_financial_data",
+    "permission_id": "VIEW_FINANCIAL_DATA",
+    "permission_name": "查看财务数据",
+    "permission_desc": "可以查看收入、利润等财务相关数据",
+    "category": "数据查看",
+    "status": "active"
+  }
+] 

@@ -1,0 +1,167 @@
+[
+  {
+    "content": "拉萨",
+    "count": 245,
+    "rank": 1,
+    "trend": "up",
+    "category": "destination", 
+    "search_volume_7d": 156,
+    "search_volume_30d": 245,
+    "related_products": ["product_41767537", "product_54780693", "product_62148453"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "林芝",
+    "count": 198,
+    "rank": 2,
+    "trend": "stable",
+    "category": "destination",
+    "search_volume_7d": 128,
+    "search_volume_30d": 198,
+    "related_products": ["product_41767537", "product_62148453", "product_62408090"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "布达拉宫",
+    "count": 176,
+    "rank": 3,
+    "trend": "up",
+    "category": "attraction",
+    "search_volume_7d": 89,
+    "search_volume_30d": 176,
+    "related_products": ["product_54780693", "product_62148453", "product_62408090"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "私家团",
+    "count": 154,
+    "rank": 4,
+    "trend": "new",
+    "category": "product_type",
+    "search_volume_7d": 92,
+    "search_volume_30d": 154,
+    "related_products": ["product_41767537", "product_54780693", "product_62148453"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "雅鲁藏布大峡谷",
+    "count": 142,
+    "rank": 5,
+    "trend": "up",
+    "category": "attraction",
+    "search_volume_7d": 78,
+    "search_volume_30d": 142,
+    "related_products": ["product_41767537", "product_62148453", "product_62408090"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "南迦巴瓦峰",
+    "count": 128,
+    "rank": 6,
+    "trend": "stable",
+    "category": "attraction",
+    "search_volume_7d": 65,
+    "search_volume_30d": 128,
+    "related_products": ["product_41767537", "product_62148453"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "羊卓雍措",
+    "count": 117,
+    "rank": 7,
+    "trend": "up",
+    "category": "attraction",
+    "search_volume_7d": 56,
+    "search_volume_30d": 117,
+    "related_products": ["product_41767537", "product_62148453", "product_62408090"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "珠峰大本营",
+    "count": 105,
+    "rank": 8,
+    "trend": "stable",
+    "category": "attraction",
+    "search_volume_7d": 43,
+    "search_volume_30d": 105,
+    "related_products": ["product_54780693", "product_62431454"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "纳木措",
+    "count": 98,
+    "rank": 9,
+    "trend": "down",
+    "category": "attraction",
+    "search_volume_7d": 38,
+    "search_volume_30d": 98,
+    "related_products": ["product_41767537", "product_62148453", "product_62408090"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "巴松措",
+    "count": 87,
+    "rank": 10,
+    "trend": "new",
+    "category": "attraction",
+    "search_volume_7d": 45,
+    "search_volume_30d": 87,
+    "related_products": ["product_41767537", "product_62148453", "product_52751822"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "西藏旅游",
+    "count": 234,
+    "rank": 11,
+    "trend": "up",
+    "category": "general",
+    "search_volume_7d": 145,
+    "search_volume_30d": 234,
+    "related_products": [],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "冈仁波齐",
+    "count": 76,
+    "rank": 12,
+    "trend": "stable",
+    "category": "attraction",
+    "search_volume_7d": 32,
+    "search_volume_30d": 76,
+    "related_products": ["product_54780693"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "阿里环线",
+    "count": 65,
+    "rank": 13,
+    "trend": "up",
+    "category": "route",
+    "search_volume_7d": 28,
+    "search_volume_30d": 65,
+    "related_products": ["product_54780693"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "鲁朗林海",
+    "count": 54,
+    "rank": 14,
+    "trend": "stable",
+    "category": "attraction",
+    "search_volume_7d": 23,
+    "search_volume_30d": 54,
+    "related_products": ["product_62148453", "product_62408090"],
+    "create_date": 1640966400000
+  },
+  {
+    "content": "山南秘境",
+    "count": 43,
+    "rank": 15,
+    "trend": "new",
+    "category": "destination",
+    "search_volume_7d": 18,
+    "search_volume_30d": 43,
+    "related_products": ["product_52751822"],
+    "create_date": 1640966400000
+  }
+] 

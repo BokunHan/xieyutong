@@ -1,0 +1,46 @@
+[
+  {
+    "IndexName": "search_content_index", 
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "content",
+          "Direction": "1"
+        },
+        {
+          "Name": "create_date", 
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "user_search_index",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "user_id",
+          "Direction": "1"
+        },
+        {
+          "Name": "create_date",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "search_time_index",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "create_date",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+] 

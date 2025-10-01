@@ -1,0 +1,70 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# uni-app 自动化 E2E 测试规则
+
+## Critical Rules
+
+### 测试目标
+- **覆盖关键流程:** E2E 测试应专注于覆盖用户最常用、最核心的业务流程 (如注册登录、核心功能操作、购买流程等)。
+- **模拟真实用户:** 测试用例应尽可能模拟真实用户的操作路径和交互方式。
+- **验证端到端:** 测试应验证从用户界面操作到后端数据处理再到界面反馈的完整链路。
+
+### 测试框架与工具 (需要根据项目实际情况调整)
+- **明确框架:** 必须明确项目使用的 E2E 测试框架 (如 WebdriverIO, Cypress, Playwright, 或 uni-app 官方推荐的自动化测试方案)。AI 生成的测试代码必须符合所选框架的语法和 API。
+- **选择器策略:** 优先使用稳定、唯一的元素选择器 (如 `data-testid`, `id`)，避免依赖易变的 CSS 类名或 XPath。
+- **断言库:** 使用清晰、表达力强的断言库 (如 Chai, Jest expect) 来验证预期结果。
+
+### 测试用例设计
+- **场景化:** 每个测试用例应对应一个具体的用户场景或故事。
+- **Given-When-Then:** 推荐使用 BDD (行为驱动开发) 的 Given-When-Then 格式来描述测试步骤，提高可读性。
+- **独立性:** 测试用例应尽可能相互独立，避免执行顺序依赖。
+- **数据准备与清理:** 对于需要特定数据的测试，应包含数据准备 (Setup) 和数据清理 (Teardown) 的步骤，确保测试环境的一致性。
+- **处理异步:** uni-app 应用中存在大量异步操作，测试代码必须正确处理等待 (Waits) 和异步断言。
+
+### 输出要求
+- 生成结构清晰、可执行的 E2E 测试脚本文件。
+- 测试脚本应包含必要的注释，解释测试场景和关键步骤。
+- 测试文件应放置在项目约定的测试目录中 (如 `/tests/e2e/`)。
+
+## Examples
+
+<example>
+**用户请求:** "为登录流程编写一个 E2E 测试用例。用户输入正确的手机号和密码，点击登录，应该跳转到首页。使用 Playwright 框架。"
+
+**AI (遵循规则):** "好的，我将为您创建一个使用 Playwright 的 E2E 测试用例，覆盖登录成功跳转的场景。测试文件将放在 `/tests/e2e/login.spec.ts`。"
+
+**`/tests/e2e/login.spec.ts` (简化示例):**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('Login Flow', () => {
+  test('should login successfully and redirect to homepage with valid credentials', async ({ page }) => {
+    // Given: 用户访问登录页
+    await page.goto('/pages/login/login');
+
+    // When: 用户输入有效凭证并点击登录
+    await page.locator('input[data-testid="phone-input"]').fill('13800138000');
+    await page.locator('input[data-testid="password-input"]').fill('password123');
+    await page.locator('button[data-testid="login-button"]').click();
+
+    // Then: 应跳转到首页
+    // (注意: uni-app H5 的 URL 可能需要特殊处理，这里仅作示例)
+    await expect(page).toHaveURL(/.*\/pages\/index\/index/);
+    await expect(page.locator('h1[data-testid="home-title"]')).toBeVisible(); // 验证首页元素
+  });
+
+  // 可以添加更多测试用例，如无效凭证登录等
+});
+```
+</example>
+
+<example type="invalid">
+**用户请求:** "测试一下登录。"
+
+**AI (未遵循规则):** [生成一个没有明确断言、没有处理异步、选择器混乱的测试片段]
+
+**AI (未遵循规则):** "运行 `npm run test` 就行了。" (没有提供具体的测试用例设计和代码)
+</example>

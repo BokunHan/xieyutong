@@ -1,0 +1,246 @@
+---
+description: uni-app API 使用规范
+globs: 
+alwaysApply: false
+---
+# uni-app API 使用规范
+
+## 核心原则
+- **官方文档优先:** 本规范为 uni-app API 使用提供指导，但最权威和最新的信息始终以 [uni-app 官方文档](mdc:https:/uniapp.dcloud.net.cn/api) 为准。
+- **简洁明了:** API调用应清晰易懂，避免不必要的复杂封装。
+- **平台兼容性:** 关注 API 的平台兼容性说明，必要时使用条件编译处理平台差异。
+- **用户体验:** 合理使用交互反馈类 API，及时处理 API 调用失败的情况，保证良好的用户体验。
+
+## Critical Rules
+
+### 1. API 调用基础
+- **`uni` 对象:** 所有 uni-app 的扩展 API 都通过全局 `uni` 对象进行调用。
+  ```javascript
+  // 正确
+  uni.request({ /* ... */ });
+  uni.navigateTo({ url: '/pages/detail/detail' });
+  ```
+- **异步 API 回调:**
+    - 大多数异步 API 接受一个 `OBJECT` 类型的参数。
+    - 此 `OBJECT` 中可以定义 `success`、`fail`、`complete` 回调函数来接收接口调用结果。
+    - `success`: 接口调用成功的回调，返回结果作为参数。
+    - `fail`: 接口调用失败的回调，返回错误信息作为参数。
+    - `complete`: 接口调用结束的回调（无论成功或失败都会执行）。
+  ```javascript
+  uni.getSystemInfo({
+    success: function (res) {
+      console.log(res.model);
+    },
+    fail: function (err) {
+      console.error('获取系统信息失败:', err);
+    },
+    complete: function () {
+      console.log('getSystemInfo complete');
+    }
+  });
+  ```
+- **`errMsg` 字段:**
+    - 异步 API 的回调函数参数中通常会包含 `errMsg` 字段，用以表示调用的结果信息（例如 `navigateTo:ok`, `request:fail timeout`）。
+    - 同步 API（方法名以 `Sync` 结尾，如 `uni.getSystemInfoSync()`）的返回结果中不包含 `errMsg`。
+
+### 2. API Promise 化
+- **默认行为:** 若异步 API 调用时不传入 `success`、`fail`、`complete` 等回调参数，API 将返回一个 Promise 对象。
+  ```javascript
+  // Promise 风格
+  uni.request({
+    url: 'https://example.com/api/data'
+  })
+  .then(data => {
+    // 注意：Vue2 与 Vue3 返回格式差异
+    // Vue2: data 是一个数组 [err, res]
+    // Vue3: data 是成功回调的 res，错误进入 catch
+    let [err, res] = data; // Vue2 风格处理
+    if (res) {
+      console.log(res.data);
+    } else {
+      console.error('请求失败(Vue2 Promise):', err);
+    }
+  })
+  .catch(err => {
+    // Vue3 风格错误处理
+    console.error('请求失败(Vue3 Promise):', err);
+  });
+
+  async function fetchData() {
+    try {
+      // Vue3 风格
+      const res = await uni.request({ url: 'https://example.com/api/data' });
+      console.log(res.data);
+      // 若需兼容 Vue2 的 [err, res] 格式
+      // const [err, res] = await uni.request({ url: 'https://example.com/api/data' });
+      // if (res) console.log(res.data); else console.error(err);
+    } catch (error) {
+      console.error('请求异常:', error);
+    }
+  }
+  ```
+- **禁止 Promise 化的 API:**
+    - **同步方法:** 以 `Sync` 结尾的 API，如 `uni.getSystemInfoSync()`。
+    - **`create` 系列方法:** 以 `create` 开头的方法，如 `uni.createMapContext()`。它们通常返回一个上下文对象。
+    - **`manager` 系列方法:** 以 `manager` 结尾的方法，如 `uni.getRecorderManager()`。它们通常返回一个管理器对象。
+    - **需要获取返回对象的 API:** 当 API 本身会同步返回一个操作对象（如 `uni.connectSocket()` 返回 `SocketTask`），并且你需要这个对象时，必须使用回调函数方式，否则无法获取该对象。
+- **Vue 2 与 Vue 3 Promise 返回差异:**
+    - **Vue 2:** Promise 成功回调的参数是一个数组 `[err, res]`。`err` 为 null 时表示成功，`res` 为成功的数据。`.catch` 无法捕获 API 内部的 `fail`。
+    - **Vue 3:** Promise 成功回调的参数是 `res` (即原始 `success` 回调的参数)。API 内部的 `fail` 会触发 `.catch`。
+    - **转换与兼容:** 如需统一行为，可在 `main.js` 中使用 `uni.addInterceptor` 对 `returnValue` 进行处理，将 Vue 2 的 Promise 行为转换为 Vue 3 的行为。
+
+### 3. 事件监听 API
+- **`uni.on` 系列:** 以 `uni.on` 开头的 API 用于监听某个事件的发生，它们接受一个回调函数作为参数。当事件触发时，回调函数会被调用。
+  ```javascript
+  uni.onNetworkStatusChange(function (res) {
+    console.log('网络状态改变:', res.isConnected);
+    console.log('网络类型:', res.networkType);
+  });
+  ```
+- **`uni.off` 系列 (或对应 API 的取消监听操作):** 对于通过 `uni.on` 监听的事件，或某些启动后持续监听的 API (如 `uni.startAccelerometer`)，务必在组件销毁 (`onUnload` 或 Vue 的 `beforeUnmount`/`unmounted`) 或不再需要监听时，调用对应的 `uni.off` 方法或停止监听的方法 (如 `uni.stopAccelerometer`)，以避免内存泄漏和不必要的性能消耗。
+
+## Recommended Rules
+
+### 1. 平台特定 API 处理
+- **条件编译:** 使用条件编译指令（`#ifdef MP-WEIXIN`, `#ifndef APP-PLUS` 等）来调用特定平台的独有 API 或实现平台差异化逻辑。
+  ```javascript
+  // #ifdef MP-WEIXIN
+  wx.login({ /* ... */ }); // 调用微信小程序特有 API
+  // #endif
+
+  // #ifdef APP-PLUS
+  plus.device.getInfo({ /* ... */ }); // 调用 App 端 Plus API
+  // #endif
+  ```
+- **API 文档查阅:** 各端特色 API (如小程序 `wx.*`, `my.*` 或 App 端 `plus.*`) 的具体用法和规范，请参考相应平台的官方开发文档。
+
+### 2. 资源与生命周期管理
+- **手动关闭/停止:** 对于需要手动关闭或停止的 API (例如 `uni.createInnerAudioContext()` 返回的实例需要调用 `destroy()`, `uni.stopCompass()`, `uni.closeSocket()`)，必须在页面的 `onUnload` (或 Vue 组件的 `onBeforeUnmount`/`onUnmounted`) 生命周期钩子中执行清理操作，防止资源泄露。
+  ```javascript
+  // Vue 2 示例
+  export default {
+    data() {
+      return {
+        audioContext: null
+      };
+    },
+    onLoad() {
+      this.audioContext = uni.createInnerAudioContext();
+      // ...
+    },
+    onUnload() {
+      if (this.audioContext) {
+        this.audioContext.destroy();
+      }
+      uni.stopAccelerometer(); // 假设 onLoad 中调用了 startAccelerometer
+    }
+  }
+  ```
+- **BackgroundAudioManager:** `uni.getBackgroundAudioManager()` 获取的是全局唯一的背景音频管理器，页面关闭时请根据业务需求决定是否停止播放，而不是直接销毁。
+
+### 3. 授权处理
+- **`uni.authorize` 和 `uni.getSetting`:** 对于需要用户授权的 API (如 `uni.getLocation`, `uni.chooseImage`, `uni.saveImageToPhotosAlbum`)，应首先通过 `uni.getSetting` 查询用户当前的授权状态。
+- **引导授权:** 如果用户未授权，应通过 `uni.authorize` 发起授权请求。如果用户拒绝授权，应提供友好的提示，并引导用户通过 `uni.openSetting` 打开设置页面手动授权。
+  ```javascript
+  uni.getSetting({
+    success(res) {
+      if (!res.authSetting['scope.userInfo']) {
+        uni.authorize({
+          scope: 'scope.userInfo',
+          success() {
+            // 用户已同意授权
+            getUserProfile();
+          },
+          fail() {
+            // 用户已拒绝授权，引导用户去设置页开启
+            uni.showModal({
+              title: '授权提示',
+              content: '需要您授权获取用户信息才能继续',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  uni.openSetting();
+                }
+              }
+            });
+          }
+        });
+      } else {
+        // 用户已授权
+        getUserProfile();
+      }
+    }
+  });
+  ```
+
+### 4. API 使用场景与选择
+- **同步与异步:** 优先使用异步 API，避免阻塞主线程。仅在确实需要同步获取结果且场景允许时（如应用初始化阶段），才使用以 `Sync` 结尾的同步 API。
+- **`uni.navigateTo` vs `uni.redirectTo` vs `uni.reLaunch` vs `uni.switchTab`:**
+    - `uni.navigateTo`: 保留当前页，跳转到新页面（有返回按钮）。页面栈增加。
+    - `uni.redirectTo`: 关闭当前页，跳转到新页面。页面栈不变（替换）。
+    - `uni.reLaunch`: 关闭所有页面，打开到应用内的某个页面。页面栈重置。
+    - `uni.switchTab`: 跳转到 tabBar 页面，并关闭所有非 tabBar 页面。
+- **交互反馈:**
+    - `uni.showToast`: 轻量级提示，自动消失。适用于操作成功、失败等简短提示。
+    - `uni.showLoading`: 显示加载中提示，需手动调用 `uni.hideLoading` 关闭。
+    - `uni.showModal`: 模态对话框，需要用户交互。适用于重要确认、信息展示。
+    - `uni.showActionSheet`: 显示操作菜单列表。
+
+### 5. 错误处理与健壮性
+- **`fail` 回调与 `catch`:** 必须为异步 API 的 `fail` 回调或 Promise 的 `catch` 编写处理逻辑，记录错误日志或向用户显示友好提示，避免程序崩溃或静默失败。
+- **网络请求超时与异常:** `uni.request` 等网络请求 API，应妥善处理请求超时、网络异常等情况。
+- **参数校验:** 调用 API 前，对关键参数进行校验，确保其合法性，避免因参数错误导致的 API 调用失败。
+
+## 示例：uni.request 的规范使用 (Promise 风格 - Vue 3 假设)
+
+```javascript
+async function fetchDataFromServer(params) {
+  try {
+    const res = await uni.request({
+      url: 'https://your-api.com/data',
+      method: 'GET', // 默认为 'GET'，可省略
+      data: params,
+      timeout: 10000, // 设置请求超时时间，单位毫秒
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + uni.getStorageSync('token') // 示例：从缓存读取 token
+      }
+    });
+
+    // uni.request 在 success 时，对于 Vue3 Promise 会直接返回 success 回调的参数
+    // 通常 res 结构为 { data, statusCode, header, errMsg, ... }
+    if (res.statusCode === 200) {
+      // 请求成功
+      console.log('数据获取成功:', res.data);
+      return res.data;
+    } else {
+      // 其他状态码，视为业务错误或服务端错误
+      console.error('请求失败，状态码:', res.statusCode, '错误信息:', res.data);
+      uni.showToast({
+        title: `请求错误: ${res.statusCode}`,
+        icon: 'none'
+      });
+      return null; // 或抛出错误 throw new Error(...)
+    }
+  } catch (err) {
+    // 网络错误或其他 JS 执行错误
+    console.error('fetchDataFromServer 捕获到错误:', err);
+    uni.showToast({
+      title: '网络请求失败，请稍后重试',
+      icon: 'none'
+    });
+    return null; // 或抛出错误
+  }
+}
+
+// 调用
+fetchDataFromServer({ id: 123 }).then(data => {
+  if (data) {
+    // 处理数据
+  }
+});
+```
+
+---
+最后更新: {{NOW}}
+贡献者: (AI 助手)
+

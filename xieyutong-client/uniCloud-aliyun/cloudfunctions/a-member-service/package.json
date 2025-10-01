@@ -1,0 +1,15 @@
+{
+  "name": "a-member-service",
+  "version": "1.0.0",
+  "description": "会员服务云对象，处理用户会员信息获取、自动初始化、等级计算等功能",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common",
+    "uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center"
+  },
+  "author": "",
+  "license": "ISC",
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

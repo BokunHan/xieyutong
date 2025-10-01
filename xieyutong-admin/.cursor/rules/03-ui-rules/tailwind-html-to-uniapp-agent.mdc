@@ -1,0 +1,215 @@
+---
+description: 专门用于将HTML高保真页面转化为uniapp页面时的tailwind使用规范。当用户需要将使用了tailwindcss的HTML页面转换为uniapp页面时，自动应用此规则确保正确使用tailwind插件，处理小程序环境下的特殊语法转换，并提供完整的样式迁移方案。适用于HTML转uniapp、高保真还原、样式系统迁移等场景
+globs: 
+alwaysApply: false
+---
+---
+description: `专门用于将HTML高保真页面转化为uniapp页面时的tailwind使用规范。当用户需要将使用了tailwindcss的HTML页面转换为uniapp页面时，自动应用此规则确保正确使用tailwind插件，处理小程序环境下的特殊语法转换，并提供完整的样式迁移方案。适用于HTML转uniapp、高保真还原、样式系统迁移等场景。`
+globs: 
+alwaysApply: false
+---
+
+# tailwind HTML转uniapp页面转换规范
+
+## Critical Rules
+
+### 版本信息
+- **Tailwind CSS版本**: 3.1.x
+- **发布时间**: 2022年5月
+- **核心特征**: 支持950色阶、现代CSS变量语法、完整工具类集合、透明度修饰符
+- **兼容性**: 专为uniapp和小程序环境优化
+
+### 核心转换原则
+- **使用本地tailwind.css文件**: 项目已集成`static/css/tailwind.css`（基于Tailwind CSS 3.1），必须使用这个文件而非jc-tailwind插件
+- **CDN备用链接**: 如果本地文件不存在，可从云端下载：`https://cdn.bitejufeng.com/dev/tailwind.css`
+- **小程序语法转换**: 严格按照小程序环境要求转换特殊字符：`/` → `_`，`.` → `-`，`/透明度` → `__透明度`
+- **完整样式覆盖**: 确保HTML中的所有tailwind类都能在uniapp中找到对应实现
+- **移动端单位适配**: 所有尺寸单位自动使用rpx，无需手动转换
+
+### Tailwind 3.1 特性支持
+- **950色阶系统**: 支持所有颜色的950深色调，如`bg-slate-950`、`text-gray-950`
+- **现代颜色系统**: 完整支持slate、gray、zinc、neutral、stone等现代色板
+- **CSS变量优化**: 内部使用`RGB(var(--color-name)/var(--opacity))`语法，提升性能
+- **透明度修饰符**: 支持`bg-black/50`语法（转换为`bg-black__50`）
+- **任意值支持**: 支持`w-[100px]`等任意值语法（需转换为`w-[100px]`）
+
+### 语法转换规则
+- **分数表示**: `w-1/2` → `w-1_2`，`w-1/3` → `w-1_3`
+- **小数表示**: `w-2.5` → `w-2-5`，`text-lg` → `text-lg`（保持不变）
+- **透明度语法**: `bg-black/50` → `bg-black__50`，`text-gray-800/75` → `text-gray-800__75`
+- **负值表示**: `-mt-4` → `-mt-4`（保持不变）
+- **任意值**: `w-[100px]` → `w-[100px]`（保持不变，但需确保小程序支持）
+
+### 颜色系统映射（Tailwind 3.1）
+- **完整色彩支持**: tailwind.css支持slate、gray、zinc、neutral、stone、red、orange、amber、yellow、lime、green、emerald、teal、cyan、sky、blue、indigo、violet、purple、fuchsia、pink、rose等所有Tailwind 3.1默认颜色
+- **950色阶**: 每个颜色都包含50-950的完整色阶，包括新增的950深色调
+- **透明度支持**: 所有颜色均支持透明度设置，如`bg-blue-500__50`表示50%透明度的蓝色
+- **特殊颜色**: 支持`inherit`、`current`、`transparent`、`black`、`white`
+
+### 使用方法
+1. **引入方式**: 在页面style标签中引入
+   ```css
+   @import '@/static/css/tailwind.css';
+   ```
+2. **全局引入**: 在App.vue中已全局引入，但复杂页面建议单独引入以确保样式正确加载
+3. **下载方法**: 如果本地没有tailwind.css文件，可以使用以下命令从CDN下载:
+   ```
+   curl -o static/css/tailwind.css https://cdn.bitejufeng.com/dev/tailwind.css
+   ```
+
+### 布局系统使用
+- **Flexbox布局**: 完全支持flex相关类，如`flex`、`items-center`、`justify-between`
+- **Grid布局**: 支持完整的grid系统，`grid-cols-1`到`grid-cols-12`
+- **响应式设计**: 在小程序环境下主要考虑移动端适配
+- **定位系统**: 支持relative、absolute、fixed等定位类
+
+### 组件化改造
+- **Vue组件结构**: HTML的div结构转换为Vue组件的template结构
+- **样式作用域**: 使用tailwind.css的全局样式，无需scoped
+- **事件绑定**: HTML的onclick转换为Vue的@click
+- **数据绑定**: 静态内容转换为Vue的响应式数据
+
+## Examples
+
+<example>
+  **✅ 正确的HTML到uniapp转换:**
+  
+  ```html
+  <!-- HTML原始代码 -->
+  <div class="flex justify-between items-center mb-4 bg-white/90 p-4 rounded-lg">
+    <div class="w-1/3 text-gray-800 font-medium">
+      <span class="text-blue-600/80">标题</span>
+    </div>
+  </div>
+  ```
+  
+  ```vue
+  <!-- uniapp转换后 -->
+  <template>
+    <view class="flex justify-between items-center mb-4 bg-white__90 p-4 rounded-lg">
+      <view class="w-1_3 text-gray-800 font-medium">
+        <text class="text-blue-600__80">标题</text>
+      </view>
+    </view>
+  </template>
+  
+  <script>
+  export default {
+    name: 'ProductDetail'
+  }
+  </script>
+  
+  <style>
+  @import '@/static/css/tailwind.css';
+  </style>
+  ```
+</example>
+
+<example type="invalid">
+  **❌ 错误的转换方式:**
+  
+  ```vue
+  <!-- 错误：未转换特殊字符 -->
+  <view class="w-1/2 bg-black/50">错误语法</view>
+  
+  <!-- 错误：使用了不存在的颜色 -->
+  <view class="text-custom-blue-500">自定义颜色</view>
+  
+  <!-- 错误：未引入tailwind.css -->
+  <style scoped>
+  .custom-class {
+    width: 50%;
+  }
+  </style>
+  
+  <!-- 错误：使用HTML标签而非小程序标签 -->
+  <div class="flex">
+    <span>文本</span>
+  </div>
+  ```
+  
+  **✅ 正确的转换:**
+  
+  ```vue
+  <!-- 正确：转换了特殊字符 -->
+  <view class="w-1_2 bg-black__50">正确语法</view>
+  
+  <!-- 正确：使用tailwind.css支持的颜色 -->
+  <view class="text-blue-500">标准颜色</view>
+  
+  <!-- 正确：引入tailwind.css -->
+  <style>
+  @import '@/static/css/tailwind.css';
+  </style>
+  
+  <!-- 正确：使用小程序标签 -->
+  <view class="flex">
+    <text>文本</text>
+  </view>
+  ```
+</example>
+
+### 转换检查清单
+- [ ] 所有`/`字符已转换为`_`
+- [ ] 所有透明度语法已转换为`__`格式
+- [ ] HTML标签已转换为小程序标签（div→view，span→text）
+- [ ] 已在style中引入tailwind.css
+- [ ] 颜色使用了tailwind.css支持的标准色彩系统
+- [ ] 布局类已验证在tailwind.css中存在
+- [ ] 移除了不兼容的CSS属性和类名
+
+### 常用转换对照表
+| HTML语法 | uniapp语法 | 说明 |
+|---|-----|---|
+| `w-1/2` | `w-1_2` | 宽度50% |
+| `bg-black/50` | `bg-black__50` | 黑色背景50%透明度 |
+| `grid-cols-3` | `grid-cols-3` | 3列网格（保持不变） |
+| `text-gray-800` | `text-gray-800` | 灰色文字（保持不变） |
+| `<div>` | `<view>` | 容器标签 |
+| `<span>` | `<text>` | 文本标签 |
+
+## 最佳实践
+
+### HTML转uniapp注意事项
+- **标签转换**: HTML标签需替换为uniapp对应组件，如`div` → `view`，`span` → `text`，`img` → `image`
+- **事件绑定**: `onclick` → `@click`，`onchange` → `@change`
+- **条件渲染**: `v-if`、`v-show`保持不变，但注意逻辑可能需要调整
+- **列表渲染**: `v-for`语法保持不变，但需添加`:key`属性
+
+### 常见问题解决
+- **flex布局**: 完全兼容，可直接使用`flex`、`items-center`等类
+- **grid布局**: 小程序环境可能不完全支持，建议使用flex替代或自定义样式
+- **响应式设计**: 小程序不支持媒体查询响应式类，如`md:`、`lg:`前缀，需调整为固定样式
+- **伪类状态**: 如`hover:`、`focus:`等在小程序中不完全支持，需使用动态类替代
+
+### 性能优化建议
+- **按需引入**: 复杂页面单独引入tailwind.css，避免全局样式过大
+- **类名精简**: 合并相似样式，减少类名数量
+- **避免内联样式**: 尽量使用tailwind类而非style属性
+- **复用组件**: 将常用UI模式封装为组件，提高复用性和一致性
+
+## 转换示例
+
+### 基础布局
+```html
+<!-- HTML -->
+<div class="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+  <span class="text-lg font-medium text-gray-800">标题</span>
+  <button class="px-4 py-2 bg-blue-500 text-white rounded-md">按钮</button>
+</div>
+
+<!-- uniapp -->
+<view class="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+  <text class="text-lg font-medium text-gray-800">标题</text>
+  <button class="px-4 py-2 bg-blue-500 text-white rounded-md">按钮</button>
+</view>
+```
+
+### 特殊语法转换
+```html
+<!-- HTML -->
+<div class="w-1/2 bg-black/50 text-blue-500 mt-2.5">内容</div>
+
+<!-- uniapp -->
+<view class="w-1_2 bg-black__50 text-blue-500 mt-2-5">内容</view>
+```

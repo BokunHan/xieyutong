@@ -1,0 +1,30 @@
+[
+  {
+    "IndexName": "permission_id_unique",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "permission_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  },
+  {
+    "IndexName": "category_status",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "category",
+          "Direction": "1"
+        },
+        {
+          "Name": "status",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+] 

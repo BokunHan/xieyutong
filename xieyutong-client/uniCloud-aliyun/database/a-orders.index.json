@@ -1,0 +1,77 @@
+[
+  {
+    "indexName": "unique_order_no",
+    "unique": true,
+    "IndexField": [
+      {
+        "fieldName": "orderNo",
+        "direction": "1"
+      }
+    ]
+  },
+  {
+    "indexName": "customer_phone_status",
+    "IndexField": [
+      {
+        "fieldName": "customerPhone",
+        "direction": "1"
+      },
+      {
+        "fieldName": "status",
+        "direction": "1"
+      }
+    ]
+  },
+  {
+    "indexName": "product_id_created",
+    "IndexField": [
+      {
+        "fieldName": "productId",
+        "direction": "1"
+      },
+      {
+        "fieldName": "createdAt",
+        "direction": "-1"
+      }
+    ]
+  },
+  {
+    "indexName": "status_created_at",
+    "IndexField": [
+      {
+        "fieldName": "status",
+        "direction": "1"
+      },
+      {
+        "fieldName": "createdAt",
+        "direction": "-1"
+      }
+    ]
+  },
+  {
+    "indexName": "operator_created",
+    "IndexField": [
+      {
+        "fieldName": "operatorId",
+        "direction": "1"
+      },
+      {
+        "fieldName": "createdAt",
+        "direction": "-1"
+      }
+    ]
+  },
+  {
+    "indexName": "departure_date_status",
+    "IndexField": [
+      {
+        "fieldName": "departureDate",
+        "direction": "1"
+      },
+      {
+        "fieldName": "status",
+        "direction": "1"
+      }
+    ]
+  }
+]

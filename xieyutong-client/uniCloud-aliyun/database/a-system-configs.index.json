@@ -1,0 +1,43 @@
+[
+  {
+    "IndexName": "config_key",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "config_key",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  },
+  {
+    "IndexName": "config_type_status",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "config_type",
+          "Direction": "1"
+        },
+        {
+          "Name": "status",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "effective_date",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "effective_date",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false,
+      "MgoIsSparse": true
+    }
+  }
+] 

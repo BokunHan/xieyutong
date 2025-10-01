@@ -1,0 +1,80 @@
+[
+  {
+    "IndexName": "user_id_status",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "user_id",
+          "Direction": "1"
+        },
+        {
+          "Name": "status",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "coupon_code",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "coupon_code",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": true,
+      "MgoIsSparse": true
+    }
+  },
+  {
+    "IndexName": "expired_at",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "expired_at",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "coupon_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "coupon_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "order_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "order_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false,
+      "MgoIsSparse": true
+    }
+  },
+  {
+    "IndexName": "received_at",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "received_at",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+] 

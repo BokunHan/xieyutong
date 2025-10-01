@@ -1,0 +1,76 @@
+{
+  "bsonType": "object",
+  "description": "搜索日志表，记录用户的搜索行为用于数据分析和热搜统计",
+  "required": ["content"],
+  "permission": {
+    "read": false,
+    "create": true,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "搜索用户ID，参考uni-id-users表",
+      "title": "用户ID",
+      "maxLength": 50
+    },
+    "device_id": {
+      "bsonType": "string", 
+      "description": "设备唯一标识，用于匿名用户搜索统计",
+      "title": "设备ID",
+      "maxLength": 100
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "搜索内容关键词",
+      "title": "搜索内容",
+      "required": true,
+      "maxLength": 200,
+      "trim": "both"
+    },
+    "search_type": {
+      "bsonType": "string",
+      "description": "搜索类型：product-产品搜索，destination-目的地搜索，keyword-关键词搜索",
+      "title": "搜索类型",
+      "enum": ["product", "destination", "keyword"],
+      "defaultValue": "product"
+    },
+    "result_count": {
+      "bsonType": "number",
+      "description": "搜索结果数量",
+      "title": "结果数量",
+      "minimum": 0,
+      "defaultValue": 0
+    },
+    "clicked_product_id": {
+      "bsonType": "string",
+      "description": "用户点击的产品ID，用于分析搜索转化",
+      "title": "点击产品ID",
+      "maxLength": 50
+    },
+    "user_agent": {
+      "bsonType": "string",
+      "description": "用户代理信息，记录设备和浏览器信息",
+      "title": "用户代理",
+      "maxLength": 500
+    },
+    "ip_address": {
+      "bsonType": "string",
+      "description": "用户IP地址，用于地域分析",
+      "title": "IP地址",
+      "maxLength": 50
+    },
+    "create_date": {
+      "bsonType": "timestamp",
+      "description": "搜索时间",
+      "title": "搜索时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+} 

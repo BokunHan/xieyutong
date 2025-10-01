@@ -1,0 +1,95 @@
+{
+	"bsonType": "object",
+	"required": ["user_id", "name", "type", "id_card"],
+	"permission": {
+		"read": "doc.user_id == auth.uid || 'READ_A_TRAVELERS' in auth.permission",
+		"create": "auth.uid != null",
+		"update": "doc.user_id == auth.uid || 'UPDATE_A_TRAVELERS' in auth.permission",
+		"delete": "doc.user_id == auth.uid || 'DELETE_A_TRAVELERS' in auth.permission"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "用户ID，关联uni-id-users表",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "出行人姓名",
+			"maxLength": 50,
+			"trim": "both"
+		},
+		"type": {
+			"bsonType": "string",
+			"description": "出行人类型",
+			"enum": ["成人", "儿童"],
+			"defaultValue": "成人"
+		},
+		"id_card": {
+			"bsonType": "string",
+			"description": "身份证号",
+			"maxLength": 18,
+			"trim": "both"
+		},
+		"phone": {
+			"bsonType": "string",
+			"description": "手机号",
+			"maxLength": 20,
+			"trim": "both"
+		},
+		"birthday": {
+			"bsonType": "string",
+			"description": "出生日期，格式YYYY-MM-DD",
+			"pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+			"maxLength": 10
+		},
+		"is_main": {
+			"bsonType": "bool",
+			"description": "是否为主要出行人（本人），本人不能删除",
+			"defaultValue": false
+		},
+		"gender": {
+			"bsonType": "string",
+			"description": "性别",
+			"enum": ["男", "女", "未知"],
+			"defaultValue": "未知"
+		},
+		"passport": {
+			"bsonType": "string",
+			"description": "护照号码",
+			"maxLength": 30
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "状态",
+			"enum": ["active", "inactive"],
+			"defaultValue": "active"
+		},
+		"remark": {
+			"bsonType": "string",
+			"description": "备注",
+			"maxLength": 200
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	},
+	"version": "0.0.1"
+} 

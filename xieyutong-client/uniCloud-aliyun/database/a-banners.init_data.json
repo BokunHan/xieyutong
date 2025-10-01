@@ -1,0 +1,44 @@
+[
+  {
+    "_id": "banner_001",
+    "image": "https://images.unsplash.com/photo-1635582681213-450e9b127343?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwxfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTUlQjglODMlRTglQkUlQkUlRTYlOEIlODklRTUlQUUlQUI%3D&ixlib=rb-4.1.0&q=80&w=1080",
+    "title": "探索西藏神秘之旅",
+    "subtitle": "布达拉宫·雪域高原的神圣殿堂",
+    "button_name": "立即预订",
+    "url": "/pages/product-detail/product-detail?id=1",
+    "link_type": 1,
+    "sort_order": 100,
+    "status": 1,
+    "remark": "主推西藏旅游线路，重点推广商品",
+    "created_at": 1750405861000,
+    "updated_at": 1750405861000
+  },
+  {
+    "_id": "banner_002",
+    "image": "https://images.unsplash.com/photo-1653101534971-86943d5e6055?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwxfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTclQkUlOEElRTUlOEQlOTM%3D&ixlib=rb-4.1.0&q=80&w=1080",
+    "title": "羊卓雍错天空之镜",
+    "subtitle": "圣湖美景·摄影师天堂",
+    "button_name": "查看攻略",
+    "url": "https://mp.weixin.qq.com/s/example-tibet-lake-guide",
+    "link_type": 2,
+    "sort_order": 90,
+    "status": 1,
+    "remark": "引流到公众号，提供详细旅游攻略",
+    "created_at": 1750405890000,
+    "updated_at": 1750405890000
+  },
+  {
+    "_id": "banner_003",
+    "image": "https://images.unsplash.com/photo-1647876469124-364e51fef318?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NTA2NjB8MHwxfHNlYXJjaHwzfHwlRTglQTUlQkYlRTglOTclOEYlMjAlRTklOUIlODUlRTklQjIlODElRTglOTclOEYlRTUlQjglODM%3D&ixlib=rb-4.1.0&q=80&w=1080",
+    "title": "雅鲁藏布大峡谷探秘",
+    "subtitle": "世界最深峡谷的壮丽景观",
+    "button_name": "特惠预订",
+    "url": "/pages/product-detail/product-detail?id=3",
+    "link_type": 1,
+    "sort_order": 80,
+    "status": 1,
+    "remark": "雅鲁藏布大峡谷旅游产品推广",
+    "created_at": 1750405872000,
+    "updated_at": 1750405872000
+  }
+]

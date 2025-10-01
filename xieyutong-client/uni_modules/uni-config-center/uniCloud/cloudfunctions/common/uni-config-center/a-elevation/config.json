@@ -1,0 +1,7 @@
+{
+  "googleMapsApiKey": "AIzaSyC7HihytH-JPVOtshAWcd-6-cpPFT7Y3M4",
+  "requestTimeout": 15000,
+  "maxLocationsPerRequest": 100,
+  "maxSamplesPerPath": 512,
+  "description": "Google Maps海拔查询服务配置"
+} 

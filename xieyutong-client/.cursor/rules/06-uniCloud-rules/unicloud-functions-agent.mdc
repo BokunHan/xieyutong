@@ -1,0 +1,147 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# uniCloud 云函数开发与使用指南
+
+## Critical Rules
+
+### 一、云函数基础与创建
+- **基本概念：** 云函数是运行在云端的 Node.js 代码，内置 `uniCloud` 对象提供数据库、网络等API。
+- **创建与目录结构：**
+    - 在 HBuilderX 中创建云函数，位于项目 `uniCloud/cloudfunctions` 目录下。
+    - 普通云函数入口为 `index.js`，云对象入口为 `index.obj.js`。
+    - 可通过 `package.json` 配置云函数特性（如内存、超时、定时触发、URL化等）。
+- **CommonJS规范：** 云函数内使用 `require` 导入模块，不支持 ES6 `import/export`。
+- **命名唯一性：** 同一服务空间下，云函数名称必须唯一，避免覆盖。
+- **大小限制：** 单个云函数（含 `node_modules`）限制为10MB，注意优化体积。支付宝云与腾讯云支持云端安装 `node_modules`。
+- **路径问题：** 访问文件建议使用绝对路径，如 `path.resolve(__dirname, './file.txt')`。
+
+### 二、云函数分类与选择
+- **普通云函数 (`callFunction`)：**
+    - 通过 `uniCloud.callFunction()` 调用。
+    - 适用于传统JSON接口方式，或在 HBuilderX 3.5.2 版本前需要URL化和定时运行的场景。
+    - 官方建议优先考虑使用云对象。
+- **云对象：**
+    - 通过 `uniCloud.importObject()` 导入并调用其方法。
+    - 推荐用于封装业务逻辑、复杂数据处理或不宜前端暴露的数据库操作。
+    - 代码结构更清晰，开发效率更高，支持URL化和定时运行 (HBuilderX 3.5.2+)。
+- **公共模块 (`common`)：**
+    - 用于在不同云函数/云对象间共享和复用代码。
+    - 存放于 `uniCloud/cloudfunctions/common` 目录下。
+- **Action云函数 (不推荐)：**
+    - 用于弥补 ClientDB 客户端直接操作数据库的局限。
+    - HBuilderX 3.6.11+ 版本起，推荐使用**数据库触发器**替代。
+- **uniCloud扩展库：**
+    - 为裁剪云函数体积设计，按需引入特定功能（如 Redis、短信服务）。
+
+### 三、客户端与云函数通信方式
+- **选择原则：** 根据业务场景和需求选择最合适的通信方式。
+- **1. ClientDB (推荐用于数据库操作)：**
+    - 客户端直接通过 `<uniCloud-db>` 组件或 `uniCloud.database()` API 操作数据库。
+    - **适用场景：** 主要涉及数据库CRUD，可显著减少服务端代码。
+    - **复杂逻辑：** 结合数据库触发器处理复杂云端逻辑。
+    - **不适用场景：** 非数据库操作、需隐藏数据库细节、复杂权限控制超出Schema能力范围。
+- **2. 云对象 (推荐用于业务逻辑封装)：**
+    - 客户端通过 `uniCloud.importObject()` 调用云对象方法。
+    - **适用场景：** 业务逻辑复杂、需在云端处理数据、不适用ClientDB的场景。
+    - 云端封装数据库操作和其他业务逻辑。
+- **3. 普通云函数 `callFunction`：**
+    - 客户端通过 `uniCloud.callFunction()` 调用。
+    - 适用性相对云对象较低，但仍可用于特定场景或旧项目维护。
+- **4. 云函数URL化：**
+    - 将云函数/云对象映射为 HTTP URL，供非 uni-app 应用（如外部系统、Web钩子）调用。
+    - 在 uniCloud Web 控制台配置。
+
+### 四、uniCloud 响应体规范
+- **目标：** 统一云端返回给客户端的 JSON 数据格式，便于错误处理和插件整合。
+- **核心字段 (HBuilderX 3.6.10+):**
+    - `errCode`: 成功时为 `0` (数字)，失败时为字符串（插件ID前缀，如 `'uni-id-account-banned'`）。业务自定义错误码推荐不含 `-`。
+    - `errMsg`: 具体的错误信息文本。
+    - `errSubject` (可选): 错误主题。
+- **成功响应示例：**
+  ```json
+  {
+    "errCode": 0,
+    "errMsg": "操作成功",
+    "data": { "key": "value" } 
+  }
+  ```
+- **失败响应示例：**
+  ```json
+  {
+    "errCode": "your-module-error-code",
+    "errMsg": "具体错误描述"
+  }
+  ```
+- **Token续期：** 响应体中可包含 `newToken` 字段，云对象会自动处理 `uni_id_token` 的更新。
+
+### 五、常用 uniCloud API (在云函数内)
+- `uniCloud.database()`: 获取云数据库对象。
+- `uniCloud.databaseJQL()`: 使用 JQL 语法操作数据库 (需扩展库)。
+- `uniCloud.uploadFile()` / `downloadFile()` / `deleteFile()` / `getTempFileURL()`: 云存储文件操作。
+- `uniCloud.callFunction()`: 调用其他普通云函数。
+- `uniCloud.importObject()`: 调用其他云对象。
+- `uniCloud.httpclient`: 发起 HTTP 请求。
+- `uniCloud.sendSms()`: 发送短信 (需扩展库)。
+- `uniCloud.logger`: 打印日志到 uniCloud Web 控制台。
+
+## Examples
+
+<example>
+  **✅ 场景：用户注册后，需要初始化用户积分**
+  - **推荐方案：** 使用云对象。
+  - **理由：** 涉及用户数据修改和可能的初始逻辑，封装在云对象中更清晰安全。
+  - **客户端调用 (伪代码)：**
+    ```javascript
+    const userApi = uniCloud.importObject('user-api');
+    try {
+      await userApi.registerAndInitPoints(userData);
+      // 注册成功
+    } catch (e) {
+      // 处理错误
+    }
+    ```
+  - **云对象 `user-api` (伪代码)：**
+    ```javascript
+    module.exports = {
+      async registerAndInitPoints(userData) {
+        // 1. 调用 uni-id 完成注册
+        // 2. 在用户表新增/更新积分记录
+        // 3. 返回成功或抛出错误
+        return { errCode: 0, errMsg: '注册并初始化积分成功' };
+      }
+    }
+    ```
+</example>
+
+<example>
+  **✅ 场景：前端需要展示一个公开的文章列表，无需复杂权限**
+  - **推荐方案：** 使用 ClientDB。
+  - **理由：** 纯数据查询，前端直接操作数据库效率高，代码简洁。
+  - **客户端代码 (伪代码)：**
+    ```html
+    <uniCloud-db v-slot:default="{data, loading, error, options}" collection="articles" field="title,publish_date" orderby="publish_date desc">
+      <view v-if="loading">加载中...</view>
+      <view v-for="item in data" :key="item._id">{{item.title}}</view>
+    </uniCloud-db>
+    ```
+</example>
+
+<example type="invalid">
+  **❌ 场景：在云函数中直接使用 `import fs from 'fs'`**
+  - **问题：** 云函数遵循 CommonJS 规范。
+  - **正确做法：** 使用 `const fs = require('fs');`
+</example>
+
+<example type="invalid">
+  **❌ 场景：从客户端直接调用一个云函数来删除任意用户的数据，且云函数未做严格的权限校验**
+  - **问题：** 严重安全隐患。敏感操作应由云对象封装，并在云端进行严格的身份和权限验证。
+  - **正确做法：**
+    1. 创建一个云对象，如 `admin-user-manager`。
+    2. 在云对象的方法（如 `deleteUserUnsafe`) 中，首先校验调用者是否为管理员 (如通过 `this.currentUser.role.includes('admin')`)。
+    3. 只有校验通过才执行删除操作。
+    4. 客户端应调用此云对象方法，而不是直接调用一个未受保护的云函数。
+</example>
+

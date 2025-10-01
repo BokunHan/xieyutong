@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品详情 - 携域通旅行</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            width: 390px;
+            height: 844px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f5f7fa;
+        }
+        .phone-frame {
+            border-radius: 44px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            height: 100%;
+        }
+        .status-bar {
+            height: 44px;
+            background-color: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+        .status-bar-left {
+            display: flex;
+            align-items: center;
+        }
+        .status-bar-right {
+            display: flex;
+            align-items: center;
+        }
+        .nav-bar {
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 10;
+        }
+        .back-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .content-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 83px;
+            overflow-y: auto;
+        }
+        .gallery-container {
+            position: relative;
+            height: 60%;
+            width: 100%;
+            overflow: hidden;
+        }
+        .swiper {
+            width: 100%;
+            height: 100%;
+        }
+        .swiper-slide {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .swiper-pagination-bullet {
+            width: 6px;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+        }
+        .swiper-pagination-bullet-active {
+            background-color: white;
+            width: 18px;
+            border-radius: 3px;
+        }
+        .section {
+            background-color: white;
+            margin-bottom: 8px;
+            padding: 16px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: "";
+            display: block;
+            width: 4px;
+            height: 16px;
+            background-color: #0086F6;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #f0f9ff;
+            color: #0086F6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .feature-icon i {
+            font-size: 10px;
+        }
+        .collapsible-section {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 0;
+        }
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 83px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .book-button {
+            flex: 1;
+            height: 44px;
+            background-color: #FF9500;
+            color: white;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+        .image-count {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 12px;
+            z-index: 5;
+        }
+        
+        /* 行程内容截断样式 */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* 展开后的样式 */
+        .line-clamp-none {
+            -webkit-line-clamp: unset;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="status-bar-left">12:30</div>
+            <div class="status-bar-right">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi ml-1"></i>
+                <i class="fas fa-battery-full ml-1"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <div class="back-button">
+                <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="flex-1"></div>
+            <div class="favorite-button back-button">
+                <i class="fas fa-star"></i>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <!-- 顶部图片轮播 -->
+            <div class="gallery-container">
+                <div class="swiper mySwiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <img src="https://dimg04.c-ctrip.com/images/0305e12000l41e75x6C2B.webp" alt="雅鲁藏布大峡谷">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://dimg04.c-ctrip.com/images/fd/tg/g2/M05/8B/B7/CghzgVWw7B2AaliwACk34IvyPZg811.webp" alt="布达拉宫">
+                        </div>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                </div>
+                <div class="image-count">1/2</div>
+            </div>
+
+            <!-- 产品标题信息 -->
+            <div class="section">
+                <h1 class="text-xl font-semibold text-gray-800 mb-2">拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍错+纳木措8日7晚私家团</h1>
+                <p class="text-sm text-gray-600 mb-3">雅鲁藏布大峡谷·拉萨河·鲁朗景区·巴松措·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街</p>
+                <div class="flex items-center mb-3">
+                    <span class="text-blue-500 font-medium mr-1">5.0分</span>
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star text-xs"></i>
+                        <i class="fas fa-star text-xs"></i>
+                        <i class="fas fa-star text-xs"></i>
+                        <i class="fas fa-star text-xs"></i>
+                        <i class="fas fa-star text-xs"></i>
+                    </div>
+                    <span class="text-gray-400 text-xs ml-2">已售103人</span>
+                </div>
+            </div>
+            
+            <!-- 产品特色(详情图) -->
+            <div class="section">
+                <h2 class="section-title">产品特色</h2>
+                <div class="product-detail-images">
+                    <img src="https://dimg04.c-ctrip.com/images/0302u12000l57z2etCA78.jpg" alt="产品特色" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0300q12000l582fd38ED8.jpg" alt="行程安排" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0300a12000jw4nuik3F43.jpg" alt="景点介绍" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0302n12000j14who61E3C.jpg" alt="服务说明" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0304g12000j14w1fs5217.jpg" alt="产品特色" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0305s12000j14x6k744BC.jpg" alt="行程安排" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0305412000j14wnb15BF9.jpg" alt="景点介绍" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0300712000j14xngaF0B2.jpg" alt="服务说明" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0304u12000j14x51w8BDE.jpg" alt="产品特色" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0306y12000j14xo2z856F.jpg" alt="行程安排" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0304v12000j14x3hb4862.jpg" alt="景点介绍" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0306r12000jt1iijy7A07.jpg" alt="服务说明" class="w-full rounded-lg mb-3">
+                    <img src="https://dimg04.c-ctrip.com/images/0307412000j14ws5s5F36.jpg" alt="产品特色" class="w-full rounded-lg">
+                </div>
+            </div>
+
+            <!-- 用户评价(只展示两条精选) -->
+            <div class="section">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="section-title mb-0">用户评价</h2>
+                    <div class="flex items-center">
+                        <span class="text-blue-500 font-medium mr-1">5.0</span>
+                        <div class="flex text-yellow-400">
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 评价标签 -->
+
+                
+                <!-- 评价列表(只展示两条) -->
+                <div class="border-t border-gray-100 pt-4">
+                    <div class="mb-4">
+                        <div class="flex items-center mb-2">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 mr-2 overflow-hidden">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="用户头像" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <div class="text-gray-800 text-sm font-medium">李**</div>
+                                <div class="text-gray-400 text-xs">2023-05-15</div>
+                            </div>
+                        </div>
+                        <div class="flex text-yellow-400 mb-2">
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                        </div>
+                        <div class="text-gray-600 text-sm">
+                            行程安排很合理，司机师傅很专业，对当地也很熟悉。雅鲁藏布大峡谷的风景太震撼了，南迦巴瓦峰云雾缭绕，非常美丽。酒店也很不错，拉萨的酒店有供氧设备，减轻了高原反应。总体来说非常满意的一次旅行！
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex items-center mb-2">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 mr-2 overflow-hidden">
+                                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="用户头像" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <div class="text-gray-800 text-sm font-medium">王**</div>
+                                <div class="text-gray-400 text-xs">2023-04-28</div>
+                            </div>
+                        </div>
+                        <div class="flex text-yellow-400 mb-2">
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                        </div>
+                        <div class="text-gray-600 text-sm">
+                            这次西藏之行非常愉快，司机师傅很专业，随车配备的氧气很贴心。布达拉宫、大昭寺、八廓街都很震撼，雅鲁藏布大峡谷和南迦巴瓦峰的美景让人难忘。非常推荐这个行程！
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button class="text-blue-500 text-sm flex items-center justify-center mx-auto">
+                            查看全部评价
+                            <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 行程安排 -->
+            <div class="section">
+                <h2 class="section-title">行程安排</h2>
+                <div class="itinerary-list">
+                    <div class="day-item border-b border-gray-100 py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day1</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">🛫【抵达拉萨-专车接机/接站】 🚗【车程】接机-约60km/1小时丨接站-约15km/30分钟 📌【住宿海拔】3650米 🏨【酒店】拉萨5钻供氧酒店</div>
+                    </div>
+                    <div class="day-item border-b border-gray-100 py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day2</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">🏔️【行程】独立包车丨拉萨-江河汇流-雅鲁藏布大峡谷-南迦巴瓦峰-索松村 🚗【车程】约490km/6小时 📌【住宿海拔】3000米 🏨【酒店】索松村·南迦巴瓦观景酒店</div>
+                    </div>
+                    <div class="day-item border-b border-gray-100 py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day3</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">🍀【行程】独立包车丨索松村-色季拉山--鲁朗林海-鲁朗扎西岗-鲁朗小镇-林芝 🚗【车程】约230km/5小时 📌【住宿海拔】2800米 🏨【酒店】林芝5钻酒店</div>
+                    </div>
+                    <div class="day-item border-b border-gray-100 py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day4</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">🌲【行程】独立包车丨林芝-巴松措-拉萨 🚗【车程】约460km/5.5小时 📌【住宿海拔】3650米 🏨【酒店】拉萨5钻供氧酒店</div>
+                    </div>
+                    <div class="day-item border-b border-gray-100 py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day5</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">💙【行程】独立包车丨拉萨-羊卓雍措-卡若拉冰川-拉萨 🚗【车程】约387km/7小时 📌【住宿海拔】3650米 🏨【酒店】拉萨5钻供氧酒店</div>
+                    </div>
+                    <div class="day-item border-b border-gray-100 py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day6</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">🌊【行程】独立包车丨拉萨-念青唐古拉山观景台-那根拉山口-纳木措-藏北草原-拉萨 🚗【车程】约400km/6小时 📌【住宿海拔】3650米 🏨【酒店】拉萨5钻供氧酒店</div>
+                    </div>
+                    <div class="day-item border-b border-gray-100 py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day7</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">🔔【行程】布达拉宫&大昭寺（赠送专属导游讲解服务）→漫步八廓街 📌【住宿海拔】3650米 🏨【酒店】拉萨5钻供氧酒店</div>
+                    </div>
+                    <div class="day-item py-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-gray-800 font-medium">Day8</div>
+                            <div class="text-xs text-blue-500 cursor-pointer day-expand" data-expanded="false">展开</div>
+                        </div>
+                        <div class="day-content text-sm text-gray-600 line-clamp-2">🛫【快乐返程-根据航班时间送机/送站】 🚗【车程】送机-约60km/1小时丨送站-约15km/30分钟 🌈山高水长，有缘再会</div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button class="bg-blue-50 text-blue-600 text-sm flex items-center justify-center mx-auto px-6 py-2 rounded-full">
+                        查看完整行程详情
+                        <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 以下部分默认隐藏 -->
+            <div class="accordion-container mb-24">
+                <!-- 行程亮点 -->
+                <div class="accordion-item">
+                    <div class="accordion-header bg-white p-4 flex justify-between items-center border-b">
+                        <h2 class="section-title mb-0 font-medium text-gray-800">行程亮点</h2>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div class="accordion-content bg-white p-4" style="display: none;">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-hotel"></i>
+                            </div>
+                            <div>
+                                <div class="text-gray-800">精选酒店</div>
+                                <div class="text-gray-500 text-xs mt-1">拉萨市区全程供氧酒店，可根据您的需求选择体验各式酒店。</div>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <div class="text-gray-800">服务保障</div>
+                                <div class="text-gray-500 text-xs mt-1">西藏本土旅行社，严选藏地老司机带队，随车碳纤维氧气+便携氧气，管够畅吸。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 行程概览 -->
+                <div class="accordion-item">
+                    <div class="accordion-header bg-white p-4 flex justify-between items-center border-b">
+    
+                        <h2 class="section-title mb-0 font-medium text-gray-800">行程概览</h2>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div class="accordion-content bg-white p-4" style="display: none;">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-xs text-gray-500 mb-1">导游</div>
+                                <div class="text-sm">含司机服务（不含导游）</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-xs text-gray-500 mb-1">交通</div>
+                                <div class="text-sm">含行中专属用车，不拼车</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-xs text-gray-500 mb-1">景点</div>
+                                <div class="text-sm">20个景点/场馆，无购物</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-xs text-gray-500 mb-1">住宿</div>
+                                <div class="text-sm">含6晚5钻酒店,1晚3钻酒店</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 费用说明 -->
+                <div class="accordion-item">
+                    <div class="accordion-header bg-white p-4 flex justify-between items-center border-b">
+                        <h2 class="section-title mb-0 font-medium text-gray-800">费用说明</h2>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div class="accordion-content bg-white p-4" style="display: none;">
+                        <div class="mb-3">
+                            <div class="font-medium text-gray-800 mb-1">费用包含:</div>
+                            <div class="text-gray-600 text-sm">
+                                <p class="mb-1">· <span class="text-gray-700">交通：</span>随团游览期间用车费用；目的地专车接送服务</p>
+                                <p class="mb-1">· <span class="text-gray-700">住宿：</span>行程所列酒店住宿费用</p>
+                                <p class="mb-1">· <span class="text-gray-700">餐饮：</span>成人包含7次：7早餐</p>
+                                <p class="mb-1">· <span class="text-gray-700">门票：</span>行程中所列景点/场馆首道大门票</p>
+                                <p class="mb-1">· <span class="text-gray-700">服务：</span>仅安排中文司机负责行程活动中接待服务</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-800 mb-1">费用不包含:</div>
+                            <div class="text-gray-600 text-sm">
+                                <p class="mb-1">· 往返机票</p>
+                                <p class="mb-1">· 景区/场馆讲解</p>
+                                <p class="mb-1">· 成人午餐和晚餐</p>
+                                <p class="mb-1">· 个人消费及行程未列明的其他费用</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预订须知 -->
+                <div class="accordion-item">
+                    <div class="accordion-header bg-white p-4 flex justify-between items-center border-b">
+                        <h2 class="section-title mb-0 font-medium text-gray-800">预定须知</h2>
+
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div class="accordion-content bg-white p-4" style="display: none;">
+                        <div class="mb-3">
+                            <div class="font-medium text-gray-800 mb-1">退改规则</div>
+                            <div class="text-gray-600 text-sm">
+                                <p class="mb-1">· 出行前7天（含）以上取消，全额退款</p>
+                                <p class="mb-1">· 出行前3-6天（含）取消，收取总费用的50%</p>
+                                <p class="mb-1">· 出行前2天（含）以内取消，收取总费用的100%</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="font-medium text-gray-800 mb-1">预订限制</div>
+                            <div class="text-gray-600 text-sm">
+                                <p class="mb-1">· 最少预订人数：1人</p>
+                                <p class="mb-1">· 儿童预订提示：儿童价格仅适用于2-12岁（含）</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-800 mb-1">特别提示</div>
+                            <div class="text-gray-600 text-sm">
+                                <p class="mb-1">· 西藏为高原地区，请做好高原反应准备</p>
+                                <p class="mb-1">· 建议购买旅游意外保险</p>
+                                <p class="mb-1">· 请携带有效身份证件</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部预订栏 -->
+        <div class="bottom-bar">
+            <div id="price-info-container" class="mr-4 cursor-pointer">
+                <div class="flex items-center">
+                    <div class="flex flex-col">
+                        <div class="flex items-center">
+                            <div class="text-lg font-semibold text-orange-500">¥5750</div>
+                            <div class="text-xs font-normal text-orange-500">/人起</div>
+                            <div class="ml-1 bg-orange-100 text-orange-500 text-xs px-1.5 py-0.5 rounded-sm">已减¥1366</div>
+                        </div>
+                        <div class="text-xs text-gray-500">携程价 ¥7116/人起</div>
+                    </div>
+                </div>
+            </div>
+            <button class="book-button">
+                立即预订
+            </button>
+        </div>
+    </div>
+
+    <!-- 价格计算弹窗 -->
+    <div id="price-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-4/5 max-w-sm">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="font-medium text-gray-800">价格计算明细</h3>
+                <button id="close-modal" class="text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">携程平台价</span>
+                        <span>¥7116</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">小程序基础优惠</span>
+                        <span class="text-green-500">-¥1066</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">会员专享优惠券</span>
+                        <span class="text-green-500">-¥200</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">金卡会员折扣(95折)</span>
+                        <span class="text-green-500">-¥100</span>
+                    </div>
+                </div>
+                <div class="border-t pt-3 flex justify-between font-medium">
+                    <span>最终价格</span>
+                    <span class="text-orange-500">¥5750</span>
+                </div>
+                <div class="mt-4 text-xs text-gray-500">
+                    注：实际价格可能因选择日期、人数等因素有所变化
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script>
+        // 初始化轮播图
+        var swiper = new Swiper(".mySwiper", {
+            slidesPerView: 1,
+            spaceBetween: 0,
+            loop: true,
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            on: {
+                slideChange: function () {
+                    // 更新图片计数
+                    document.querySelector('.image-count').textContent = 
+                        (this.realIndex + 1) + '/20';
+                }
+            }
+        });
+
+        // 手风琴功能
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                if (content && content.classList.contains('accordion-content')) {
+                    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                }
+            });
+        });
+        
+        // 行程展开/收起功能
+        document.querySelectorAll('.day-expand').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const content = this.previousElementSibling;
+                const isExpanded = this.getAttribute('data-expanded') === 'true';
+                
+                if (isExpanded) {
+                    content.classList.add('line-clamp-2');
+                    content.classList.remove('line-clamp-none');
+                    this.textContent = '展开';
+                    this.setAttribute('data-expanded', 'false');
+                } else {
+                    content.classList.remove('line-clamp-2');
+                    content.classList.add('line-clamp-none');
+                    this.textContent = '收起';
+                    this.setAttribute('data-expanded', 'true');
+                }
+            });
+        });
+        
+        // 价格弹窗功能
+        document.getElementById('price-info-container').addEventListener('click', function() {
+            document.getElementById('price-modal').classList.remove('hidden');
+        });
+        
+        document.getElementById('close-modal').addEventListener('click', function() {
+            document.getElementById('price-modal').classList.add('hidden');
+        });
+        
+        // 点击弹窗外部关闭弹窗
+        document.getElementById('price-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,24 @@
+# 依赖文件夹 (Dependencies)
+# 这样写会自动匹配所有子目录下的 node_modules 文件夹
+node_modules/
+
+# 编译打包产物 (Build output)
+dist/
+build/
+unpackage/
+
+# 日志文件 (Log files)
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 环境变量文件 (Environment variables)
+.env
+.env.local
+.env.*.local
+
+# 系统和IDE的配置文件 (System / IDE files)
+.DS_Store
+.idea/
+.vscode/

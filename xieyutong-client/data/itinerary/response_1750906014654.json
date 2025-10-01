@@ -1,0 +1,1816 @@
+{
+  "success": true,
+  "message": "获取行程攻略成功",
+  "data": {
+    "product_info": {
+      "product_id": "54780693",
+      "title": "",
+      "sub_title": "",
+      "duration": "1天",
+      "total_days": 1,
+      "remarks": ""
+    },
+    "itinerary": [
+      {
+        "day": 1,
+        "day_title": "【抵达拉萨】🔸海拔：3600米 🔸行程：专车接机丨自由活动 探索拉萨 🔸 酒店：拉萨4钻供氧酒店",
+        "activities": [
+          {
+            "elementType": "assembly",
+            "title": "集合",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": null,
+            "time_duration_minutes": null,
+            "time_period": "全天",
+            "time_remark": "集合时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "assembly_type": "接机/站",
+              "title": "【抵达拉萨】🔸海拔：3600米 🔸行程：专车接机丨自由活动 探索拉萨 🔸 酒店：拉萨4钻供氧酒店",
+              "locations": [
+                "贡嘎国际机场",
+                "拉萨站"
+              ],
+              "time_info": "全天（专车）",
+              "remark": "超过免费接送范围请自行集合，如有疑问请联系客服"
+            }
+          },
+          {
+            "elementType": "other",
+            "title": "其他",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": null,
+            "time_duration_minutes": null,
+            "time_period": "全天",
+            "time_remark": "",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "温馨提示：⚠️⚠️⚠️阿里线路条件有限，部分城市开发程度不高，餐食条件可能不尽如人意，建议可根据个人口味准备零食，以备不时之需，及时补充能量。本行程已为您优选沿途酒店，但部分酒店条件不能与发达地区相比，请知悉。⚠️⚠️⚠️\n活动时间: 约10分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": "上午",
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日根据您选择的航班到达时间，我们安排24小时专车接机，不等人不拼车。如遇航班变动请第一时间联系您的客服管家。抵达当天小贴士：1.今日除接机外全天自由活动，可根据您的身体适应情况，自行在拉萨市区观光，三餐敬请自理。2.初到高原地区，建议不要疾步行走，更不能奔跑和做体力劳动，不可暴饮暴食，适量饮水，注意保暖，少洗澡以避免受凉感冒和消耗体力。3.个人体质不一，高反程度一般分为轻、中、重度。轻度高反可以可服用一些缓解高原反应的药品：葡萄糖，高原安，西洋参等缓解不适；中、重度反应者，可通过及时吸氧、就医等缓解不适。"
+            }
+          },
+          {
+            "elementType": "other",
+            "title": "其他",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": null,
+            "time_duration_minutes": null,
+            "time_period": "上午",
+            "time_remark": "",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "✨温馨提示✨1.【独立包车】私家团产品独立包车，1人也可出行。行程所列游玩时间仅为参考，沿途可随走随停，出发/游玩时间可根据您的实际情况安排。2.【价格透明】私家团除正餐及其他自理费用外，用车/酒店/门票费用均包含。页面显示为双人预定的人均价格，人越多人均价格越优✨温馨提示✨1.【独立包车】私家团产品独立包车，1人也可出行。沿途可随走随停，出发/游玩时间可根据实际情况安排。2.【价格透明】除正餐及其他自理费用外，用车/酒店/门票费用均包含，无额外费用。页面显示为双人预定人均价格，人越多人均价格越优惠。可点击立即预定，输入日期及人数查看价格详情。如下单-出行前产品降价，均可退还差价（平台优惠/系统机票价格浮动除外）。3.【专属管家】下单后专属管家将联系您，随即确定酒店/行程安排。行程在合理范围内可微调，如需调整行程等更多需求可提前告知。4.【专业司机】出行前一晚司机将与您取得联系。沿途司机会为您拍照、规划路线时间、推荐用餐等，保证无套路无隐藏消费。✨特别说明✨1.酒店安排为行程披露酒店-基础房型（大床/双床），如有指定酒店或三人间及加床等特殊需求可提前详询客服或备注。将根据房态尽量安排，无法100%保证，敬请谅解。2.西藏地域辽阔，景点之间距离较远，产品行程中所列时间点以及游玩时间仅供参考建议，非确切时间，具体时间以实际为准。如对时间有要求可提前联系客服确认。3.车观/外观景点为路过景点，沿途风光，默认不做停留，如需停车观赏可提前告知师傅，在安全路况下均可停车休息观赏。4.旺季出行，如出现排队、堵车等情况，建议调节好心情，出门在外安全为首，我们将根据实际情况为您积极协调。5.为保障司机休息时间，行程中每日送至酒店后，司机结束当日用车服务，不提供额外夜间用车服务，感谢理解。\n展开"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": "上午",
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "🚗【车型参考及建议】：【5座车型】至多4人乘坐，1-3人舒适性较佳（不含司机导游）。➡️参考用车：默认本田crv/丰田汉兰达等同级车辆，可升级坦克300/丰田酷路泽/丰田普拉多等。【7座车型】至多6人乘坐，1-5人舒适性较佳（不含司机导游）。➡️参考用车：默认别克GL8，可升级奔驰威霆➡️更多人数车型参考用车：9座福田/全顺12座/15座/17座，均可根据您的人数定制车型。温馨提示：📝【营运车】西藏营运藏AL旅游车，5座/7座可选车型仅有别克商务及丰田普拉多。如需安排旅游车可选择对应车型。旅游车均为2015-2016年采购车辆，暂未统一更换，车况较差，敬请理解。⭐️【行程用车】除旅游车外其余车型为我社长期合作租用车辆，非营运车，介意勿选。师傅为自营司机，承诺保证不外包，车况较新（5年及以内）。车辆及出游保险配置齐全。私家团用车均不限行李数量，建议保持适当空座保障乘坐体验。可根据实际情况选择对应车型，如需新款车辆可提前联系客服详询。车型选择可点击预定详情→当地交通→【更换车型】中选择查看。如有更多疑问及建议可随时联系客服咨询。\n展开\n行驶：约65公里/约1小时"
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "other",
+            "title": "其他",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": null,
+            "time_duration_minutes": null,
+            "time_period": "下午",
+            "time_remark": "",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "小昭寺 或 西藏博物馆 或 哲蚌寺 或 罗布林卡\n酒店于14：00后办理入住，若您抵达拉萨时间尚早建议您先寄存行李于酒店，之后自行安排自由活动。\n游览时间：约2小时"
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "18:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [
+                "巴里岛国际酒店(大昭寺店)（高档型酒店）  拉萨岷山银桥大酒店(大昭寺店)（高档型酒店）"
+              ],
+              "image": "https://images4.c-ctrip.com/target/200d1c000001cdpu23B22.jpg",
+              "remark": "温馨提示：酒店默认基础房型。如您对酒店及房型有特殊需求，可提前联系客服或下单后告知您的旅行管家。特殊节假日不做指定安排。如遇临时预定或旺季无房，我们会提前与您沟通协调。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 2,
+        "day_title": "【日光圣城】🔸海拔：3650米 🔸 行程：布达拉宫&大昭寺（赠送专属导游讲解服务）→漫步八廓街 🔸 酒店：拉萨4钻供氧酒店",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:10",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "【走进历史】今日为您赠送金牌导游讲解服务，含布达拉宫-大昭寺一对一讲解，带您深度了解藏地文化。🧡因拉萨市区景点集中、用车时间短，今日我们将安排导游带领您打车或专车进行接驳，接驳部分可能会安排不同的车辆，感谢理解。🧡因布达拉宫门票紧张，参加具体时间以预约进入时间为准，如前期因未约到布宫门票，今日行程可根据实际情况进行调整，请知悉。\n行驶：约3公里/约10分钟"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "10:00",
+            "time_duration_hours": 2,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "布达拉宫",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/100j1f000001gptxjF6C2_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "16:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "大昭寺",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/010231200087e45x769E7_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "16:30",
+            "time_duration_hours": 2,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "八廓街",
+                  "ticket_included": false,
+                  "ticket_type": "无需门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/100v13000000ui5lyD2A4_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "18:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [
+                "巴里岛国际酒店(大昭寺店)（高档型酒店）  拉萨岷山银桥大酒店(大昭寺店)（高档型酒店）"
+              ],
+              "image": "https://images4.c-ctrip.com/target/200d1c000001cdpu23B22.jpg",
+              "remark": "温馨提示：酒店默认基础房型。行程所列酒店可选。如您对酒店及房型有特殊需求，可提前联系客服或下单后告知您的旅行管家。特殊节假日不做指定安排。如遇临时预定或旺季无房，我们会提前与您沟通协调。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 3,
+        "day_title": "【启程·羊湖蓝】🔸海拔：3800米 🔸行程：独立包车丨拉萨-羊卓雍措-湖畔观景台-卡若拉冰川-满拉水库-江孜-日喀则 🔸酒店：日喀则4钻供氧酒店",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间: 约20分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日从拉萨出发前往日喀则，主要游玩景点为羊卓雍措。沿途可参观卡若拉冰川、满拉水库。\n行驶：约500公里/约6小时30分钟"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "09:10",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "拉萨河",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/fd/tg/g4/M05/CB/30/CggYHVZzrUGAKPhNABwIGJ16XYQ767_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "10:30",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "羊卓雍错",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0105r12000jz93v7k4277_C_360_202.jpg"
+                  ]
+                },
+                {
+                  "name": "岗巴拉山",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0105m1200086sm2vj7C9B_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "🍴正餐自理，方便您根据自身口味，自由选择当地美食。美食Tips-餐厅推荐：三生川味餐厅 （川菜餐厅） 推荐菜品：清蒸羊湖鱼/蒜苗回锅肉/酸辣土豆丝川味家常菜（川菜餐厅）推荐菜品：红烧羊湖鱼/水煮肉片/鱼香茄子"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "16:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "卡若拉冰川",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://static.tripcdn.com/modules/vacation/vacationpic/h5/tourpic/group_travel/detail/poiempty.png"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "17:00",
+            "time_duration_hours": 0.16666666666666666,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "满拉水库",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0104f120008ihrp4s247D_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "18:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "🍴正餐自理，方便您根据自身口味，自由选择当地美食。美食Tips-餐厅推荐：绵阳干锅（川菜餐厅）推荐菜品：干锅鸡/干锅排骨/干锅虾小胖子川菜（川菜餐厅）推荐菜品：水煮肉片/小炒牦牛肉/川味香肠 吾尔朵大宅院（藏式餐厅）推荐：晚上用餐有藏戏表演"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "距离市中心4km",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "距离市中心4km",
+              "alternativeHotels": [
+                "日喀则坤逸星光酒店(扎什伦布寺店)（高档型酒店）"
+              ],
+              "image": "https://images4.c-ctrip.com/target/1mc1c12000c0psfww5A22.jpg",
+              "remark": "温馨提示：酒店默认基础供氧房型。行程所列酒店可选。如您对酒店及房型有特殊需求，可提前联系客服或下单后告知您的旅行管家。特殊节假日不做指定安排。如遇临时预定或旺季无房，我们会提前与您沟通协调。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 4,
+        "day_title": "【深入后藏】🔸海拔：4500米 🔸行程：独立包车丨日喀则—扎什伦布寺—浪措湖—桑桑大草原—索比拉亚—萨嘎 🔸酒店：萨嘎当地4钻酒店",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 0.5,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间: 约30分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日早餐以后参观班禅驻锡地——扎什伦布寺后，一路向西，驱车前往萨嘎。沿途经过浪措湖、桑桑大草原、远眺索比拉亚山。一路欣赏雪山、草原、高原湖泊，与藏地野生动物不期而遇。今日行车较为辛苦，但我们的私家团可以随走随停，随时放慢脚步，停下来休息片刻，舒缓您的旅途疲劳。\n行驶：约500公里/约7小时20分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:30",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "📝前往日喀则办证中心办理完边防证后开始今日行程~温馨提示：行程中师傅会带领前往办理边防证（携带身份证原件即可），如遇节假日或其他特殊情况，办理边防证可能出现排队情况，敬请理解；如出行前平日有空闲时间，可提前在当地（需在户籍所在地）办理边防证，行程中可节省办证时间。ps.如若您的户籍属于或曾属于五大藏区（四川、云南、甘肃、青海、内蒙的藏族自治州、自治县、自治村）或新疆籍/西藏籍，因目的地原因无法协助代办，需您自行在户籍所在地办理边防证（工作日一般当天可出签），如有不便，敬请谅解。\n行驶：约10公里/约20分钟"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "11:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "扎什伦布寺",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0104h1200082niprt67F4_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "15:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "318国道5000km纪念碑",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0104312000jz4mhqvB375_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "18:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [
+                "云水际·未来酒店(萨嘎店)（舒适型酒店）"
+              ],
+              "image": "https://images4.c-ctrip.com/target/0204112000fznffv76093.jpg",
+              "remark": "温馨提示：萨嘎县城条件有限，住宿环境不能与内地发达区域相比，敬请知悉。如遇临时预定或旺季无房，我们会提前与您沟通协调。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 5,
+        "day_title": "【藏地神山】🔸海拔：4600米 🔸行程：独立包车丨萨嘎—仲巴县—公珠措—玛旁雍措—拉昂措—冈仁波齐—塔尔钦 🔸酒店：塔尔钦当地4钻酒店",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0.5,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间: 约30分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日前往“世界的中心”冈仁波齐，一起见证西藏的信仰。今日行程较长，沿途可以适当休息放松。\n行驶：约500公里/约6小时"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "11:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "公珠错",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0104o120008dgji9rCCFF_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "16:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "玛旁雍措",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/100h1b000001ae8554F68_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "17:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "拉昂错",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://static.tripcdn.com/modules/vacation/vacationpic/h5/tourpic/group_travel/detail/poiempty.png"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "18:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "冈仁波齐",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/10011b000001apkrxE58D_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/1mc5k12000jiuggmq04E0.jpg",
+              "remark": "温馨提示：酒店房间数量有限，如遇临时预定或旺季无房，我们会提前与您沟通协调。塔尔钦当地条件有限，住宿环境不能与内地发达区域相比，敬请知悉。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 6,
+        "day_title": "【消失的王国】🔸海拔：3700米 🔸行程：独立包车丨塔尔钦—扎达土林—古格王朝—札达县城 🔸酒店：札达当地4钻酒店",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 0.5,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间: 约30分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日前往扎达士林，看历史造就的土林，随即前去参观一夜消失的古格王朝，最后前去札达休息。\n行驶：约500公里/约4小时30分钟"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "11:00",
+            "time_duration_hours": 0.5,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "札达土林国家地质公园‌",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0106n120008ab3qaqE744_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "14:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "古格王国遗址",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/100c1b000001afap32310_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "18:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/0204m12000bbuog8x8626.jpg",
+              "remark": "温馨提示：札达条件有限，住宿环境不能与内地发达区域相比，敬请知悉。如遇临时预定或旺季无房，我们会提前与您沟通协调。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 7,
+        "day_title": "【后藏风光】🔸海拔：4500米 🔸行程：独立包车丨札达一马泉河湿地公园（帕羊沙漠）—仲巴—萨嘎 🔸酒店：萨嘎当地4钻酒店",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 0.5,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间: 约30分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日出发游玩马泉河湿地公园，随后返回萨嘎。\n行驶：约500公里/约9小时20分钟"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "11:00",
+            "time_duration_hours": 0.16666666666666666,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "纳木那尼峰",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/100n1b000001bmev690DD_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "14:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "马泉河",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/01064120009d8tbo74B1B_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "18:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [
+                "云水际·未来酒店(萨嘎店)（舒适型酒店）"
+              ],
+              "image": "https://images4.c-ctrip.com/target/0204112000fznffv76093.jpg",
+              "remark": "温馨提示：萨嘎县城条件有限，住宿环境不能与内地发达区域相比，敬请知悉。如遇临时预定或旺季无房，我们会提前与您沟通协调。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 8,
+        "day_title": "【珠峰新高度】🔸海拔：4200米 🔸行程：独立包车丨萨嘎—西夏邦马峰—佩古措—绒布寺—珠穆朗玛峰—珠峰大本营-扎西宗乡 🔸酒店：珠峰平措康桑富氧酒店",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 0.5,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间: 约30分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日出发前往珠峰大本营，远观珠峰。沿途可观赏希夏邦马峰等雪山。\n行驶：约350公里/约4小时10分钟"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "11:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "希夏邦马峰",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/100d18000001585ui77D4_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "14:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "佩古错",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/01074120009g41ohpCE73_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "17:00",
+            "time_duration_hours": 3,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "珠峰景区",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0101m12000f6tiryvB936_C_360_202.jpg"
+                  ]
+                },
+                {
+                  "name": "珠峰大本营",
+                  "ticket_included": true,
+                  "ticket_type": "已含门票",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0103l1200083pl5eqF2F9_C_360_202.jpg"
+                  ]
+                },
+                {
+                  "name": "珠峰大本营绒布寺",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0102u120008iaddbs1EB8_C_360_202.jpg"
+                  ]
+                },
+                {
+                  "name": "珠穆朗玛峰",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/100t0p000000fgha23761_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "19:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "20:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/02059120008ya1jmo880A.jpg",
+              "remark": "温馨提示：本产品优先指定入住珠峰平措康桑。平措位于扎西宗乡，海拔4200米，配套设施较为完善。如遇旺季或临时预定酒店无房，我们会提前与你协调，安排定日当地的供氧酒店。宿珠峰大本营：本产品可选择入住珠峰大本营-绒布寺招待所。因观景房间数量有限，如有需求可提前详询客服房态。大本营住宿条件有限，海拔5200米，请根据您的身体状况量力而行，酌情选择。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 9,
+        "day_title": "【雪山盛宴】🔸海拔：3650米 🔸 行程：独立包车丨珠峰景区-加乌拉山（远眺雪山）-嘉措拉山-日喀则-拉萨",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 0.5,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间: 约30分钟"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "specific",
+            "time_start_time": "08:30",
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "出发返回拉萨，今日因行程较为紧张，我们一路返回拉萨，专车送回您入住的酒店。如需在日喀则乘坐火车返回拉萨，可提前联系管家为您协调行程。\n行驶：约556公里/约8小时45分钟"
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "09:00",
+            "time_duration_hours": 0.3333333333333333,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "加乌拉",
+                  "ticket_included": false,
+                  "ticket_type": "外观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0100t12000ikv6z97B61C_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "scenic",
+            "title": "景点",
+            "time_type": "specific",
+            "time_start_time": "11:00",
+            "time_duration_hours": 0.16666666666666666,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "景点/场馆",
+              "scenic_spots": [
+                {
+                  "name": "嘉措拉山口",
+                  "ticket_included": false,
+                  "ticket_type": "车观",
+                  "description": "",
+                  "images": [
+                    "https://dimg04.c-ctrip.com/images/0105s120009d9u3q07251_C_360_202.jpg"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "12:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "午餐",
+              "meal_type": "午餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "17:30",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "晚餐",
+              "meal_type": "晚餐",
+              "adult_included": false,
+              "adult_fee_type": "自理",
+              "child_included": false,
+              "child_fee_type": "自理",
+              "remark": "敬请自理"
+            }
+          },
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": "21:00",
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [
+                "巴里岛国际酒店(大昭寺店)（高档型酒店）  拉萨岷山银桥大酒店(大昭寺店)（高档型酒店）"
+              ],
+              "image": "https://images4.c-ctrip.com/target/200d1c000001cdpu23B22.jpg",
+              "remark": "温馨提示：本产品指定入住当地精选酒店，酒店房型以实际安排为准。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 10,
+        "day_title": "【快乐返程】 🔸 行程：根据您的航班时间，自由活动后专车送机",
+        "activities": [
+          {
+            "elementType": "restaurant",
+            "title": "餐厅",
+            "time_type": "specific",
+            "time_start_time": "08:00",
+            "time_duration_hours": 1,
+            "time_duration_minutes": 0,
+            "time_period": null,
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "name": "早餐",
+              "meal_type": "早餐",
+              "adult_included": true,
+              "adult_fee_type": "费用包含",
+              "child_included": true,
+              "child_fee_type": "费用包含",
+              "remark": "用餐时间：约1小时"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": "全天",
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "今日根据您选择的航班返程时间，我们安排专车送机。如遇航班变动请第一时间联系您的送机司机/客服管家。1. 接送通知：在您离开前1天21:00前，工作人员将以手机短信/或微信/或致电等方式与您确认送机时间， 请您保持通讯畅通注意查收。若逾时未接收到相关讯息，烦请您微信群联系客服管家核实确认，感谢您支持与配合！2.我司接送机均安排专车，并非游览行程用车。该项目不用不退。若您有特殊需求（如需延后使用），可以变更服务日期，请提前备注或联系客服协调，我们将为您安排后续送机/送站服务。"
+            }
+          },
+          {
+            "elementType": "transport",
+            "title": "交通",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": 0,
+            "time_duration_minutes": 0,
+            "time_period": "全天",
+            "time_remark": null,
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "content": "温馨提示1.行程中的所有时间点安排，均为预计时间，不是确切时间，私家团行程可自由安排景点游览时间，无需赶场，请知晓。2.私家团景点可根据您的喜好进行调整删减，如涉及付费景点，门票费用按实际行程多退少补，敬请知悉。"
+            }
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "extracted_at": "2025-06-26T02:46:55.080380",
+      "source_url": "https://m.ctrip.com/webapp/xtour/detailComplexRoute?ProductId=54780693&Alias=A"
+    }
+  },
+  "timestamp": "2025-06-26T02:46:55.222377"
+}

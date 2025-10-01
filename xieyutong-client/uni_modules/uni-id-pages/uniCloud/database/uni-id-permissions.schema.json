@@ -1,0 +1,65 @@
+{
+  "bsonType": "object",
+  "description": "uni-id权限表，定义系统中的权限点，保持简单不过度复杂化",
+  "required": ["permission_id", "permission_name"],
+  "permission": {
+    "read": true,
+    "create": "role in ['super_admin']",
+    "update": "role in ['super_admin']",
+    "delete": "role in ['super_admin']",
+    "count": true
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "permission_id": {
+      "bsonType": "string",
+      "description": "权限ID，系统使用的唯一标识",
+      "title": "权限ID",
+      "required": true,
+      "maxLength": 100
+    },
+    "permission_name": {
+      "bsonType": "string",
+      "description": "权限名称，用于显示",
+      "title": "权限名称",
+      "required": true,
+      "maxLength": 100
+    },
+    "permission_desc": {
+      "bsonType": "string",
+      "description": "权限描述",
+      "title": "权限描述",
+      "maxLength": 500
+    },
+    "category": {
+      "bsonType": "string",
+      "description": "权限分类",
+      "title": "权限分类",
+      "enum": ["商品管理", "订单管理", "用户管理", "营销管理", "系统管理", "数据查看"],
+      "maxLength": 50
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "权限状态",
+      "title": "状态",
+      "enum": ["active", "inactive"],
+      "default": "active"
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+} 

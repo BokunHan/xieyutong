@@ -1,0 +1,285 @@
+{
+  "bsonType": "object",
+  "description": "业务订单表，记录用户购买旅游产品的订单信息",
+  "required": ["order_no", "user_id", "product_id", "status"],
+  "permission": {
+    "read": true,
+    "create": "auth.uid != null",
+    "update": "role in ['admin', 'super_admin'] || (auth.uid == doc.user_id && doc.status == 'pending')",
+    "delete": "role in ['admin', 'super_admin']",
+    "count": true
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "order_no": {
+      "bsonType": "string",
+      "description": "订单号，唯一标识",
+      "title": "订单号",
+      "required": true,
+      "minLength": 20,
+      "maxLength": 28
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "用户ID，关联uni-id-users表",
+      "title": "用户ID",
+      "required": true,
+      "foreignKey": "uni-id-users._id"
+    },
+    "product_id": {
+      "bsonType": "string",
+      "description": "商品ID，关联a-products表",
+      "title": "商品ID",
+      "required": true,
+      "foreignKey": "a-products._id"
+    },
+    "product_snapshot": {
+      "bsonType": "object",
+      "description": "商品快照，记录下单时的商品信息",
+      "title": "商品快照",
+      "properties": {
+        "title": {
+          "bsonType": "string",
+          "description": "商品标题"
+        },
+        "price": {
+          "bsonType": "number",
+          "description": "商品价格"
+        },
+        "images": {
+          "bsonType": "array",
+          "description": "商品图片"
+        },
+        "departure_date": {
+          "bsonType": "timestamp",
+          "description": "出发日期时间戳"
+        },
+        "duration": {
+          "bsonType": "number",
+          "description": "行程天数"
+        }
+      }
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "订单状态",
+      "title": "订单状态",
+      "enum": ["pending", "paid"],
+      "default": "pending",
+      "required": true
+    },
+    "order_type": {
+      "bsonType": "string",
+      "description": "订单类型",
+      "title": "订单类型",
+      "enum": ["normal", "proxy"],
+      "default": "normal",
+      "required": true
+    },
+    "quantity": {
+      "bsonType": "number",
+      "description": "购买数量",
+      "title": "购买数量",
+      "default": 1,
+      "minimum": 1
+    },
+    "total_amount": {
+      "bsonType": "number",
+      "description": "订单总金额（原价）",
+      "title": "订单总金额",
+      "required": true,
+      "minimum": 0
+    },
+    "discount_amount": {
+      "bsonType": "number",
+      "description": "折扣金额",
+      "title": "折扣金额",
+      "default": 0,
+      "minimum": 0
+    },
+    "coupon_discount": {
+      "bsonType": "number",
+      "description": "优惠券折扣金额",
+      "title": "优惠券折扣",
+      "default": 0,
+      "minimum": 0
+    },
+    "member_discount": {
+      "bsonType": "number",
+      "description": "会员折扣金额",
+      "title": "会员折扣",
+      "default": 0,
+      "minimum": 0
+    },
+    "final_amount": {
+      "bsonType": "number",
+      "description": "最终支付金额",
+      "title": "最终支付金额",
+      "required": true,
+      "minimum": 0
+    },
+    "coupons_used": {
+      "bsonType": "array",
+      "description": "使用的优惠券ID列表",
+      "title": "使用优惠券",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "member_level": {
+      "bsonType": "string",
+      "description": "下单时的会员等级",
+      "title": "会员等级",
+      "enum": ["normal", "silver", "gold", "diamond"]
+    },
+    "contact_info": {
+      "bsonType": "object",
+      "description": "联系人信息",
+      "title": "联系人信息",
+      "properties": {
+        "name": {
+          "bsonType": "string",
+          "description": "联系人姓名"
+        },
+        "phone": {
+          "bsonType": "string",
+          "description": "联系人电话"
+        },
+        "email": {
+          "bsonType": "string",
+          "description": "联系人邮箱"
+        }
+      }
+    },
+    "travelers": {
+      "bsonType": "array",
+      "description": "出行人信息列表",
+      "title": "出行人信息",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "name": {
+            "bsonType": "string",
+            "description": "出行人姓名"
+          },
+          "id_card": {
+            "bsonType": "string",
+            "description": "身份证号"
+          },
+          "phone": {
+            "bsonType": "string",
+            "description": "手机号"
+          },
+          "passport": {
+            "bsonType": "string",
+            "description": "护照号"
+          }
+        }
+      }
+    },
+    "departure_date": {
+      "bsonType": "timestamp",
+      "description": "出发日期时间戳",
+      "title": "出发日期"
+    },
+    "return_date": {
+      "bsonType": "timestamp",
+      "description": "返回日期时间戳",
+      "title": "返回日期"
+    },
+    "duration_days": {
+      "bsonType": "number",
+      "description": "行程持续天数",
+      "title": "行程天数",
+      "minimum": 1,
+      "default": 1
+    },
+    "special_requirements": {
+      "bsonType": "string",
+      "description": "特殊要求",
+      "title": "特殊要求"
+    },
+    "payment_info": {
+      "bsonType": "object",
+      "description": "支付信息",
+      "title": "支付信息",
+      "properties": {
+        "pay_order_id": {
+          "bsonType": "string",
+          "description": "关联的uni-pay-orders表ID"
+        },
+        "payment_method": {
+          "bsonType": "string",
+          "description": "支付方式",
+          "enum": ["wxpay", "alipay", "appleiap"]
+        },
+        "paid_at": {
+          "bsonType": "timestamp",
+          "description": "支付时间"
+        }
+      }
+    },
+    "ctrip_sync": {
+      "bsonType": "object",
+      "description": "携程同步信息",
+      "title": "携程同步",
+      "properties": {
+        "is_synced": {
+          "bsonType": "bool",
+          "description": "是否已同步到携程",
+          "default": false
+        },
+        "ctrip_order_id": {
+          "bsonType": "string",
+          "description": "携程订单ID"
+        },
+        "sync_time": {
+          "bsonType": "timestamp",
+          "description": "同步时间"
+        },
+        "sync_status": {
+          "bsonType": "string",
+          "description": "同步状态",
+          "enum": ["pending", "success", "failed"]
+        }
+      }
+    },
+    "notes": {
+      "bsonType": "string",
+      "description": "订单备注",
+      "title": "订单备注"
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "paid_at": {
+      "bsonType": "timestamp",
+      "description": "支付完成时间"
+    },
+    "confirmed_at": {
+      "bsonType": "timestamp",
+      "description": "订单确认时间"
+    },
+    "completed_at": {
+      "bsonType": "timestamp",
+      "description": "订单完成时间"
+    },
+    "cancelled_at": {
+      "bsonType": "timestamp",
+      "description": "订单取消时间"
+    }
+  }
+} 

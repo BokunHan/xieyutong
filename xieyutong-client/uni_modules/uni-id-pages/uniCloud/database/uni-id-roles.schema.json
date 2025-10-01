@@ -1,0 +1,72 @@
+{
+  "bsonType": "object",
+  "description": "uni-id角色表，定义系统中的用户角色",
+  "required": ["role_id", "role_name"],
+  "permission": {
+    "read": true,
+    "create": "role in ['super_admin']",
+    "update": "role in ['super_admin']",
+    "delete": "role in ['super_admin']",
+    "count": true
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "role_id": {
+      "bsonType": "string",
+      "description": "角色ID，系统使用的唯一标识",
+      "title": "角色ID",
+      "required": true,
+      "maxLength": 50
+    },
+    "role_name": {
+      "bsonType": "string",
+      "description": "角色名称，用于显示",
+      "title": "角色名称",
+      "required": true,
+      "maxLength": 100
+    },
+    "role_desc": {
+      "bsonType": "string",
+      "description": "角色描述",
+      "title": "角色描述",
+      "maxLength": 500
+    },
+    "permission": {
+      "bsonType": "array",
+      "description": "角色拥有的权限ID列表",
+      "title": "权限列表",
+      "foreignKey": "uni-id-permissions.permission_id"
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "角色状态",
+      "title": "状态",
+      "enum": ["active", "inactive"],
+      "default": "active"
+    },
+    "level": {
+      "bsonType": "int",
+      "description": "角色等级，数值越大权限越高",
+      "title": "角色等级",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+} 

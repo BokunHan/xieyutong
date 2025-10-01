@@ -1,0 +1,198 @@
+{
+	"pages": [{
+			"path": "pages/home/home",
+			"style": {
+				"navigationBarTitleText": ""
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/search/search-result",
+			"style": {
+				"navigationBarTitleText": "搜索结果",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/profile/profile-edit",
+			"style": {
+				"navigationBarTitleText": "个人信息",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/order/order-list",
+			"style": {
+				"navigationBarTitleText": "我的订单",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/order/order-detail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/order/order-booking",
+			"style": {
+				"navigationBarTitleText": "预订确认",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/product-detail/product-detail",
+			"style": {
+				"navigationBarTitleText": "产品详情",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/itinerary/itinerary",
+			"style": {
+				"navigationBarTitleText": ""
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/favorites-list/favorites-list",
+			"style": {
+				"navigationBarTitleText": "我的收藏",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/coupon/coupon",
+			"style": {
+				"navigationBarTitleText": "我的优惠券",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/coupon/list",
+			"style": {
+				"navigationBarTitleText": "我的优惠券",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/coupon/claim",
+			"style": {
+				"navigationBarTitleText": "领取优惠券",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/traveler-add/traveler-add",
+			"style": {
+				"navigationBarTitleText": "添加出行人",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/travelers/travelers",
+			"style": {
+				"navigationBarTitleText": "常用出行人",
+				"navigationStyle": "default"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/webview/webview",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "default"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/agreement/index",
+			"style": {
+				"navigationBarTitleText": "协议",
+				"navigationStyle": "default"
+			},
+			"needLogin": false
+		}
+	],
+"globalStyle": {
+	"navigationBarTextStyle": "black",
+	"navigationBarTitleText": "uni-app",
+	"navigationBarBackgroundColor": "#F8F8F8",
+	"backgroundColor": "#F8F8F8",
+	"navigationStyle": "custom"
+},
+"uniIdRouter": {
+	"loginPage": "pages/login/login",
+	"needLogin": [
+		"pages/profile/.*",
+		"pages/order/.*",
+		"pages/favorites-list/.*",
+		"pages/coupon/.*",
+		"pages/traveler-add/.*",
+		"pages/travelers/.*",
+		"pages/itinerary/.*"
+	],
+	"resToLogin": true
+},
+"navigationStyle": "custom",
+"tabBar": {
+	"color": "#999999",
+	"selectedColor": "#0086F6",
+	"backgroundColor": "#FFFFFF",
+	"borderStyle": "black",
+	"list": [{
+			"pagePath": "pages/home/home",
+			"text": "首页",
+			"iconPath": "static/tab_icons/home.png",
+			"selectedIconPath": "static/tab_icons/home_cur.png"
+		},
+		{
+			"pagePath": "pages/itinerary/itinerary",
+			"text": "行程",
+			"iconPath": "static/tab_icons/itinerary.png",
+			"selectedIconPath": "static/tab_icons/itinerary_cur.png"
+		},
+		{
+			"pagePath": "pages/profile/profile",
+			"text": "我的",
+			"iconPath": "static/tab_icons/my.png",
+			"selectedIconPath": "static/tab_icons/my_cur.png"
+		}
+	]
+}
+}

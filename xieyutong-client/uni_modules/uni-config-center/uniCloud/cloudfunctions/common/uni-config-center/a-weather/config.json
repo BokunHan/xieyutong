@@ -1,0 +1,6 @@
+{
+  "amapApiKey": "c79c3a382a1a0ee9d06889d1db95f7bd",
+  "requestTimeout": 10000,
+  "maxCitiesPerBatch": 10,
+  "description": "高德地图天气查询服务配置"
+} 

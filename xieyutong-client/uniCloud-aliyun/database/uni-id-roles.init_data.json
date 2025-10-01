@@ -1,0 +1,57 @@
+[
+  {
+    "_id": "role_user",
+    "role_id": "user",
+    "role_name": "普通用户",
+    "role_desc": "普通客户用户，可以浏览商品、下单购买、查看个人订单等基础功能",
+    "permission": [
+      "VIEW_PRODUCTS",
+      "CREATE_ORDER",
+      "VIEW_OWN_ORDER",
+      "UPDATE_OWN_PROFILE"
+    ],
+    "status": "active",
+    "level": 10
+  },
+  {
+    "_id": "role_admin",
+    "role_id": "admin",
+    "role_name": "管理员",
+    "role_desc": "系统管理员（员工），可以管理商品、订单、用户，并且可以给用户发放优惠券",
+    "permission": [
+      "VIEW_PRODUCTS",
+      "MANAGE_PRODUCTS",
+      "VIEW_ALL_ORDERS",
+      "MANAGE_ORDERS",
+      "VIEW_USERS",
+      "MANAGE_COUPONS",
+      "SEND_COUPONS",
+      "VIEW_STATISTICS"
+    ],
+    "status": "active",
+    "level": 50
+  },
+  {
+    "_id": "role_super_admin",
+    "role_id": "super_admin",
+    "role_name": "超级管理员",
+    "role_desc": "超级管理员（老板），拥有系统最高权限，可以管理所有功能模块",
+    "permission": [
+      "VIEW_PRODUCTS",
+      "MANAGE_PRODUCTS",
+      "VIEW_ALL_ORDERS",
+      "MANAGE_ORDERS",
+      "VIEW_USERS",
+      "MANAGE_USERS",
+      "MANAGE_ROLES",
+      "MANAGE_PERMISSIONS",
+      "MANAGE_COUPONS",
+      "SEND_COUPONS",
+      "VIEW_STATISTICS",
+      "MANAGE_SYSTEM",
+      "VIEW_FINANCIAL_DATA"
+    ],
+    "status": "active",
+    "level": 100
+  }
+] 

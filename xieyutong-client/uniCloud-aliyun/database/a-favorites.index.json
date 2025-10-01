@@ -1,0 +1,42 @@
+[
+  {
+    "IndexName": "user_id_1",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "user_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "user_id_1_product_id_1",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "user_id", 
+          "Direction": "1"
+        },
+        {
+          "Name": "product_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  },
+  {
+    "IndexName": "created_at_-1",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "created_at",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+] 

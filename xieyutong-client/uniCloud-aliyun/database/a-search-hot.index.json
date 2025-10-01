@@ -1,0 +1,58 @@
+[
+  {
+    "IndexName": "hot_search_rank_index",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "rank",
+          "Direction": "1"
+        },
+        {
+          "Name": "create_date",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "hot_search_count_index", 
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "count",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "hot_search_category_index",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "category",
+          "Direction": "1"
+        },
+        {
+          "Name": "rank",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "hot_search_content_index",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "content",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  }
+] 

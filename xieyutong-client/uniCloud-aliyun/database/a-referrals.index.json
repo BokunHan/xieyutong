@@ -1,0 +1,58 @@
+[
+  {
+    "IndexName": "referrer_id_status",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "referrer_id",
+          "Direction": "1"
+        },
+        {
+          "Name": "status",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "referee_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "referee_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "reward_type_status",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "reward_type",
+          "Direction": "1"
+        },
+        {
+          "Name": "status",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "order_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "order_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  }
+] 

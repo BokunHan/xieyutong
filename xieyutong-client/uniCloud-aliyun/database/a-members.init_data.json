@@ -1,0 +1,17 @@
+[
+  {
+    "user_id": "6860cd850966cc4ca981787c2c",
+    "level": "normal",
+    "total_consumption": 0,
+    "order_count": 0,
+    "upgrade_threshold": {
+      "next_level": "silver",
+      "required_consumption": 5000,
+      "required_orders": 1
+    },
+    "benefits": {
+      "discount_rate": 1.0
+    },
+    "status": "active"
+  }
+] 

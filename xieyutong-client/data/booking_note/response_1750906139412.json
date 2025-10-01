@@ -1,0 +1,223 @@
+{
+  "success": true,
+  "message": "获取行程攻略成功",
+  "data": {
+    "product_info": {
+      "product_id": "52616949",
+      "title": "",
+      "sub_title": "",
+      "duration": "8天",
+      "total_days": 8,
+      "remarks": ""
+    },
+    "itinerary": [
+      {
+        "day": 1,
+        "day_title": "兰州接站，入住酒店",
+        "activities": [
+          {
+            "elementType": "assembly",
+            "title": "集合",
+            "time_type": "period",
+            "time_start_time": null,
+            "time_duration_hours": null,
+            "time_duration_minutes": null,
+            "time_period": "全天",
+            "time_remark": "集合时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "assembly_type": "接机/站",
+              "title": "兰州接站，入住酒店",
+              "locations": [
+                "贡嘎国际机场",
+                "拉萨站"
+              ],
+              "time_info": "全天（专车）",
+              "remark": "超过免费接送范围请自行集合，如有疑问请联系客服"
+            }
+          }
+        ]
+      },
+      {
+        "day": 2,
+        "day_title": "兰州-张掖七彩丹霞景区-《回道张掖》 -丹霞口小镇-篝火晚会",
+        "activities": [
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": null,
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/200512000000rznag4D77.jpg",
+              "remark": "温馨提示：本产品指定入住当地精选酒店，酒店房型以实际安排为准。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 3,
+        "day_title": "张掖-黑水城遗址-怪树林-弱水金沙湾胡杨-额济纳旗",
+        "activities": [
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": null,
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/1mc6h12000fgs7p1s5D08.jpg",
+              "remark": "温馨提示：本产品指定入住当地精选酒店，酒店房型以实际安排为准。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 4,
+        "day_title": "居延海日出-额济纳旗胡杨林",
+        "activities": [
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": null,
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/0204z120008gid3hiC2D0.jpg",
+              "remark": "温馨提示：本产品指定入住当地精选酒店，酒店房型以实际安排为准。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 5,
+        "day_title": "敦煌一日游",
+        "activities": [
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": null,
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/1mc0412000kcw595y74C2.jpg",
+              "remark": "温馨提示：本产品指定入住当地精选酒店，酒店房型以实际安排为准。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 6,
+        "day_title": "敦煌莫高窟-张掖",
+        "activities": [
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": null,
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/200512000000rznag4D77.jpg",
+              "remark": "温馨提示：本产品指定入住当地精选酒店，酒店房型以实际安排为准。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 7,
+        "day_title": "张掖-兰州",
+        "activities": [
+          {
+            "elementType": "hotel",
+            "title": "酒店",
+            "location": "",
+            "time_type": "specific",
+            "time_start_time": null,
+            "time_duration_hours": 12,
+            "time_duration_minutes": 0,
+            "time_period": "晚上",
+            "time_remark": "入住时间",
+            "driving_distance": 0,
+            "driving_duration_hours": 0,
+            "driving_duration_minutes": 0,
+            "elementData": {
+              "hotelName": "当地精选酒店",
+              "rating": "",
+              "address": "",
+              "alternativeHotels": [],
+              "image": "https://images4.c-ctrip.com/target/fd/hotel/g4/M06/31/39/CggYHFXv58mAV1cwAAs1cEsEA8o659.jpg",
+              "remark": "温馨提示：本产品指定入住当地精选酒店，酒店房型以实际安排为准。"
+            }
+          }
+        ]
+      },
+      {
+        "day": 8,
+        "day_title": "兰州送站",
+        "activities": []
+      }
+    ],
+    "metadata": {
+      "extracted_at": "2025-06-26T02:48:59.939596",
+      "source_url": "https://m.ctrip.com/webapp/xtour/detailComplexRoute?ProductId=52616949&Alias=A"
+    }
+  },
+  "timestamp": "2025-06-26T02:49:00.024894"
+}

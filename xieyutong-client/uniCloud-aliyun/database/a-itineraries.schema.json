@@ -1,0 +1,213 @@
+{
+  "bsonType": "object",
+  "description": "行程信息表，存储旅游产品的详细行程安排",
+  "required": ["product_id", "total_days", "itinerary"],
+  "permission": {
+    "read": true,
+    "create": true,
+    "update": true, 
+    "delete": "role in ['admin']",
+    "count": true
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "product_id": {
+      "bsonType": "string",
+      "description": "关联的商品ID",
+      "title": "商品ID",
+      "required": true,
+      "maxLength": 50,
+      "foreignKey": "a-products._id"
+    },
+    "ctrip_id": {
+      "bsonType": "string",
+      "description": "携程网站的原始行程ID，用于数据溯源和更新",
+      "title": "携程ID",
+      "maxLength": 50,
+      "trim": "both"
+    },
+    "title": {
+      "bsonType": "string",
+      "description": "行程标题",
+      "title": "行程标题",
+      "maxLength": 200,
+      "trim": "both"
+    },
+    "sub_title": {
+      "bsonType": "string",
+      "description": "行程副标题",
+      "title": "行程副标题", 
+      "maxLength": 300,
+      "trim": "both"
+    },
+    "duration": {
+      "bsonType": "int",
+      "description": "行程时长天数",
+      "title": "行程时长",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "total_days": {
+      "bsonType": "int",
+      "description": "总天数",
+      "title": "总天数",
+      "required": true,
+      "minimum": 1,
+      "maximum": 365
+    },
+    "remarks": {
+      "bsonType": "string",
+      "description": "行程备注说明",
+      "title": "行程备注",
+      "maxLength": 1000
+    },
+    "itinerary": {
+      "bsonType": "array",
+      "description": "详细行程安排数组",
+      "title": "行程安排",
+      "required": true,
+      "items": {
+        "bsonType": "object",
+        "required": ["day", "day_title", "activities"],
+        "properties": {
+          "day": {
+            "bsonType": "int",
+            "description": "第几天",
+            "minimum": 1,
+            "maximum": 365
+          },
+          "day_title": {
+            "bsonType": "string",
+            "description": "当日行程标题",
+            "maxLength": 500
+          },
+          "day_highlights": {
+            "bsonType": "string",
+            "description": "当日亮点描述，包含行程特色和玩法亮点",
+            "title": "当日亮点",
+            "maxLength": 2000
+          },
+          "destination_city": {
+            "bsonType": "string",
+            "description": "当日目的地城市",
+            "title": "目的地城市",
+            "maxLength": 100,
+            "trim": "both"
+          },
+          "activities": {
+            "bsonType": "array",
+            "description": "当日活动安排",
+            "items": {
+              "bsonType": "object",
+              "required": ["elementType", "title"],
+              "properties": {
+                "elementType": {
+                  "bsonType": "string",
+                  "description": "活动类型",
+                  "enum": ["assembly", "transport", "restaurant", "scenic", "hotel", "other", "dismissal"]
+                },
+                "title": {
+                  "bsonType": "string",
+                  "description": "活动标题",
+                  "maxLength": 200
+                },
+                "location": {
+                  "bsonType": "string",
+                  "description": "活动地点（主要用于酒店）",
+                  "maxLength": 200
+                },
+                "time_type": {
+                  "bsonType": "string",
+                  "description": "时间类型",
+                  "enum": ["specific", "period"]
+                },
+                "time_start_time": {
+                  "bsonType": "string",
+                  "description": "开始时间，格式如'08:00'",
+                  "maxLength": 10
+                },
+                "time_duration_hours": {
+                  "bsonType": "double",
+                  "description": "持续小时数",
+                  "minimum": 0
+                },
+                "time_duration_minutes": {
+                  "bsonType": "int",
+                  "description": "持续分钟数",
+                  "minimum": 0,
+                  "maximum": 59
+                },
+                "time_period": {
+                  "bsonType": "string",
+                  "description": "时间段描述，如'上午'、'下午'、'全天'",
+                  "maxLength": 50
+                },
+                "time_remark": {
+                  "bsonType": "string",
+                  "description": "时间备注",
+                  "maxLength": 200
+                },
+                "driving_distance": {
+                  "bsonType": "int",
+                  "description": "行驶距离（公里）",
+                  "minimum": 0
+                },
+                "driving_duration_hours": {
+                  "bsonType": "int",
+                  "description": "行驶时长（小时）",
+                  "minimum": 0
+                },
+                "driving_duration_minutes": {
+                  "bsonType": "int",
+                  "description": "行驶时长（分钟）",
+                  "minimum": 0,
+                  "maximum": 59
+                },
+                "elementData": {
+                  "bsonType": "object",
+                  "description": "活动详细数据，根据不同活动类型存储不同结构的数据"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "bsonType": "object",
+      "description": "元数据信息",
+      "properties": {
+        "extracted_at": {
+          "bsonType": "string",
+          "description": "数据提取时间"
+        },
+        "source_url": {
+          "bsonType": "string", 
+          "description": "数据来源URL"
+        }
+      }
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "行程状态",
+      "enum": ["active", "inactive", "draft"],
+      "default": "active"
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp", 
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+} 

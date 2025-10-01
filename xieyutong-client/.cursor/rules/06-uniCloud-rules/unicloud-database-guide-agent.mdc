@@ -1,0 +1,263 @@
+---
+description: 需要对 uniCloud 数据库进行增删改查操作时
+globs: 
+alwaysApply: false
+---
+# uniCloud 云数据库核心概念与操作指南
+
+注意默认使用阿里云数据库的操作API
+
+## 1. 基础概念
+
+### 1.1 JSON 文档型数据库
+uniCloud 提供 JSON 格式的文档型数据库，每条记录是一个 JSON 文档。它是 NoSQL 非关系型数据库。
+
+### 1.2 概念对比
+
+| 关系型        | JSON 文档型                      |
+|--------------|---------------------------------|
+| 数据库 database | 数据库 database                 |
+| 表 table     | 集合 collection (也常称"表")    |
+| 行 row       | 记录 record / doc               |
+| 字段 column / field | 字段 field                      |
+| SQL 语法操作  | MongoDB 语法或 JQL 语法操作      |
+
+### 1.3 uniCloud 服务空间与数据库
+- 一个 uniCloud 服务空间有且只有一个数据库。
+- 一个数据库可有多个集合（表）。
+- 一个集合可有多个记录（文档）。
+- 一个记录可有多个字段。
+
+### 1.4 记录与字段的灵活性
+JSON 文档数据库支持不同记录拥有不同的字段及多层嵌套数据，非常灵活。
+例如，用户登录日志可以作为嵌套数组存储在用户记录中，不同用户可以有不同数量的登录记录，甚至没有。
+
+### 1.5 云厂商差异
+uniCloud 支持阿里云、腾讯云和支付宝云。数据库大体相同，存在细微差异：
+- 阿里云和支付宝云：MongoDB 4.0。
+## 2. 创建集合（表）
+
+### 2.1 通过 Web 控制台创建
+访问 `https://unicloud.dcloud.net.cn/`，在服务空间的"云数据库"中创建新表。支持从 `opendb` 表模板创建。
+
+### 2.2 通过 HBuilderX 创建
+在项目根目录 `/uniCloud/database` 点右键新建 Schema，上传时创建。
+
+## 3. 数据表的组成部分
+
+### 3.1 数据内容 (Data)
+存放数据记录 (record)，即一条条 JSON 文档。每条记录自动包含一个 `_id` 字段作为唯一标识，且 `_id` 默认是索引。
+- 阿里云：`_id` 是自增的。
+- 腾讯云：`_id` 并非自增。
+可自行指定 `_id`，方便数据迁移。
+
+### 3.2 数据库索引 (Index)
+用于提升查询 (where) 和排序 (orderBy) 速度。默认有 `_id` 索引。
+- **类型：** 唯一型索引（字段值不重复）、非唯一型索引。
+- **高级概念：** 组合索引、稀疏索引、地理位置索引、TTL 索引。
+- **注意：**
+    - 若记录中某字段已存在重复值，设为唯一索引会失败。
+    - 唯一索引字段为 `null` 或不存在时，不允许存在多个此类记录，需用稀疏索引解决。
+
+### 3.3 数据表格式定义 (DB Schema)
+描述表结构，包括字段、值域类型、是否必填、操作权限等。
+- 使用传统 MongoDB API 操作数据库时，DB Schema 不是必须的。
+- 使用 JQL 时，DB Schema 是必须的。
+相关部分详见 database-design-unicloud-agent.mdc 该规则文件中
+
+## 4. API 操作数据库的方式
+
+### 4.1 操作环境与语法选择
+- **环境：** 支持云函数和客户端操作。
+- **语法：** 支持传统 MongoDB 语法和 JQL 语法。
+uniCloud 默认推荐使用 JQL，更简单易用。
+
+### 4.2 推荐操作方式
+1.  **客户端直接操作数据库 (clientDB)：**
+    -   优点：无需编写服务端代码，通过 DB Schema 和 uni-id 控制权限。
+    -   支持 `action` 云函数补充处理。
+    -   不适用场景：敏感逻辑（如抽奖）、操作 `password` 类型数据（注册、改密等，但 `uni-id-pages` 已提供解决方案）、三方服务器回调。
+2.  **云函数的 JQL 扩展库：**
+    -   适用于 clientDB 不适用的场景。
+    -   目前 JQL 不适用场景：使用 `set` 操作符动态修改字段名称。
+
+
+## 5. 获取数据库对象的 API
+
+### 5.1 获取当前服务空间数据库实例
+```javascript
+const db = uniCloud.database(); // 代码块 cdb
+```
+云函数中使用 JQL 时需额外指定用户身份：
+```javascript
+// 云函数中 JQL 使用示例
+'use strict';
+exports.main = async (event, context) => {
+	const dbJQL = uniCloud.databaseForJQL({ event, context });
+	return dbJQL.collection('book').get();
+};
+```
+
+### 5.2 获取其他服务空间数据库实例
+支持客户端 (HBuilderX 3.2.11+) 和部分云函数环境 (腾讯云、支付宝云，仅限同账号)。
+```javascript
+const db = uniCloud.database({
+  provider: 'tencent', // 'aliyun'
+  spaceId: 'xxx',
+  clientSecret: 'yyy', // 仅阿里云
+});
+```
+
+## 6. 创建集合/表的 API (代码方式)
+
+### 6.1 阿里云
+调用 `add` 方法时，若表不存在，会自动创建。
+```javascript
+const db = uniCloud.database();
+db.collection("table1").add({name: 'Ben'});
+```
+
+## 7. 获取集合/数据表对象
+```javascript
+const db = uniCloud.database();
+const myCollection = db.collection('my_collection_name');
+```
+Collection 对象常用方法：`add`, `count`, `get`, `doc`, `where`, `skip`, `orderBy`, `limit`, `field`。
+删除 (remove) 和修改 (update) 需先通过 `doc` 或 `get` 获取记录引用。
+
+## 8. 数据类型
+
+### 8.1 常见类型
+- `string`: 字符串
+- `password`: (DB Schema 特殊 string) 用于密码，不透传前端
+- `number`: 数字 (DB Schema 中细化为 `int`, `double`)
+- `bool`: 布尔值
+- `date`: 时间对象
+- `timestamp`: 时间戳 (数字)
+- `object`: 对象
+- `file`: (DB Schema 特殊 object) 云存储文件信息体 (HBuilderX 3.1.0+)
+- `array`: 数组
+- `null`: 空值占位符
+- `GeoPoint`, `GeoLineString`, `GeoPolygon`, `GeoMultiPoint`, `GeoMultiLineString`, `GeoMultiPolygon`: 地理位置类型
+
+### 8.2 Date 类型
+精确到毫秒，可用 JS `Date` 对象创建。
+
+
+### 8.3 地理位置类型
+- `Point(longitude, latitude)`
+- `LineString(points: Point[])`
+- `Polygon(lines: LineString[])` (第一个环为外环，其他为内环/洞)
+- `MultiPoint(points: Point[])`
+- `MultiLineString(lines: LineString[])`
+- `MultiPolygon(polygons: Polygon[])`
+示例：`new db.Geo.Point(longitude, latitude)`
+
+## 9. 与传统开发区别
+
+### 9.1 操作时长限制
+单次数据库操作有时间限制（如阿里云/腾讯云 5秒，支付宝云默认5秒，最大5分钟），超时会报错。
+设置合适索引可避免超时。大数据批处理可考虑云函数递归调用。
+
+## 10. 数据导入导出和备份
+
+### 10.1 数据库初始化 (HBuilderX 3.97+)
+- 适用于项目初始化，非大数据量操作。
+- `database` 目录下支持文件：
+    - `表名.init_data.json`: 初始化数据
+    - `表名.index.json`: 索引配置
+    - `表名.schema.json`: 表结构
+    - `表名.schema.ext.json`: Schema 扩展 JS
+    - `validateFunction/xxx.js`: 扩展校验函数
+    - `package.json`: Schema 扩展的公共模块配置
+- 初始化数据时，`_id` 默认不包含，导入时自动生成。可手动指定。
+
+### 10.3 数据库回档备份和恢复
+- uniCloud 每日自动备份，保留最多7天。
+- Web 控制台操作：云数据库 -> 数据库回档。回档表不能与现有表重名。
+
+### 10.4 数据导出为文件
+- Web 控制台操作，导出整个表数据。
+- 格式：`jsonl` (每行一个 JSON 记录) 或 `csv`。
+- `csv` 导出需指定字段，会丢失数据类型。迁移请用 `jsonl`。
+
+### 10.5 从文件导入数据
+- Web 控制台操作，支持 `csv`, `jsonl` (或普通 JSON，每行一条记录)。
+- 最大文件限制 (如 50MB)。
+- 无法保留索引和 Schema。`csv` 导入数据类型会丢失 (全变字符串)。
+- 冲突处理模式：`insert` (冲突报错) 或 `upsert` (冲突更新)。
+- 注意关联字段 `_id` 的格式一致性 (如 `{ $oid: "xxx" }`)。
+
+## 11. ClientDB: 前端直连数据库核心指南
+
+ClientDB 允许 uni-app 客户端直接操作 uniCloud 数据库，通过 DB Schema 和 uni-id 保证安全。这极大地提升了开发效率，减少了后端接口的编写。
+
+### 11.1 核心优势与前提
+-   **优势：** 大幅减少后端开发，前端直接操作数据，提升效率。
+-   **前提：**
+    -   **HBuilderX 版本：** 2.9.5 及以上。
+    -   **uni-id 依赖：** 强依赖 `uni-id` 进行身份认证和权限校验。
+    -   **DB Schema：** 必须为数据表配置 DB Schema，定义数据操作权限和字段校验规则，这是保障前端操作安全的关键。
+
+### 11.2 前端使用方式
+
+1.  **JavaScript API (推荐 `uniCloud.databaseForJQL()`):** 提供完整的数据库操作能力。
+    ```javascript
+    // 获取DB引用 (推荐)
+    const db = uniCloud.databaseForJQL(); // 代码块快捷输入：cdb
+
+    // JQL查询示例 (推荐)
+    db.collection('your_collection_name')
+      .where('field_name == "some_value"') // JQL 条件
+      .get()
+      .then(res => {
+        console.log(res.data);
+      }).catch(err => {
+        console.error(err);
+      });
+
+    // 传统NoSQL查询示例
+    db.collection('your_collection_name')
+      .where({
+        field_name: "some_value"
+      })
+      .get()
+      // ... then/catch
+    ```
+2.  **`<unicloud-db>` 组件:** 封装了 JS API，进一步简化查询操作，适合在视图模板中直接绑定数据。 (详见其)
+
+### 11.3 JS API 使用限制与注意事项
+-   **序列化：** 上传 `query` 时会序列化，除 `Date`、`RegExp` 外，其他不可序列化类型（如 `undefined`）不支持。
+-   **更新操作符限制：** 更新数据库时不可使用 `db.command.inc` 等更新操作符。
+-   **更新数据键格式：** 更新数据时，键值不可使用 `{'a.b.c': 1}` 的形式，需用 `{a:{b:{c:1}}}`。
+-   **`databaseForJQL()` vs `database()`：**
+    -   `databaseForJQL()` 返回的数据结构为 `{ data: [...] }`，与云端 JQL 扩展库一致，推荐使用。
+    -   `database()` 返回结构为 `{ result: { data: [...] } }`。
+
+### 11.4 客户端事件处理
+-   **刷新 Token (`refreshToken`)**: ClientDB (HBuilderX 3.2.11+) 会自动保存 `uni-id` 刷新的 Token。
+-   **全局错误处理 (`error`)**: 监听 ClientDB 的全局错误 (HBuilderX 3.0.0+)。
+    ```javascript
+    const db = uniCloud.databaseForJQL();
+    db.on('error', ({ code, message }) => {
+      console.error('ClientDB Error:', code, message);
+      if (code === 'TOKEN_INVALID_ANONYMOUS_FORBIDDEN') {
+        // 引导重新登录
+      }
+    });
+    // db.off('error', handlerFunction);
+    ```
+
+### 11.5 JQL (JSON Query Language)
+ClientDB 推荐使用 JQL 进行数据查询和操作，它比传统 MongoDB 查询更简洁、更强大，并与 DB Schema 结合更紧密。
+
+### 11.6 何时应用此规则 (ClientDB部分)
+- 当需要在 uni-app 客户端直接对 uniCloud 数据库进行增删改查操作时。
+- 在设计前端页面，需要从云端获取数据并展示时。
+- 在考虑应用架构，希望减少服务端胶水代码，提升开发效率时。
+- **必须** 结合 DB Schema 来定义严格的数据访问权限和校验规则，确保前端操作的安全性。
+- 需要了解 ClientDB 的 JS API 使用方法、限制以及事件处理机制时。
+- 推荐使用 `uniCloud.databaseForJQL()` 以保持与云端 JQL 扩展库一致的返回结构。
+
+
+

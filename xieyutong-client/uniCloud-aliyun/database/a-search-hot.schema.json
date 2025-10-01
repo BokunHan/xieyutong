@@ -1,0 +1,86 @@
+{
+  "bsonType": "object",
+  "description": "热搜表，存储通过分析搜索日志得出的热门搜索词",
+  "required": ["content", "count"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "热搜内容关键词",
+      "title": "热搜内容",
+      "required": true,
+      "maxLength": 200,
+      "trim": "both"
+    },
+    "count": {
+      "bsonType": "number",
+      "description": "搜索次数统计",
+      "title": "搜索次数",
+      "required": true,
+      "minimum": 1
+    },
+    "rank": {
+      "bsonType": "number", 
+      "description": "热搜排名，1为最热",
+      "title": "热搜排名",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "trend": {
+      "bsonType": "string",
+      "description": "趋势变化：up-上升，down-下降，stable-稳定，new-新上榜",
+      "title": "趋势变化",
+      "enum": ["up", "down", "stable", "new"],
+      "defaultValue": "stable"
+    },
+    "category": {
+      "bsonType": "string",
+      "description": "热搜分类：destination-目的地，product-产品，activity-活动",
+      "title": "热搜分类",
+      "enum": ["destination", "product", "activity"],
+      "defaultValue": "product"
+    },
+    "related_products": {
+      "bsonType": "array",
+      "description": "相关产品ID数组，用于推荐",
+      "title": "相关产品",
+      "arrayType": "string",
+      "maxItems": 10
+    },
+    "search_volume_7d": {
+      "bsonType": "number",
+      "description": "7天内搜索量",
+      "title": "7天搜索量",
+      "minimum": 0,
+      "defaultValue": 0
+    },
+    "search_volume_30d": {
+      "bsonType": "number",
+      "description": "30天内搜索量",
+      "title": "30天搜索量", 
+      "minimum": 0,
+      "defaultValue": 0
+    },
+    "create_date": {
+      "bsonType": "timestamp",
+      "description": "统计生成时间",
+      "title": "生成时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "expire_date": {
+      "bsonType": "timestamp",
+      "description": "数据过期时间，定期清理旧的热搜数据",
+      "title": "过期时间"
+    }
+  }
+} 

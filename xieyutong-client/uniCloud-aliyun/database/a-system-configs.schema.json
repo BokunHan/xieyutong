@@ -1,0 +1,89 @@
+{
+  "bsonType": "object",
+  "description": "系统配置表，集中管理会员升级规则、优惠券发放规则等系统参数",
+  "required": ["config_key", "config_value", "status"],
+  "permission": {
+    "read": true,
+    "create": "role in ['super_admin']",
+    "update": "role in ['admin', 'super_admin']",
+    "delete": "role in ['super_admin']",
+    "count": true
+  },
+  "properties": {
+    "_id": {
+      "description": "系统自动生成的唯一标识"
+    },
+    "config_key": {
+      "bsonType": "string",
+      "description": "配置键名，用于标识配置项",
+      "title": "配置键名",
+      "required": true,
+      "maxLength": 100
+    },
+    "config_value": {
+      "bsonType": "object",
+      "description": "配置值，JSON对象格式存储具体配置内容",
+      "title": "配置值",
+      "required": true
+    },
+    "config_type": {
+      "bsonType": "string",
+      "description": "配置类型分类",
+      "title": "配置类型",
+      "enum": ["member_upgrade", "coupon_rules", "referral_rules", "system_params", "app_settings", "legal_docs"],
+      "default": "system_params"
+    },
+    "description": {
+      "bsonType": "string",
+      "description": "配置项描述说明",
+      "title": "配置描述",
+      "maxLength": 500
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "配置状态",
+      "title": "状态",
+      "enum": ["active", "inactive"],
+      "default": "active",
+      "required": true
+    },
+    "version": {
+      "bsonType": "string",
+      "description": "配置版本号",
+      "title": "版本号",
+      "maxLength": 20,
+      "default": "1.0"
+    },
+    "effective_date": {
+      "bsonType": "timestamp",
+      "description": "配置生效时间",
+      "title": "生效时间"
+    },
+    "created_by": {
+      "bsonType": "string",
+      "description": "创建人ID",
+      "title": "创建人",
+      "maxLength": 50
+    },
+    "updated_by": {
+      "bsonType": "string",
+      "description": "最后修改人ID",
+      "title": "修改人",
+      "maxLength": 50
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+} 

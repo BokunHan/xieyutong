@@ -1,0 +1,77 @@
+{
+  "passwordSecret": "passwordSecret-xieyutong-2024",
+  "tokenSecret": "tokenSecret-xieyutong-2024",
+  "tokenExpiresIn": 7200,
+  "tokenExpiresThreshold": 3600,
+  "passwordErrorLimit": 6,
+  "bindTokenToDevice": false,
+  "passwordErrorRetryTime": 3600,
+  "autoSetInviteCode": false,
+  "forceInviteCode": false,
+  "app": {
+    "tokenExpiresIn": 2592000,
+    "tokenExpiresThreshold": 864000,
+    "oauth": {
+      "weixin": {
+        "appid": "填写来源微信开放平台https://open.weixin.qq.com/创建的应用的appid",
+        "appsecret": "填写来源微信开放平台https://open.weixin.qq.com/创建的应用的appsecret"
+      },
+      "apple": {
+        "bundleId": "苹果开发者后台获取的bundleId"
+      }
+    }
+  },
+  "web": { 
+    "tokenExpiresIn": 7200,
+    "tokenExpiresThreshold": 3600,
+    "oauth": {
+      "weixin-h5": { 
+        "appid": "wxd830d7e3695bb6dc",
+        "appsecret": "d269f78fd7fee57de2c45ac37afd5ede"
+      },
+      "weixin-web": { 
+        "appid": "微信PC页面扫码登录配置appid",
+        "appsecret": "微信PC页面扫码登录配置appsecret"
+      }
+    }
+  },
+  "mp-weixin": {
+    "tokenExpiresIn": 259200,
+    "tokenExpiresThreshold": 86400,
+    "oauth": {
+      "weixin": {
+        "appid": "wxd830d7e3695bb6dc",
+        "appsecret": "d269f78fd7fee57de2c45ac37afd5ede"
+      }
+    }
+  },
+  "mp-alipay": {
+    "tokenExpiresIn": 259200,
+    "tokenExpiresThreshold": 86400,
+    "oauth": {
+      "alipay": {
+        "appid": "支付宝小程序appid",
+        "privateKey": "支付宝小程序privateKey"
+      }
+    }
+  },
+  "service": {
+    "sms": {
+      "name": "携域通旅行",
+      "codeExpiresIn": 300,
+      "smsKey": "短信密钥key",
+      "smsSecret": "短信密钥secret",
+      "scene": {
+        "bind-mobile-by-sms": { 
+          "templateId": "绑定手机号使用的短信验证码模板", 
+          "codeExpiresIn": 240 
+        }
+      }
+    },
+    "univerify": {
+      "appid": "当前应用的appid",
+      "apiKey": "一键登录apiKey",
+      "apiSecret": "一键登录apiSecret"
+    }
+  }
+} 

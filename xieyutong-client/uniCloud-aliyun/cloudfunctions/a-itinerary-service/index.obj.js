@@ -1,0 +1,260 @@
+const uniIdCommon = require('uni-id-common');
+
+// 获取用户当前进行中的行程
+async function getCurrentItinerary(userId) {
+	const db = uniCloud.databaseForJQL({
+		clientInfo: this.getClientInfo()
+	});
+	
+	console.log('[行程服务] 查询用户当前行程，用户ID:', userId);
+	
+	// 1. 查询用户所有已支付且未完成的订单
+	const ordersResult = await db.collection('a-orders')
+		.where({
+			user_id: userId,
+			status: db.command.in(['paid', 'confirmed', 'processing'])
+		})
+		.field('_id, product_id, departure_date, return_date, duration_days, product_snapshot')
+		.orderBy('departure_date', 'asc')
+		.get();
+	
+	if (!ordersResult.data || ordersResult.data.length === 0) {
+		console.log('[行程服务] 用户没有进行中的订单');
+		return null;
+	}
+	
+	console.log('[行程服务] 找到进行中的订单:', ordersResult.data.length, '个');
+	
+	// 2. 检查订单是否在行程期间（当前时间 <= 行程结束时间）
+	const currentTime = Date.now();
+	
+	for (const order of ordersResult.data) {
+		if (!order.departure_date) {
+			console.log('[行程服务] 订单缺少出发日期，跳过:', order._id);
+			continue;
+		}
+		
+		// 安全地处理时间戳格式的出发日期
+		let departureTime;
+		if (order.departure_date instanceof Date) {
+			departureTime = order.departure_date.getTime();
+		} else if (typeof order.departure_date === 'number') {
+			departureTime = order.departure_date;
+		} else if (typeof order.departure_date === 'string') {
+			departureTime = parseInt(order.departure_date);
+			if (isNaN(departureTime)) {
+				console.log('[行程服务] 无效的出发日期格式，跳过:', order._id, order.departure_date);
+				continue;
+			}
+		} else {
+			console.log('[行程服务] 未知的出发日期格式，跳过:', order._id, order.departure_date);
+			continue;
+		}
+		
+		// 获取行程天数，优先级：订单中的duration_days > 行程表中的total_days > 默认1天
+		let totalDays = 0;
+		
+		// 1. 首先尝试从订单中获取天数
+		if (order.duration_days && typeof order.duration_days === 'number' && order.duration_days > 0) {
+			totalDays = order.duration_days;
+		} else {
+			// 2. 从行程表中查询天数
+			try {
+				const itineraryResult = await db.collection('a-itineraries')
+					.where({
+						product_id: order.product_id
+					})
+					.field('total_days')
+					.get();
+				
+				if (itineraryResult.data && itineraryResult.data[0] && itineraryResult.data[0].total_days) {
+					totalDays = itineraryResult.data[0].total_days;
+				}
+			} catch (error) {
+				console.log('[行程服务] 查询行程表失败:', error.message);
+			}
+			
+			// 3. 默认值
+			if (totalDays <= 0) {
+				totalDays = 1;
+				console.log('[行程服务] 使用默认行程天数1天，订单:', order._id);
+			}
+		}
+		
+		// 计算行程结束时间
+		let itineraryEndTime;
+		
+		// 如果有明确的返回日期且有效，优先使用
+		if (order.return_date) {
+			if (order.return_date instanceof Date) {
+				itineraryEndTime = order.return_date.getTime();
+			} else if (typeof order.return_date === 'number') {
+				itineraryEndTime = order.return_date;
+			} else if (typeof order.return_date === 'string') {
+				itineraryEndTime = parseInt(order.return_date);
+				if (isNaN(itineraryEndTime)) {
+					itineraryEndTime = null;
+				}
+			}
+		}
+		
+		// 如果没有有效的返回日期，使用出发时间 + 行程天数计算
+		if (!itineraryEndTime || itineraryEndTime <= departureTime) {
+			// 计算行程结束时间：出发日期 + (行程天数-1) * 24小时
+			// 注意：8天行程实际上是从第1天到第8天，所以结束时间是出发时间 + 7*24小时 + 23小时59分59秒
+			const daysToAdd = totalDays - 1; // 减1是因为出发当天算第1天
+			const hoursToAdd = 23; // 添加23小时59分59秒，表示行程最后一天的结束
+			const minutesToAdd = 59;
+			const secondsToAdd = 59;
+			
+			itineraryEndTime = departureTime + 
+				(daysToAdd * 24 * 60 * 60 * 1000) + 
+				(hoursToAdd * 60 * 60 * 1000) + 
+				(minutesToAdd * 60 * 1000) + 
+				(secondsToAdd * 1000);
+		}
+		
+		console.log('[行程服务] 检查订单:', {
+			orderId: order._id,
+			productId: order.product_id,
+			departureTime: new Date(departureTime).toISOString(),
+			itineraryEndTime: new Date(itineraryEndTime).toISOString(),
+			totalDays,
+			currentTime: new Date(currentTime).toISOString(),
+			isActive: currentTime <= itineraryEndTime,
+			hasReturnDate: !!order.return_date,
+			durationDays: order.duration_days
+		});
+		
+		// 如果当前时间 <= 行程结束时间，说明行程还在进行中
+		if (currentTime <= itineraryEndTime) {
+			// 查询商品和行程详细信息
+			const [productResult, itineraryResult] = await Promise.all([
+				db.collection('a-products')
+					.where({ _id: order.product_id })
+					.field('title, product_images')
+					.get(),
+				db.collection('a-itineraries')
+					.where({ product_id: order.product_id })
+					.field('title, total_days, itinerary')
+					.get()
+			]);
+			
+			if (!productResult.data || productResult.data.length === 0) {
+				console.log('[行程服务] 未找到商品信息，跳过订单:', order._id);
+				continue;
+			}
+			
+			if (!itineraryResult.data || itineraryResult.data.length === 0) {
+				console.log('[行程服务] 未找到行程信息，跳过订单:', order._id);
+				continue;
+			}
+			
+			// 计算当前是第几天（从出发日期开始算）
+			const daysPassed = Math.floor((currentTime - departureTime) / (24 * 60 * 60 * 1000)) + 1;
+			const currentDay = Math.max(1, Math.min(daysPassed, totalDays));
+			
+			console.log('[行程服务] 找到进行中的行程:', {
+				orderId: order._id,
+				productId: order.product_id,
+				currentDay,
+				totalDays,
+				daysPassed
+			});
+			
+			// 格式化日期字符串
+			const formatDate = (timestamp) => {
+				const date = new Date(timestamp);
+				return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+			};
+			
+			return {
+				order,
+				product: productResult.data[0],
+				itinerary: itineraryResult.data[0],
+				currentDay,
+				totalDays,
+				departureDate: formatDate(departureTime),
+				endDate: formatDate(itineraryEndTime)
+			};
+		}
+	}
+	
+	console.log('[行程服务] 没有找到进行中的行程');
+	return null;
+}
+
+module.exports = {
+	_before() {
+		this.uniIdCommon = uniIdCommon.createInstance({ context: this });
+	},
+	
+	// 获取用户当前进行中的行程
+	async getCurrentItinerary() {
+		try {
+			// 验证用户身份
+			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
+			if (checkResult.errCode !== 0) {
+				throw new Error('身份验证失败');
+			}
+			
+			const userId = checkResult.uid;
+			console.log('[行程服务] 获取当前行程，用户ID:', userId);
+			
+			const itineraryInfo = await getCurrentItinerary.call(this, userId);
+			
+			return {
+				errCode: 0,
+				data: itineraryInfo
+			};
+		} catch (error) {
+			console.error('[行程服务] 获取当前行程失败:', error);
+			return {
+				errCode: 500,
+				errMsg: error.message || '获取行程信息失败'
+			};
+		}
+	},
+	
+	// 获取行程详细信息
+	async getItineraryDetail(productId) {
+		try {
+			// 验证用户身份
+			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
+			if (checkResult.errCode !== 0) {
+				throw new Error('身份验证失败');
+			}
+			
+			console.log('[行程服务] 获取行程详情，产品ID:', productId);
+			
+			const db = uniCloud.databaseForJQL({
+				clientInfo: this.getClientInfo()
+			});
+			
+			// 查询行程详细信息
+			const itineraryResult = await db.collection('a-itineraries')
+				.where({
+					product_id: productId
+				})
+				.get();
+			
+			if (!itineraryResult.data || itineraryResult.data.length === 0) {
+				return {
+					errCode: 404,
+					errMsg: '未找到行程信息'
+				};
+			}
+			
+			return {
+				errCode: 0,
+				data: itineraryResult.data[0]
+			};
+		} catch (error) {
+			console.error('[行程服务] 获取行程详情失败:', error);
+			return {
+				errCode: 500,
+				errMsg: error.message || '获取行程详情失败'
+			};
+		}
+	}
+}; 

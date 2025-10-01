@@ -1,0 +1,78 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Rule for automatically committing changes made by Cursor IDE using the conventional commit format. Should be invoked when automated changes need committing.
+globs: 
+alwaysApply: true
+---
+
+# Git 自动提交规则
+
+## Critical Rules
+
+### 描述
+本规则确保在 Cursor IDE 根据用户提示执行代码修改后，这些更改将使用 Conventional Commit 格式自动提交回 Git。这有助于维护清晰一致的提交历史，并将代码更改直接关联到发起更改的提示。
+
+### 规则
+当在 Cursor IDE 基于一个或多个提示修改文件后调用此规则时：
+1. 所有被修改的文件**必须**被自动暂存（`git add`）。
+2. **必须**为这些暂存的更改自动创建一个 Git 提交。
+3. 提交消息**必须**严格遵循 Conventional Commit 格式。
+4. 提交消息**必须**包含：
+    - **Type（类型）:** 从标准列表中选择一个相关类型（见下文）。
+    - **Scope（范围）:** (可选) 受影响的特定组件或区域（例如：`auth`, `ui`, `user-profile`）。
+    - **Description（描述）:** 简洁地概括*做了什么*更改。
+    - **Body（正文）:** (可选但推荐) 更详细地解释*为什么*进行这些更改以及任何相关背景信息。
+5. 用于生成更改的**原始提示**必须包含在提交消息的正文中，以便追溯。
+
+### 预期结果
+- 修改后的文件被自动暂存和提交。
+- 根据格式生成一条 Conventional Commit 消息。
+- 原始提示包含在提交正文中。
+- 潜在的合并冲突或提交错误应报告给用户。
+
+### 好处
+- 维护清晰、一致且符合标准的提交历史。
+- 提供用户提示与最终代码更改之间的直接可追溯性。
+- 自动化提交过程，提高工作流程效率。
+
+### Conventional Commit 类型参考
+- `feat`: 新功能
+- `fix`: Bug 修复
+- `docs`: 仅文档更改
+- `style`: 不影响代码含义的更改（空格、格式化、缺少分号等）
+- `refactor`: 代码重构，既不修复 Bug 也不添加功能
+- `perf`: 提升性能的代码更改
+- `test`: 添加缺失的测试或更正现有测试
+- `build`: 影响构建系统或外部依赖项的更改（示例范围：gulp、broccoli、npm）
+- `ci`: 对 CI 配置文件和脚本的更改（示例范围：Travis、Circle、BrowserStack、SauceLabs）
+- `chore`: 其他不修改 `src` 或 `test` 文件的更改（例如：更新依赖项）
+- `revert`: 撤销先前的提交
+
+## Examples
+
+<example>
+**✅ 正确的提交消息示例：**
+```
+feat(api): 添加获取用户个人资料的接口
+
+实现了 GET /api/users/{userId}/profile 接口。
+根据提供的用户 ID 检索用户个人资料数据。
+
+原始提示: 创建一个 API 接口来获取用户个人资料数据。
+```
+</example>
+
+<example type="invalid">
+**❌ 错误的提交消息示例：**
+```
+修复了 bug
+```
+
+```
+更新用户模块的东西
+```
+</example>

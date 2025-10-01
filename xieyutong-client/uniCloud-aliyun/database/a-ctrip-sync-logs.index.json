@@ -1,0 +1,62 @@
+[
+  {
+    "IndexName": "ctrip_product_id_1",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "ctrip_product_id",
+          "Direction": "1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "sync_status_1_created_at_-1",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "sync_status",
+          "Direction": "1"
+        },
+        {
+          "Name": "created_at",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "sync_type_1_created_at_-1",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "sync_type",
+          "Direction": "1"
+        },
+        {
+          "Name": "created_at",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "operator_id_1_created_at_-1", 
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "operator_id",
+          "Direction": "1"
+        },
+        {
+          "Name": "created_at",
+          "Direction": "-1"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+] 

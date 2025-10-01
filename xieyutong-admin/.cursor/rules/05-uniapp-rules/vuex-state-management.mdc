@@ -1,0 +1,387 @@
+---
+description: 该规则旨在规范 uni-app 项目中 Vuex 的使用，确保状态管理的清晰性、可维护性和一致性。当项目涉及多视图共享状态、跨组件复杂通信、需要持久化状态时，应采用 Vuex，并遵循此规则。
+globs: 
+alwaysApply: false
+---
+# uni-app Vuex 状态管理规范
+
+## Critical Rules
+
+### 1. 何时使用 Vuex
+
+该规则旨在规范 uni-app 项目中 Vuex 的使用，确保状态管理的清晰性、可维护性和一致性。当项目涉及多视图共享状态、跨组件复杂通信、需要持久化状态时，应采用 Vuex，并遵循此规则。
+
+- **多视图共享状态：** 当多个视图（页面或组件）依赖于同一份状态时。例如：用户登录信息、应用配置、购物车内容。
+- **跨组件通信：** 当不同层级或无直接父子关系的组件需要共享或修改状态时。
+- **持久化状态：** 当应用状态需要在会话之间保持（例如用户登录状态），或需要在应用关闭后恢复时（可配合 `uni.setStorageSync` 等持久化方案）。
+
+
+### 2. Store 结构与核心概念
+
+#### 2.1 单一状态树 (Single Source of Truth)
+- 每个 uni-app 应用应只包含**一个** Store 实例。
+- 所有应用层级的状态都应集中存储在这个唯一的 Store 对象中。
+
+#### 2.2 State (状态)
+- **定义：** 在 `state` 对象中定义应用的初始状态数据。
+- **访问：**
+    - 组件内通过 `this.$store.state.moduleName.propertyName` (模块化时) 或 `this.$store.state.propertyName` (非模块化时) 访问。
+    - 推荐使用 `mapState` 辅助函数将 state 映射到组件的计算属性中，以简化访问。
+- **不可直接修改：** 严禁在组件中直接修改 `state`。状态的变更必须通过提交 `mutations`。
+
+```javascript
+// store/index.js 或 store/modules/user.js
+const state = {
+  isLoggedIn: false,
+  userInfo: null,
+  // ...其他状态
+};
+
+// component.vue
+import { mapState } from 'vuex';
+export default {
+  computed: {
+    ...mapState('user', ['isLoggedIn', 'userInfo']) // 假设 user 是模块名
+  }
+}
+```
+
+#### 2.3 Getters (派生状态)
+- **定义：** 类似于 Vue 组件的计算属性，用于从 `state` 中派生出一些状态，例如对列表进行过滤、计算总数等。
+- **缓存：** Getters 的结果会被缓存，并且只有当它的依赖值发生改变时才会重新计算。
+- **访问：**
+    - 通过 `this.$store.getters.getterName` 或 `this.$store.getters['moduleName/getterName']` 访问。
+    - 推荐使用 `mapGetters` 辅助函数。
+
+```javascript
+// store/modules/cart.js
+const getters = {
+  cartItemCount: state => state.items.length,
+  totalPrice: state => state.items.reduce((total, item) => total + item.price * item.quantity, 0)
+};
+
+// component.vue
+import { mapGetters } from 'vuex';
+export default {
+  computed: {
+    ...mapGetters('cart', ['cartItemCount', 'totalPrice'])
+  }
+}
+```
+
+#### 2.4 Mutations (同步变更状态)
+- **核心原则：** 更改 Vuex Store 中状态的**唯一**方法是提交 (commit) mutation。
+- **同步执行：** Mutation 必须是**同步函数**。这保证了状态变更的可追溯性。
+- **定义：** 在 `mutations` 对象中定义方法，每个方法接收 `state` 作为第一个参数，可选 `payload` 作为第二个参数。
+- **提交：**
+    - 通过 `this.$store.commit('mutationName', payload)` 或 `this.$store.commit('moduleName/mutationName', payload)` 提交。
+    - 推荐使用 `mapMutations` 辅助函数。
+- **命名规范：** Mutation 名称建议使用**大写常量形式**（例如 `SET_USER`, `ADD_TO_CART`），并在可能的情况下，将常量统一定义在单独的文件中，以提高可维护性。
+
+```javascript
+// store/mutation-types.js (可选，推荐)
+export const SET_USER = 'SET_USER';
+
+// store/modules/user.js
+import { SET_USER } from '../mutation-types';
+const mutations = {
+  [SET_USER](mdc:state, userData) {
+    state.userInfo = userData;
+    state.isLoggedIn = !!userData;
+  }
+};
+
+// component.vue
+import { mapMutations } from 'vuex';
+import { SET_USER } from '@/store/mutation-types'; // 假设路径正确
+export default {
+  methods: {
+    updateUser(userData) {
+      this.$store.commit(`user/${SET_USER}`, userData); // 模块化提交
+    }
+    // 或者使用 mapMutations
+    // ...mapMutations('user', { setUserMutation: SET_USER })
+  }
+}
+```
+
+#### 2.5 Actions (异步操作与逻辑封装)
+- **定义：** Action 类似于 Mutation，但主要区别在于：
+    - Action 提交的是 Mutation，而不是直接变更状态。
+    - Action 可以包含任意**异步操作** (例如 API 请求)。
+- **定义：** 在 `actions` 对象中定义方法，每个方法接收一个与 Store 实例具有相同方法和属性的 `context` 对象 (通常解构为 `{ commit, dispatch, state, rootState, getters, rootGetters }`)，可选 `payload` 作为第二个参数。
+- **分发：**
+    - 通过 `this.$store.dispatch('actionName', payload)` 或 `this.$store.dispatch('moduleName/actionName', payload)` 分发。
+    - 推荐使用 `mapActions` 辅助函数。
+- **命名规范：** Action 名称建议使用驼峰式命名（例如 `loginUser`, `fetchProducts`）。
+
+```javascript
+// store/modules/auth.js
+import { SET_USER } from '../mutation-types';
+// 假设 api.login 是一个返回 Promise 的异步函数
+import * as api from '@/api/auth';
+
+const actions = {
+  async login({ commit }, credentials) {
+    try {
+      const userData = await api.login(credentials); // 异步API调用
+      commit(`user/${SET_USER}`, userData, { root: true }); // 提交到 user 模块的 mutation
+      return Promise.resolve(userData);
+    } catch (error) {
+      console.error('Login failed:', error);
+      return Promise.reject(error);
+    }
+  },
+  logout({ commit }) {
+    // 清理本地存储等
+    commit(`user/${SET_USER}`, null, { root: true });
+  }
+};
+
+// component.vue
+import { mapActions } from 'vuex';
+export default {
+  methods: {
+    ...mapActions('auth', ['login', 'logout']),
+    async handleLogin() {
+      try {
+        await this.login({ username: 'test', password: 'password' });
+        // 登录成功处理
+      } catch (error) {
+        // 登录失败处理
+      }
+    }
+  }
+}
+```
+
+#### 2.6 Modules (模块化)
+- **目的：** 当应用变得复杂时，Store 对象可能会变得非常臃肿。Vuex 允许将 Store 分割成模块 (Module)。
+- **结构：** 每个模块拥有自己的 `state`、`mutations`、`actions`、`getters`，甚至是嵌套子模块。
+- **命名空间：** 默认情况下，模块内部的 `action`、`mutation` 和 `getter` 是注册在全局命名空间的。为避免命名冲突和提高模块的封装性，**强烈推荐**为模块开启命名空间：`namespaced: true`。
+- **访问：**
+    - 开启命名空间后，访问模块内的 state: `state.moduleName.property`。
+    - 提交/分发带命名空间的 mutation/action: `commit('moduleName/mutationName')`, `dispatch('moduleName/actionName')`。
+    - 访问带命名空间的 getter: `getters['moduleName/getterName']`。
+    - `mapState`, `mapGetters`, `mapMutations`, `mapActions` 的第一个参数需要是模块路径字符串。
+
+```javascript
+// store/modules/cart.js
+export default {
+  namespaced: true, // 关键：开启命名空间
+  state: () => ({ items: [] }),
+  mutations: {
+    ADD_ITEM(state, item) { state.items.push(item); }
+  },
+  actions: {
+    async addItemToCart({ commit }, item) { /* ... */ commit('ADD_ITEM', item); }
+  },
+  getters: {
+    itemCount: state => state.items.length
+  }
+};
+
+// store/index.js
+import Vue from 'vue';
+import Vuex from 'vuex';
+import cart from './modules/cart';
+import user from './modules/user'; // 假设 user 模块也已定义并开启命名空间
+
+Vue.use(Vuex);
+
+export default new Vuex.Store({
+  modules: {
+    cart,
+    user
+  }
+  //可以有根级别的 state, mutations, actions, getters
+});
+
+// component.vue
+import { mapState, mapActions } from 'vuex';
+export default {
+  computed: {
+    ...mapState('cart', ['items']), // 访问 cart 模块的 items
+    ...mapState('user', ['userInfo']) // 访问 user 模块的 userInfo
+  },
+  methods: {
+    ...mapActions('cart', ['addItemToCart'])
+  }
+}
+```
+
+### 3. 在 uni-app 中集成 Vuex
+
+#### 3.1 安装和引入
+- uni-app 已内置 Vuex，无需额外安装。
+- 在项目根目录创建 `store` 文件夹，并在其中创建 `index.js` 作为 Store 的入口文件。
+
+#### 3.2 `main.js` 配置
+- 在 `main.js` 中引入 Store 实例，并将其挂载到 Vue 实例上。
+
+```javascript
+// main.js
+import Vue from 'vue'
+import App from './App'
+import store from './store' // 引入 store
+
+Vue.config.productionTip = false
+App.mpType = 'app'
+
+Vue.prototype.$store = store // 将 store 挂载到 Vue 原型上，方便组件内通过 this.$store 访问
+
+const app = new Vue({
+  store, // 将 store 传递给 Vue 实例
+  ...App
+})
+app.$mount()
+```
+
+### 4. 辅助函数的使用
+- **强烈推荐**使用 `mapState`, `mapGetters`, `mapMutations`, `mapActions` 等辅助函数，它们可以极大简化在组件中对 Store 的操作，使代码更简洁易读。
+
+```vue
+<template>
+  <view>
+    <!-- 使用 mapState 映射的状态 -->
+    <view>User Name: {{ userName }}</view>
+    <view>Is Logged In: {{ isLoggedIn }}</view>
+    <view>Cart Items Count: {{ cartItemCount }}</view>
+
+    <!-- 使用 mapGetters 映射的 getters -->
+    <view>Formatted User Info: {{ formattedUserInfo }}</view>
+    <view>Total Cart Price: {{ totalCartPrice }}</view>
+
+    <button @click="loginUserAction({ username: 'test', password: '123' })">Login</button>
+    <button @click="addItemToCartMutation({ id: 1, name: 'Product A', price: 100 })">Add to Cart</button>
+  </view>
+</template>
+
+<script>
+import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
+
+export default {
+  computed: {
+    // 1. mapState
+    // 从根 state 获取
+    ...mapState([
+      'userName', // 映射 this.userName 为 store.state.userName
+    ]),
+    // 从名为 'user' 的模块获取 (假设 user 模块已开启 namespaced: true)
+    ...mapState('user', {
+      isLoggedIn: state => state.isLoggedIn, // 映射 this.isLoggedIn 为 store.state.user.isLoggedIn
+      // 你也可以直接使用字符串 если state 名称和计算属性名称一致
+      // userId: 'userId' // 映射 this.userId 为 store.state.user.userId
+    }),
+    // 从名为 'cart' 的模块获取
+    ...mapState('cart', [
+      'cartItemCount' // 映射 this.cartItemCount 为 store.state.cart.cartItemCount
+    ]),
+
+    // 2. mapGetters
+    // 从根 getters 获取
+    ...mapGetters([
+      'formattedUserInfo', // 映射 this.formattedUserInfo 为 store.getters.formattedUserInfo
+    ]),
+    // 从名为 'cart' 的模块获取 (假设 cart 模块已开启 namespaced: true)
+    ...mapGetters('cart', [
+      'totalCartPrice' // 映射 this.totalCartPrice 为 store.getters['cart/totalCartPrice']
+    ]),
+    // 你也可以重命名 getter
+    ...mapGetters('user', {
+      isAdmin: 'isAdminGetter' // 映射 this.isAdmin 为 store.getters['user/isAdminGetter']
+    })
+  },
+  methods: {
+    // 3. mapMutations
+    // 从根 mutations 提交
+    ...mapMutations([
+      'UPDATE_USER_PROFILE', // 映射 this.UPDATE_USER_PROFILE() 为 store.commit('UPDATE_USER_PROFILE')
+    ]),
+    // 向名为 'cart' 的模块提交 (假设 cart 模块已开启 namespaced: true)
+    ...mapMutations('cart', {
+      addItemToCartMutation: 'ADD_ITEM_TO_CART' // 映射 this.addItemToCartMutation() 为 store.commit('cart/ADD_ITEM_TO_CART')
+    }),
+
+    // 4. mapActions
+    // 从根 actions 分发
+    ...mapActions([
+      'fetchGlobalSettings' // 映射 this.fetchGlobalSettings() 为 store.dispatch('fetchGlobalSettings')
+    ]),
+    // 向名为 'user' 的模块分发 (假设 user 模块已开启 namespaced: true)
+    ...mapActions('user', {
+      loginUserAction: 'login' // 映射 this.loginUserAction() 为 store.dispatch('user/login')
+    }),
+
+    // 组件内的其他方法
+    handleUpdateProfile() {
+      this.UPDATE_USER_PROFILE({ name: 'New Name' }); // 调用映射的 mutation
+    },
+    async performLogin() {
+      try {
+        await this.loginUserAction({ username: 'user', password: 'pass' }); // 调用映射的 action
+        console.log('Login successful');
+      } catch (error) {
+        console.error('Login failed:', error);
+      }
+    }
+  }
+};
+</script>
+```
+
+### 5. 状态持久化 (可选)
+- Vuex 本身不处理状态持久化。如果需要将某些状态（如用户登录信息、购物车）持久化存储，可以结合 `uni.setStorageSync` / `uni.getStorageSync` 或第三方持久化插件（如 `vuex-persistedstate`，需注意其在 uni-app 中的兼容性）来实现。
+- 通常在相关的 `mutation` 成功后或 `action` 中处理持久化逻辑。
+
+```javascript
+// store/modules/user.js (示例：简单的本地存储持久化)
+import { SET_USER } from '../mutation-types';
+
+const state = {
+  userInfo: uni.getStorageSync('userInfo') || null, // 初始化时从本地存储读取
+  isLoggedIn: !!uni.getStorageSync('userInfo'),
+};
+
+const mutations = {
+  [SET_USER](mdc:state, userData) {
+    state.userInfo = userData;
+    state.isLoggedIn = !!userData;
+    if (userData) {
+      uni.setStorageSync('userInfo', userData);
+    } else {
+      uni.removeStorageSync('userInfo');
+    }
+  }
+};
+// ... actions (例如 logout action 中也应清理本地存储)
+```
+
+## Examples
+
+<example>
+**✅ 推荐的模块化 Store 结构示例：**
+```
+store/
+├── index.js          # 组装模块并导出 store
+├── mutation-types.js # (可选) 存放 mutation 类型常量
+└── modules/          # 存放各个业务模块
+    ├── user.js       # 用户相关状态管理
+    ├── cart.js       # 购物车相关状态管理
+    └── settings.js   # 应用设置相关状态管理
+```
+</example>
+
+<example type="invalid">
+**❌ 不推荐的实践：**
+- 在组件内部直接修改 `this.$store.state.someValue = newValue;`。
+- 在 Mutations 中执行异步操作。
+- Store 过于庞大且不使用模块化。
+- Action 直接修改 State，未通过 Mutation。
+</example>
+
+---
+*本规则旨在提供 uni-app 项目中 Vuex 使用的指导，具体实践中可根据项目需求灵活调整。*
+
+
+

@@ -1,0 +1,477 @@
+---
+description: 需要对 uniCloud 数据库进行增删改查操作时
+globs: 
+alwaysApply: false
+---
+# uniCloud JQL 语法核心指南
+
+## 1. JQL 简介
+
+### 1.1 什么是 JQL
+JQL (JavaScript Query Language) 是一种以 JavaScript 方式操作数据库的规范。它旨在简化数据库操作，对 JS 工程师非常友好，比传统 SQL 和 MongoDB API 更易掌握。
+
+### 1.2 JQL 的优势
+- **易学易用：** 语法更接近 JavaScript，降低学习门槛。
+- **强大的 DB Schema 集成：** 内置数据校验规则和权限控制，可与 `uni-id` 的角色权限无缝对接，减少后端校验和鉴权代码。
+- **简化复杂查询：** 利用 JSON 数据库的嵌套特性，极大简化了联表查询和树查询，支持灵活的虚拟表。
+
+### 1.3 JQL 诞生的背景
+- **SQL 的问题：** 对 JS 工程师有学习成本，不适用于 NoSQL (MongoDB)，联表查询（`INNER JOIN`, `LEFT JOIN`）复杂。
+- **传统 NoSQL API (MongoDB) 的问题：**
+    - 运算符需转码（如 `>` 用 `gt()`）。
+    - 逻辑关系（如 `OR`）表达复杂。
+    - 联表查询 (`lookup`) 写法比 SQL 更繁琐，可读性差。
+JQL 旨在解决这些痛点，让 JS 工程师能轻松操作数据库。
+
+## 2. JQL 流程与模块
+
+### 2.1 JQL 调用流程 (以 clientDB 为例)
+1.  **客户端发起请求：** 如 `db.collection('list').where('name == "hello-uni-app"').get()`。
+2.  **Action (可选)：** 如果配置了 action，会在数据库操作前后执行自定义云函数逻辑。
+3.  **DB Schema 校验：**
+    -   **权限 (Permission)：** 校验用户是否有权执行该操作（读、写、增、删等）。
+    -   **数据格式 (Validator)：** 校验提交的数据是否符合字段定义（类型、必填、正则等）。
+4.  **数据库操作：** 执行实际的数据库查询或修改。
+5.  **Action (可选)：** 执行 after 部分的逻辑。
+6.  **返回结果：** 将结果返回给客户端。
+
+## 3. JQL 的使用场景
+
+-   **客户端 clientDB：**
+    -   通过 JavaScript 直接在前端操作数据库。
+    -   通过 `<unicloud-db>` 组件在视图层声明式操作数据库。
+    -   参考：[clientDB](mdc:https:/uniapp.dcloud.net.cn/uniCloud/clientdb.html)
+-   **HBuilderX JQL 数据库管理器：**
+    -   在 HBuilderX 中直接编写和调试 JQL 语句。
+    -   参考：[JQL 数据库管理器](mdc:https:/uniapp.dcloud.net.cn/uniCloud/jql-tools.html)
+-   **启用了 JQL 扩展的云函数/云对象：**
+    -   在云端使用 JQL 语法操作数据库。
+    -   参考：[云函数内使用 JQL](mdc:https:/uniapp.dcloud.net.cn/uniCloud/cf-database.html#jql)
+
+### 3.1 不同场景的区别
+-   **JQL 数据库管理器：**
+    -   无权限校验（管理员身份）。
+    -   可读写 `password` 类型数据。
+    -   不触发数据库触发器。
+    -   不可执行 action 云函数。
+-   **客户端 clientDB：**
+    -   完整的权限校验。
+    -   `admin` 用户不可操作 `password` 类型数据。
+    -   会触发数据库触发器和 action。
+-   **云函数 JQL：**
+    -   同 clientDB，但 `password` 类型数据可配置权限（默认 `false`，`admin` 可操作）。
+    -   可通过 `setUser` 指定操作用户身份。
+    -   会触发数据库触发器和 action。
+
+## 4. JQL 的限制
+
+-   **序列化：** 除 `Date`、`RegExp` 外，所有不可 JSON 序列化的参数类型均不支持 (如 `undefined`)。
+-   **`set` 方法禁用：** 为严格控制权限。
+-   **更新操作符限制：** 更新数据库时不可使用 `db.command.inc` 等操作符，确保数据校验。
+-   **更新键值格式：** 更新数据时键值不可使用 `{'a.b.c': 1}`，需写成 `{a:{b:{c:1}}}`。
+
+## 5. JQL 方法使用顺序限制
+
+### 5.1 单表查询
+必须严格按以下顺序调用：
+1.  `collection()`
+2.  `aggregate()` (可选)
+3.  `geoNear()` (可选, HBuilderX 3.6.10+)
+4.  `doc()` (可选, 与 `where` 互斥)
+5.  `where()` (可选, 与 `doc` 互斥)
+6.  `field()` (可选)
+7.  `groupBy()` (可选)
+8.  `groupField()` (可选, 需配合 `groupBy`)
+其他方法（如 `orderBy`, `skip`, `limit`, `get`, `count`, `update`, `remove`）需在上述方法之后调用，顺序不限。
+
+### 5.2 联表查询
+-   **临时表 (`getTemp`)：**
+    1.  `collection()`
+    2.  `geoNear()` (可选)
+    3.  `where()` (可选)
+    4.  `field()` (可选)
+    5.  `orderBy()` (可选)
+    6.  `skip()` (可选)
+    7.  `limit()` (可选)
+    8.  `getTemp()`
+-   **虚拟联表 (使用临时表组合)：**
+    1.  `collection(tempTable1, tempTable2, ...)`
+    2.  `foreignKey()` (可选)
+    3.  `where()` (可选)
+    4.  `field()` (可选)
+    5.  `groupBy()` (可选)
+    6.  `groupField()` (可选)
+    7.  `distinct()` (可选)
+    8.  `orderBy()` (可选)
+    9.  `skip()` (可选)
+    10. `limit()` (可选)
+    11. `get()`
+
+### 5.3 新增 (`add`)
+仅允许 `collection().add()`。
+
+### 5.4 修改 (`update`)
+仅允许：
+-   `db.collection('xx').doc('xxx').update({})`
+-   `db.collection('xx').where('xxxx').update({})`
+
+### 5.5 删除 (`remove`)
+仅允许：
+-   `db.collection('xx').doc('xxx').remove()`
+-   `db.collection('xx').where('xxxx').remove()`
+
+## 6. JQL 语句内云端环境变量
+
+| 参数名             | 说明                                     |
+|--------------------|------------------------------------------|
+| `$cloudEnv_uid`    | 用户 UID (依赖 `uni-id`)                  |
+| `$cloudEnv_now`    | 服务器时间戳                             |
+| `$cloudEnv_clientIP` | 当前客户端 IP                            |
+
+使用方法：
+-   字符串内直接使用：`db.collection('user').where('_id == $cloudEnv_uid').get()`
+-   对象内使用 `db.getCloudEnv()`：`db.collection('user').where({ _id: db.getCloudEnv('$cloudEnv_uid') }).get()`
+**注意：** 这些变量在云端执行时才被替换为实际值。
+
+## 7. 返回值说明
+
+### 7.1 正常请求返回结构
+-   **查询数据 (`get`)：**
+    ```json
+    {
+      "errCode": 0,
+      "errMsg": "",
+      "data": [] // 查询结果数组
+    }
+    ```
+-   **批量查询 (`multiSend`)：**
+    ```json
+    {
+      "errCode": 0,
+      "errMsg": "",
+      "dataList": [] // 每个元素是单个查询的响应结果
+    }
+    ```
+-   **新增数据 (`add`)：**
+    -   单条：`{ "errCode": 0, "errMsg": "", "id": "新增数据的id" }`
+    -   多条：`{ "errCode": 0, "errMsg": "", "ids": [], "inserted": 3 }`
+-   **删除数据 (`remove`)：** `{ "errCode": 0, "errMsg": "", "deleted": 1 }`
+-   **更新数据 (`update`)：** `{ "errCode": 0, "errMsg": "", "updated": 1 }` (数据无变化时 `updated` 为 0)
+
+### 7.2 请求报错返回 `err` 格式
+```json
+{
+  "errCode": "错误码",
+  "errMsg": "错误信息"
+}
+```
+常见错误码：`TOKEN_INVALID`, `SYNTAX_ERROR`, `PERMISSION_ERROR`, `VALIDATION_ERROR`, `DUPLICATE_KEY`, `SYSTEM_ERROR` 等。
+可在 clientDB 的 action `after` 钩子中自定义返回的 `err` 对象。
+
+## 8. 查询数据 (`get`)
+
+### 8.1 查询数组字段
+若记录 `students: ["li", "wang"]`，可直接用 `students == 'wang'` 查询 `students` 数组包含 `wang` 的记录。
+
+### 8.2 使用正则查询
+语法：`RegExpObject.test(fieldName)`
+```javascript
+// 搜索 name 字段包含 searchVal (忽略大小写)
+const whereCondition = `${new RegExp(searchVal, 'i')}.test(name)`;
+db.collection('goods').where(whereCondition).get();
+```
+在 `<unicloud-db>` 中可配合计算属性使用。
+
+### 8.3 联表查询
+JQL 通过 DB Schema 中的 `foreignKey` 配置简化联表查询。
+
+#### 8.3.1 概念
+-   **临时表 (Temporary Table)：** 通过 `.getTemp()` 方法返回的结果，用于后续联表。
+-   **虚拟联表 (Virtual Joined Table)：** 主表与一个或多个（临时）副表通过 `foreignKey` 关联产生的逻辑表。
+
+#### 8.3.2 推荐方式：使用临时表 (`getTemp`)
+先对主表和副表分别进行过滤、排序等操作得到临时表，再将临时表传入 `collection()` 进行关联，性能更优。
+```javascript
+// 示例：查询ID为 "1" 的订单及其关联的书籍信息
+const orderTable = db.collection('order').where('_id == "1"').getTemp(); // 订单临时表
+const bookTable = db.collection('book').getTemp(); // 书籍临时表 (可进一步过滤)
+
+db.collection(orderTable, bookTable) // 主表在前
+  .get()
+  .then(res => { /* ... */ });
+```
+
+#### 8.3.3 DB Schema 配置
+在主表或副表的 Schema 文件中，为关联字段配置 `foreignKey` 属性，指向目标表的目标字段。
+例如，`order` 表的 `book_id` 字段关联 `book` 表的 `_id` 字段：
+```json
+// order.schema.json
+{
+  "properties": {
+    "book_id": {
+      "bsonType": "string",
+      "foreignKey": "book._id" // 格式："副表名.副表字段名"
+    }
+  }
+}
+```
+
+#### 8.3.4 返回结果结构
+-   **主表 `foreignKey` 指向副表：** 副表数据以数组形式嵌入到主表关联字段下。
+    ```json
+    {
+      "order_field": "value",
+      "book_id": [ // order表的book_id字段
+        { "book_title": "西游记", "book_author": "吴承恩" } // book表的数据
+      ]
+    }
+    ```
+-   **副表 `foreignKey` 指向主表：** 副表数据以对象形式（键为副表名）嵌入到主表被关联字段下，原始值存入 `_value`。
+    ```json
+    {
+      "book_title": "西游记",
+      "_id": { // book表的_id字段
+        "order": [ // order表名
+          { "order_quantity": 10, "other_order_field": "..." } // order表的数据
+        ],
+        "_value": "actual_book_id_value" // book表_id的原始值 (HBuilderX 3.1.16+)
+      }
+    }
+    ```
+
+#### 8.3.5 临时表联表查询的 `field` 使用
+-   若在临时表 `.getTemp()` 前使用 `field()`，必须包含关联字段。
+-   在组合的虚拟联表查询中对 `field()` 的使用：
+    -   HBuilderX 3.3.7 之前：仅字段过滤，不支持重命名和运算。
+    -   HBuilderX 3.3.7+：支持字段重命名和运算。
+    -   不建议在虚拟联表内对副表字段重命名或运算，应在临时表阶段完成。
+
+#### 8.3.6 权限校验
+组成虚拟联表的各个临时表都必须满足其自身的权限限制。
+
+#### 8.3.7 设置字段别名 (`as`)
+在 `field()` 中使用 `original_name as new_name`。
+```javascript
+const book = db.collection('book').field('_id, title as book_title, author as book_author').getTemp();
+db.collection(order, book)
+  .where('book_id.book_title == "三国演义"') // 使用别名查询
+  .get();
+```
+
+#### 8.3.8 手动指定 `foreignKey`
+若 Schema 中一个字段有多个 `foreignKey` 指向，或一个表有多个字段设置了 `foreignKey`，可使用 `.foreignKey('tableName.fieldName')` 指定本次查询生效的关联。
+
+### 8.4 查询记录过滤 (`where`)
+支持简单字符串表达式，比传统 MongoDB API 简洁。
+```javascript
+db.collection('test').where('a == 1 || b == 2').get();
+```
+JQL 会自动选择简单查询条件或复杂查询条件模式。
+-   **简单查询条件：** 支持 `==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `!(xx in [])`, `&&`, `||`, `/regex/.test(field)`。
+    -   除 `test` 外，运算符左侧为数据库字段，右侧为常量。
+    -   二元运算符两侧不可均为数据库字段。
+-   **复杂查询条件 (HBuilderX 3.1.0+)：**
+    -   可使用数据库运算方法，如 `add(chinese, math) > 150`。
+    -   可比较数据库内两个字段，如 `math > chinese`。
+    -   可使用 `new Date().getTime()` 获取当前时间 (云函数内)。
+
+### 8.5 查询列表分页 (`skip`, `limit`)
+-   `skip(N)`：跳过前 N 条记录。
+-   `limit(M)`：获取 M 条记录。
+```javascript
+db.collection('book').skip(20).limit(20).get(); // 获取第2页，每页20条
+```
+**注意：** `limit` 默认 100，最大一般为 1000 (腾讯云/阿里云)。`<unicloud-db>` 组件有更便捷的分页方案。
+
+### 8.6 字段过滤 (`field`)
+指定返回哪些字段，不指定则返回所有。支持字符串或对象。可使用数据库运算方法。
+-   **字符串写法：** `"title,author"` (默认返回 `_id`)。
+-   **嵌套 JSON 过滤：** `"price.vip"` 只返回 `price` 对象下的 `vip` 字段。
+-   **联表查询副表字段过滤：** `"book_id{title,author},quantity"` 或 `"book_id.title, book_id.author, quantity"` (2021年4月28日起支持后者)。
+
+### 8.7 字段别名 (`as`)
+在 `field()` 内使用 `original_name as new_name`。
+```javascript
+db.collection('book').field('title as book_title, author as book_author').get();
+```
+-   `_id` 设置别名会同时返回 `_id` 和别名字段。
+-   `as` 后的别名不可与 Schema 中已有字段重名。
+-   `orderBy` 等后续操作应使用别名。
+
+### 8.8 各种字段运算方法 (HBuilderX 3.1.0+)
+可在 `field()` 或 `where()` (复杂条件) 中对字段进行运算后再返回/比较。
+参考：[数据库运算方法](mdc:https:/uniapp.dcloud.net.cn/uniCloud/jql- χρήση#-14)
+```javascript
+db.collection('class').field('class, eq(grade,6) as isTopGrade').get();
+```
+
+### 8.9 排序 (`orderBy`)
+类 SQL 字符串格式，多个字段以逗号分隔，可指定 `asc` (升序, 默认) 或 `desc` (降序)。
+```javascript
+db.collection('order').orderBy('quantity asc, create_date desc').get();
+```
+等价于 `.orderBy('quantity', 'asc').orderBy('create_date', 'desc')`。
+
+### 8.10 只查一条记录 (`getOne`)
+在 `.get({ getOne: true })` 中设置，等价于 `.limit(1)`。常与 `orderBy` 搭配。
+返回的 `data` 直接是对象，而非数组。
+`<unicloud-db>` 组件有 `getone` 属性。
+
+### 8.11 统计数量 (`count`, `getCount`)
+-   `affectedDocs` (返回结果中)：表示本次网络请求实际返回给前端的数据条数。
+-   `count` (返回结果中，当使用 `getCount` 或 `count()` 时)：符合查询条件的记录总数。
+
+    1.  **单纯统计数量 (`.count()`):** 不返回数据明细。
+        ```javascript
+        db.collection('order').where(...).count().then(res => { console.log(res.result.total) });
+        ```
+    2.  **查询记录同时返回计数 (`.get({ getCount: true })`):**
+        返回结果中包含 `count` 字段。
+        `<unicloud-db>` 组件有 `getcount` 属性。
+
+### 8.12 查询树形数据 (`getTree`, `getTreePath`)
+(HBuilderX 3.0.3+ for JQL API, 3.0.5+ for `<unicloud-db>`)
+需在 DB Schema 中为父级关联字段配置 `parentKey: "_id"` (或指向其他唯一键)。
+
+#### 8.12.1 查询所有子节点 (`getTree`)
+返回以符合 `startWith` 条件的记录为根节点，向下指定层级 (`limitLevel`) 的树形结构数据，子节点在 `children` 数组中。
+```javascript
+get({
+  getTree: {
+    limitLevel: 10, // 可选, 默认10, 最大15, 最小1
+    startWith: "parent_code == '' || parent_code == null" // 可选, 默认根节点条件
+  }
+});
+// 简写: get({ getTree: true })
+```
+-   `where` 条件对所有层级生效。
+-   `startWith` 定义从哪些节点开始查询树。
+-   若 Schema 有多个 `parentKey`，需用 `.parentKey('field_name_with_parentKey')` 指定。
+-   大数据量建议分层懒加载查询。
+
+#### 8.12.2 查询父级路径 (`getTreePath`)
+返回从 `startWith` 指定的末级节点向上追溯到根节点的路径，并以树形结构呈现 (每层只有一个直系父节点)。
+```javascript
+get({
+  getTreePath: {
+    limitLevel: 10, // 可选, 默认10, 最大15, 最小1
+    startWith: 'name == "一级部门A"' // 必需, 末级节点条件
+  }
+});
+```
+
+### 8.13 分组统计 (`groupBy`, `groupField`)
+(HBuilderX 3.1.0+ debug, 2021-01-26+ cloud)
+根据某个或某些字段 (`groupBy`) 分组，然后对其他字段进行聚合运算 (`groupField`)。
+`groupField` 内只能使用分组运算方法 (如 `sum()`, `avg()`, `count(*)`)。
+```javascript
+db.collection('score')
+  .groupBy('grade, class') // 按年级和班级分组
+  .groupField('sum(score) as totalScore, avg(score) as avgScore, count(*) as studentCount')
+  .get();
+```
+-   若 `groupBy` 前使用 `field`，则该 `field` 用于预处理字段，传递给后续分组。
+-   `_id` 不应在 `groupBy` 和 `groupField` 中使用。
+-   按日统计等场景，需结合日期运算方法 (如 `dateToString`, `add`) 处理时间戳。
+-   `count` 权限：若 Schema 配置了表级 `count` 权限，会与 `read` 权限一同校验。
+
+### 8.14 数据去重 (`distinct`)
+(HBuilderX 3.1.0+ debug, 2021-01-26+ cloud)
+对查询结果中完全相同的记录进行去重（基于 `field` 指定的字段，不含 `_id`）。
+```javascript
+db.collection('score').field('grade, class').distinct().get();
+```
+**注意：** 使用 `distinct` 时必须指定 `field`，且 `field` 中不应包含 `_id`。
+
+### 8.15 地理位置查询 (`geoNear`)
+(HBuilderX 3.6.10+)
+查询给定点一定距离内的记录。必须紧跟 `collection()` 或 `aggregate()`。
+```javascript
+db.collection('geo-near').aggregate().geoNear({
+  distanceField: 'distance', // 输出距离的字段名
+  spherical: true, // 必须为 true
+  near: new db.Geo.Point(longitude, latitude), // 中心点
+  maxDistance: 500, // 最大距离 (米)
+  // minDistance, query, distanceMultiplier, includeLocs, key 等可选参数
+}).end();
+```
+`geoNear` 的 `query` 参数将取代 `where`/`doc` 作为权限校验依据。
+可关注 `unicloud-map` 组件获取更便捷的地图POI展示方案。
+
+### 8.16 查询某字段与另一表字段相等的记录 (`in ${tempTable}`)
+(HBuilderX 3.7.12+)
+类似 SQL 的 `IN (SELECT ...)`，用于 `where` 方法内。
+```javascript
+const companyFilter = db.collection('company').where('status == 0').field('_id').getTemp();
+db.collection('employee').where(`register_date > 1670000000000 && company_id in ${companyFilter}`).get();
+```
+**注意：** 底层使用 `lookup`，大数据量时注意性能，尽量在 `in` 之外的条件先筛选。
+仅限单表读及 `getTemp` 联表查询的 `where`，过滤用临时表必须指定 `field`。
+
+## 9. 新增数据记录 (`add`)
+`collection.add(data)`，`data` 可以是单个对象或对象数组。
+不需要包含 `_id`，数据库自动生成。
+返回：单条为 `{ id: '...' }`，多条为 `{ ids: [], inserted: N }`。
+
+## 10. 删除数据记录 (`remove`)
+需配置 Schema `delete` 权限。
+-   按 ID 删除：`collection.doc(_id).remove()`
+-   按条件删除：`collection.where(...).remove()`
+返回：`{ deleted: N }`。
+
+## 11. 更新数据记录 (`update`)
+需配置 Schema `update` 权限。
+`collection.doc(_id).update(data)` 或 `collection.where(...).update(data)`。
+`data` 为更新字段的对象。嵌套字段或数组元素可直接指定路径。
+返回：`{ updated: N }` (数据无变化时为 0)。
+JQL 暂不支持更新数组内匹配条件的元素或按操作符更新（如 `$inc`，这部分需用传统 MongoDB API 或在 action 中处理）。
+
+## 12. 同时发送多条数据库请求 (`multiSend`)
+(HBuilderX 3.1.22+)
+合并多个查询请求（通过 `.getTemp()` 获取查询对象）一次发送，减少网络请求。
+```javascript
+const bannerQuery = db.collection('banner').field('url,image').getTemp();
+const noticeQuery = db.collection('notice').field('text,url').getTemp();
+const res = await db.multiSend(bannerQuery, noticeQuery);
+// res.result.dataList[0] 为 bannerQuery 结果, res.result.dataList[1] 为 noticeQuery 结果
+```
+`<unicloud-db>` 组件实例也可调用 `.getTemp()` 配合 `multiSend`。
+
+## 13. MongoDB 聚合操作 (`aggregate`)
+JQL API 支持使用聚合操作。
+```javascript
+db.collection('test').aggregate()
+  .match({ status: 1 })
+  .sample({ size: 20 })
+  .end();
+```
+
+## 14. 更新操作符 (HBuilderX JQL 管理器)
+(HBuilderX 3.5.1+)
+用于 JQL 管理器中对字段进行重命名或删除，适用于表结构变更。
+-   `db.command.rename('new_name')`: `db.collection('test').update({ old_field: db.command.rename('new_field') })`
+-   `db.command.remove()`: `db.collection('test').update({ field_to_remove: db.command.remove() })`
+**注意：** 跳过所有数据校验，不宜与普通数据操作混用。
+
+## 15. DB Schema
+DB Schema 是 JQL 的核心配套，定义数据结构、权限、校验规则、默认值、表间关系等。
+详读 [DB Schema 文档](mdc:https:/uniapp.dcloud.io/uniCloud/schema.html)。
+
+### 15.1 `permission`
+控制表级和字段级的读、写、增、删、计数权限。
+规则基于 `doc` (当前文档) 和 `auth` (当前用户信息如 `uid`, `role`, `permission`)。
+JQL 在执行数据库操作前会基于 `permission` 进行预校验，不通过则可能进行二次查库校验。
+
+### 15.2 `foreignKey`
+定义字段与其他表字段的关联关系，是 JQL 联表查询的基础。
+
+## 16. Action (数据库操作触发云函数)
+**注意：** HBuilderX 3.6.11+ 推荐使用 [数据库触发器](mdc:https:/uniapp.dcloud.net.cn/uniCloud/trigger.html) 替代 action。
+Action 允许在前端发起的数据库操作执行时，额外触发一段云函数逻辑 (before/after 钩子)。
+-   `db.action('actionName').collection(...)...`
+-   `<unicloud-db action="actionName">`
+-   Action 文件位于 `uni-clientDB-actions/actionName.js`。
+-   `before(state, event)`: 数据库操作前执行，可修改 `state.newData`。
+-   `after(state, event, error, result)`: 数据库操作后执行，可修改 `result`。
+-   `state` 对象包含当前操作命令、认证信息、事务对象、新数据、集合名、操作类型等。
+

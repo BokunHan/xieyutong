@@ -1,0 +1,67 @@
+[
+  {
+    "_id": "coupon_1000_3000",
+    "title": "1000元旅游大礼包",
+    "description": "真诚无套路，1000元旅游券等您使用",
+    "amount": 1000,
+    "min_amount": 3000,
+    "issue_type": "manual",
+    "total_count": 0,
+    "used_count": 0,
+    "valid_days": 180,
+    "share_code": "GIFT1000",
+    "status": "active"
+  },
+  {
+    "_id": "coupon_2000_5000",
+    "title": "2000元旅游大礼包",
+    "description": "超值大礼包，2000元旅游券限时领取",
+    "amount": 2000,
+    "min_amount": 5000,
+    "issue_type": "manual",
+    "total_count": 0,
+    "used_count": 0,
+    "valid_days": 180,
+    "share_code": "GIFT2000",
+    "status": "active"
+  },
+  {
+    "_id": "coupon_500_1500",
+    "title": "500元感谢券",
+    "description": "感谢您的支持，500元优惠券请收下",
+    "amount": 500,
+    "min_amount": 1500,
+    "issue_type": "manual",
+    "total_count": 0,
+    "used_count": 0,
+    "valid_days": 180,
+    "share_code": "THANKS500",
+    "status": "active"
+  },
+  {
+    "_id": "auto_referrer_1000",
+    "title": "推荐感谢券1000元",
+    "description": "感谢您成功推荐新客户，系统自动发放",
+    "amount": 1000,
+    "min_amount": 3000,
+    "issue_type": "auto_referral",
+    "auto_issue_condition": "referrer_reward",
+    "total_count": 0,
+    "used_count": 0,
+    "valid_days": 180,
+    "status": "active"
+  },
+  {
+    "_id": "auto_referee_1000",
+    "title": "被推荐新人专享券1000元",
+    "description": "仅限被老客户推荐的新人使用，系统自动发放",
+    "amount": 1000,
+    "min_amount": 3000,
+    "issue_type": "auto_referral",
+    "auto_issue_condition": "referee_reward",
+    "total_count": 0,
+    "used_count": 0,
+    "valid_days": 180,
+    "status": "active"
+  }
+] 
