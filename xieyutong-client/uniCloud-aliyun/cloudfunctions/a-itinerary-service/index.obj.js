@@ -1,5 +1,21 @@
 const uniIdCommon = require('uni-id-common');
 
+const numericFields = new Set([
+  'duration',
+  'total_days',
+  'day',
+  'time_duration_hours',
+  'time_duration_minutes',
+  'driving_distance',
+  'driving_duration_hours',
+  'driving_duration_minutes'
+]);
+
+const requiredFields = new Set([
+	'total_days',
+	'day'
+]);
+
 // 获取用户当前进行中的行程
 async function getCurrentItinerary(userId) {
 	const db = uniCloud.databaseForJQL({
@@ -254,6 +270,87 @@ module.exports = {
 			return {
 				errCode: 500,
 				errMsg: error.message || '获取行程详情失败'
+			};
+		}
+	},
+	
+	/**
+	 * 对行程文档执行局部/增量更新
+	 * @param {string} itineraryId - 要更新的行程文档 _id
+	 * @param {string} path - 要更新的字段路径 (使用点符号)
+	 * @param {any} value - 新的值
+	 * @param {string} [operator] - 特殊操作符, 如 '$push'
+	 */
+	async partialUpdateItinerary({ itineraryId, path, value, operator }) {
+		try {
+			// 1. 身份验证与授权
+			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
+			if (checkResult.errCode !== 0) {
+				throw new Error('身份验证失败');
+			}
+
+			// 授权检查：确保只有管理员可以执行更新操作
+			const authorized = checkResult.role && (checkResult.role.includes('admin') || checkResult.role.includes('super_admin'));
+			if (!authorized) {
+				return { errCode: 403, errMsg: '无权操作' };
+			}
+			
+			// 2. 参数验证
+			if (!itineraryId || !path) {
+				return { errCode: 400, errMsg: '缺少必要参数：行程ID或更新路径' };
+			}
+			
+			// 从路径中获取最终的字段名，例如从 'itinerary.0.day' 中获取 'day'
+			const baseField = path.split('.').pop();
+
+			// 检查这个字段是否在我们定义的数字字段集合中
+			if (numericFields.has(baseField)) {
+				// 如果值为空字符串或 null，我们视情况处理，这里暂时允许
+				// 如果不允许为空，可以在这里返回错误
+				if (value === '' || value === null || value === undefined) {
+					// 如果字段允许为空，则不做处理
+					// 如果字段不允许为空，可以在这里返回错误：
+					if(requiredFields.has(baseField))
+						return { errCode: 400, errMsg: `字段 [${baseField}] 不能为空` };
+				} else {
+					const parsedValue = parseFloat(value);
+					// 检查转换后的值是否为 NaN (Not-a-Number)，如果是则说明原始值不是有效数字
+					if (isNaN(parsedValue)) {
+						return {
+							errCode: 400, // Bad Request
+							errMsg: `字段 [${baseField}] 的值 "${value}" 不是一个有效的数字。`
+						};
+					}
+					// 如果转换成功，确保我们保存的是数字类型的值，而不是字符串
+					value = parsedValue;
+				}
+			}
+
+			const db = uniCloud.database();
+			let updateObject = {};
+
+			// 3. 构建更新指令
+			if (operator) {
+				updateObject[operator] = { [path]: value };
+			} else {
+				updateObject['$set'] = { [path]: value };
+			}
+			
+			console.log('[行程服务] 执行局部更新:', { itineraryId, updateObject });
+
+			// 4. 执行数据库更新
+			const result = await db.collection('a-itineraries').doc(itineraryId).update(updateObject);
+				
+			return {
+				errCode: 0,
+				data: result
+			};
+			
+		} catch (error) {
+			console.error('[行程服务] 局部更新失败:', error);
+			return {
+				errCode: 500,
+				errMsg: error.message || '更新失败'
 			};
 		}
 	}

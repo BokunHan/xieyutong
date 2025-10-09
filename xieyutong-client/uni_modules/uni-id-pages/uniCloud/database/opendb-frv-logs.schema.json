@@ -1,10 +1,10 @@
 {
 	"bsonType": "object",
 	"permission": {
-		"read": "doc._id == auth.uid || 'CREATE_UNI_ID_USERS' in auth.permission",
-		"create": "'CREATE_UNI_ID_USERS' in auth.permission",
-		"update": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission",
-		"delete": "'DELETE_UNI_ID_USERS' in auth.permission"
+		"read": "doc._id == auth.uid || 'CREATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
+		"create": "'CREATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
+		"update": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
+		"delete": "'DELETE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
 	},
 	"properties": {
 		"_id": {

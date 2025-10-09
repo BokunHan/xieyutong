@@ -12,7 +12,7 @@ function isAccessAllowed (user, setting) {
     role: settingRole = [],
     permission: settingPermission = []
   } = setting
-  if (userRole.includes('admin')) {
+  if (userRole.includes('admin') || userRole.includes('super_admin')) {
     return
   }
   if (

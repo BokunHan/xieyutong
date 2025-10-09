@@ -3,9 +3,9 @@
   "required": ["image", "title", "status"],
   "permission": {
     "read": true,
-    "create": "role in ['admin']",
-    "update": "role in ['admin']",
-    "delete": "role in ['admin']"
+    "create": "'admin' in auth.role || 'super_admin' in auth.role",
+    "update": "'admin' in auth.role || 'super_admin' in auth.role",
+    "delete": "'admin' in auth.role || 'super_admin' in auth.role"
   },
   "properties": {
     "_id": {

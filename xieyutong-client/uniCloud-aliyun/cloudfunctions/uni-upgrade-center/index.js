@@ -7,7 +7,7 @@ const checkVersion = require('./checkVersion')
 async function checkPermission(uniIDIns, uniIdToken, permission) {
 	const checkTokenRes = await uniIDIns.checkToken(uniIdToken)
 	if (checkTokenRes.errCode === 0) {
-		if (checkTokenRes.permission.indexOf(permission) > -1 || checkTokenRes.role.indexOf('admin') > -1) {
+		if (checkTokenRes.permission.indexOf(permission) > -1 || checkTokenRes.role.indexOf('admin') > -1 || checkTokenRes.role.indexOf('super_admin') > -1) {
 			return true
 		} else {
 			return Object.assign({ errMsg: '权限不足' }, fail)

@@ -5,8 +5,8 @@
   "permission": {
     "read": true,
     "create": "auth.uid != null",
-    "update": "auth.uid == doc.user_id || role in ['admin']",
-    "delete": "auth.uid == doc.user_id || role in ['admin']",
+    "update": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
+    "delete": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
     "count": true
   },
   "properties": {

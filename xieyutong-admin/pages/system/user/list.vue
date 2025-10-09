@@ -209,12 +209,17 @@
 								<thead class="bg-gray-50 border-b border-gray-200">
 									<tr>
 										<th class="w-12 p-4 text-left">
-											<input 
+											<!-- <input 
 												type="checkbox" 
 												class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
 												:checked="selectedIndexs.length === data.length && data.length > 0"
 												@change="toggleSelectAll"
-											/>
+											/> -->
+											<checkbox
+												style="transform: scale(0.8);"
+												:checked="selectedIndexs.length === data.length && data.length > 0"
+												@click="toggleSelectAll"
+											 />
 										</th>
 										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-36">
 											用户名
@@ -284,12 +289,17 @@
 									>
 										<!-- 选择框 -->
 										<td class="p-4">
-											<input 
+											<!-- <input 
 												type="checkbox" 
 												class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
 												:checked="selectedIndexs.includes(index)"
 												@change="toggleSelectItem(index)"
-											/>
+											/> -->
+											<checkbox
+												style="transform: scale(0.8);"
+												:checked="selectedIndexs.includes(index)"
+												@click="toggleSelectItem(index)"
+											 />
 										</td>
 										
 										<!-- 用户名 -->
@@ -595,6 +605,10 @@
 			}
 		},
 		methods: {
+			getBaseWhere() {
+				// 返回一个基础的查询条件，目前为空
+				return '';
+			},
 			updateCurrentTime() {
 				const now = new Date()
 				const year = now.getFullYear()
@@ -732,12 +746,25 @@
 			},
 			
 			// 全选/取消全选
-			toggleSelectAll(e) {
-				if (e.target.checked) {
-					this.selectedIndexs = Array.from({length: this.$refs.udb.dataList.length}, (_, i) => i)
-				} else {
-					this.selectedIndexs = []
-				}
+			// toggleSelectAll(e) {
+			// 	if (e.target.checked) {
+			// 		this.selectedIndexs = Array.from({length: this.$refs.udb.dataList.length}, (_, i) => i)
+			// 	} else {
+			// 		this.selectedIndexs = []
+			// 	}
+			// },
+			
+			toggleSelectAll() {
+			    // 判断当前是否已全选
+			    const isAllSelected = this.selectedIndexs.length === this.$refs.udb.dataList.length && this.$refs.udb.dataList.length > 0;
+			    
+			    if (isAllSelected) {
+			        // 如果已全选，则清空
+			        this.selectedIndexs = [];
+			    } else {
+			        // 如果未全选，则全部选中
+			        this.selectedIndexs = Array.from({length: this.$refs.udb.dataList.length}, (_, i) => i);
+			    }
 			},
 			
 			// 切换单个选择
@@ -859,41 +886,32 @@
 			delTable() {
 				if (!this.selectedIndexs.length) return
 				
-				uni.showModal({
-					title: '确认删除',
-					content: `确定要删除选中的 ${this.selectedIndexs.length} 个用户吗？此操作不可恢复。`,
+				this.$refs.udb.remove(this.selectedItems(), {
 					success: (res) => {
-						if (res.confirm) {
-							this.$refs.udb.remove(this.selectedItems(), {
-								success: (res) => {
-									this.selectedIndexs = []
-									uni.showToast({
-										title: '删除成功',
-										icon: 'success'
-									})
-								}
-							})
-						}
+						this.selectedIndexs = []
+						uni.showToast({
+							title: '删除成功',
+							icon: 'success'
+						})
 					}
 				})
 			},
 			
 			confirmDelete(id) {
-				uni.showModal({
-					title: '确认删除',
-					content: '确定要删除这个用户吗？此操作不可恢复。',
+				this.$refs.udb.remove(id, {
 					success: (res) => {
-						if (res.confirm) {
-							this.$refs.udb.remove(id, {
-								success: (res) => {
-									this.selectedIndexs = []
-									uni.showToast({
-										title: '删除成功',
-										icon: 'success'
-									})
-								}
-							})
-						}
+						this.selectedIndexs = []
+						uni.showToast({
+							title: '删除成功',
+							icon: 'success'
+						})
+					},
+					fail: (err) => {
+						console.error('删除用户失败:', err);
+						uni.showModal({
+							content: err.message || '删除失败',
+							showCancel: false
+						})
 					}
 				})
 			},

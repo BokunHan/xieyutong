@@ -3,10 +3,10 @@
   "description": "会员信息表，通过user_id关联uni-id-users实现会员机制",
   "required": ["user_id", "level", "status"],
   "permission": {
-    "read": "auth.uid == doc.user_id || role in ['admin', 'super_admin']",
-    "create": "auth.uid != null || role in ['admin', 'super_admin']",
-    "update": "auth.uid == doc.user_id || role in ['admin', 'super_admin']",
-    "delete": "role in ['admin', 'super_admin']",
+    "read": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
+    "create": "auth.uid != null || 'admin' in auth.role || 'super_admin' in auth.role",
+    "update": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
+    "delete": " 'admin' in auth.role || 'super_admin' in auth.role",
     "count": true
   },
   "properties": {

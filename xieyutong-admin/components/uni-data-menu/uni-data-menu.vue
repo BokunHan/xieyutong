@@ -104,6 +104,7 @@
 					permission,
 					role
 				} = uniCloud.getCurrentUserInfo()
+
 				// 标记叶子节点
 				menuList.map(item => {
 					if (!menuList.some(subMenuItem => subMenuItem.parent_id === item.menu_id)) {
@@ -112,7 +113,7 @@
 				})
 
 				// 删除无权限访问的菜单
-				if (!role.includes('admin')) {
+				if (!role.includes('admin') && !role.includes('super_admin')) {
 					menuList = menuList.filter(item => {
 						if (item.isLeafNode) {
 							if (item.permission && item.permission.length) {

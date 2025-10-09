@@ -4,9 +4,9 @@
   "required": ["title", "amount", "min_amount", "issue_type", "status"],
   "permission": {
     "read": true,
-    "create": "role in ['admin', 'super_admin']",
-    "update": "role in ['admin', 'super_admin']",
-    "delete": "role in ['super_admin']",
+    "create": "'admin' in auth.role || 'super_admin' in auth.role",
+    "update": "'admin' in auth.role || 'super_admin' in auth.role",
+    "delete": "'super_admin' in auth.role",
     "count": true
   },
   "properties": {

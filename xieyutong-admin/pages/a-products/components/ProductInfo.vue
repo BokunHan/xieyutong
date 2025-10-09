@@ -21,7 +21,7 @@
             <td class="px-8 py-6">
               <uni-easyinput 
                 v-model="localData.ctrip_id"
-                @input="updateData"
+                @input="handleUserInput"
                 :styles="inputStyles"
                 placeholder="请输入携程商品ID"
                 :clearable="true"
@@ -38,7 +38,7 @@
             <td class="px-8 py-6">
               <uni-easyinput 
                 v-model="localData.title"
-                @input="updateData"
+                @change="handleUserInput"
                 :styles="inputStyles"
                 placeholder="请输入商品标题"
                 :clearable="true"
@@ -55,7 +55,7 @@
             <td class="px-8 py-6">
               <uni-easyinput 
                 v-model="localData.subtitle"
-                @input="updateData"
+                @change="handleUserInput"
                 :styles="textareaStyles"
                 type="textarea"
                 :autoHeight="true"
@@ -277,7 +277,7 @@
               <view class="flex items-center space-x-3">
                 <uni-easyinput 
                   v-model="localData.duration_days"
-                  @input="updateData"
+                  @change="handleUserInput"
                   type="number"
                   :styles="smallInputStyles"
                   placeholder="1"
@@ -304,9 +304,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">成人价格（元）</label>
                   <uni-easyinput 
                     v-model="localData.price"
-                    @input="updateData"
-                    @change="updateData"
-                    @blur="updateData"
+                    @change="handleUserInput"
                     type="number"
                     :styles="inputStyles"
                     placeholder="0.00"
@@ -317,7 +315,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">儿童价格（元）</label>
                   <uni-easyinput 
                     v-model="localData.child_price"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="number"
                     :styles="inputStyles"
                     placeholder="0.00"
@@ -338,7 +336,7 @@
               <view class="flex items-center space-x-4">
                 <uni-easyinput 
                   v-model="localData.rating"
-                  @input="updateData"
+                  @change="handleUserInput"
                   type="number"
                   :styles="smallInputStyles"
                   :clearable="true"
@@ -362,7 +360,7 @@
             <td class="px-8 py-6">
               <select 
                 v-model.number="localData.status"
-                @change="updateData"
+                @change="handleUserInput"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg bg-white"
               >
                 <option value="0">下架</option>
@@ -383,7 +381,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">浏览次数</label>
                   <uni-easyinput 
                     v-model="localData.view_count"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="number"
                     :styles="inputStyles"
                     :clearable="true"
@@ -393,7 +391,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">销售数量</label>
                   <uni-easyinput 
                     v-model="localData.sales_count"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="number"
                     :styles="inputStyles"
                     :clearable="true"
@@ -403,7 +401,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">评价数量</label>
                   <uni-easyinput 
                     v-model="localData.review_count"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="number"
                     :styles="inputStyles"
                     :clearable="true"
@@ -422,7 +420,7 @@
             <td class="px-8 py-6">
               <uni-easyinput 
                 v-model="localData.sort_order"
-                @input="updateData"
+                @change="handleUserInput"
                 type="number"
                 :styles="inputStyles"
                 placeholder="数值越大排序越靠前"
@@ -446,7 +444,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.overview.guide"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -462,7 +460,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.overview.transport"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -478,7 +476,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.overview.activities"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -494,7 +492,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.overview.accommodation"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -510,7 +508,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.overview.meals"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -537,7 +535,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.cost_info.transport"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -553,7 +551,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.cost_info.accommodation"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -569,7 +567,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.cost_info.meals"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -585,7 +583,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.cost_info.tickets"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -601,7 +599,7 @@
                   </label>
                   <uni-easyinput 
                     v-model="localData.cost_info.service"
-                    @input="updateData"
+                    @change="handleUserInput"
                     type="textarea"
                     :styles="textareaStyles"
                     :autoHeight="true"
@@ -627,7 +625,7 @@
                     <i class="fas fa-medal text-orange-500 mr-3 text-lg"></i>
                     <uni-easyinput 
                       v-model="localData.features[index]"
-                      @input="updateData"
+                      @change="handleUserInput"
                       :styles="flexInputStyles"
                       :placeholder="`特色亮点 ${index + 1}`"
                       :clearable="true"
@@ -655,6 +653,8 @@
 </template>
 
 <script>
+import {toRaw} from 'vue';
+	
 export default {
   name: 'ProductInfo',
   props: {
@@ -665,6 +665,7 @@ export default {
   },
   data() {
     return {
+	  isDirty: false,  // 当用户开始编辑数据时，isDirty变为true，防止productData因某种原因变化或刷新而覆盖了localData，造成用户输入被覆盖
       localData: {
         ctrip_id: '',
         title: '',
@@ -740,8 +741,8 @@ export default {
   },
   created() {
     console.log('🎬 [ProductInfo] 组件创建完成');
-    console.log('🎬 [ProductInfo] 初始productData:', this.productData);
-    console.log('🎬 [ProductInfo] 初始localData:', this.localData);
+    console.log('🎬 [ProductInfo] 初始productData:', toRaw(this.productData));
+    console.log('🎬 [ProductInfo] 初始localData:', toRaw(this.localData));
     console.log('🎬 [ProductInfo] 商品概览数据结构:', {
       overview类型: typeof this.localData.overview,
       overview内容: this.localData.overview,
@@ -787,12 +788,21 @@ export default {
     productData: {
       handler(newVal, oldVal) {
         // 只在初始化时更新 localData，避免覆盖用户输入
-        if (!oldVal || Object.keys(oldVal).length === 0) {
-          console.log('🔄 [ProductInfo] 初始化 productData:', newVal);
+        // if (!oldVal || Object.keys(oldVal).length === 0) {
+		if(!this.isDirty) {
+          console.log('🔄 [ProductInfo] 初始化 productData:', toRaw(newVal));
           
           if (newVal) {
             const updatedData = { ...this.localData, ...newVal };
             
+			if(!updatedData.overview) {
+				updatedData.overview = {};
+			}
+			
+			if(!updatedData.cost_info) {
+				updatedData.cost_info = {};
+			}
+			
             // 确保 overview 始终是对象
             if (newVal.overview && typeof newVal.overview === 'object') {
               updatedData.overview = { 
@@ -821,11 +831,15 @@ export default {
     }
   },
   methods: {
+	handleUserInput() {
+	    this.isDirty = true;
+	    this.updateData();
+	  },
     updateData() {
       console.log('📤 [ProductInfo] 发送数据更新事件开始');
       console.log('📤 [ProductInfo] 触发时间:', new Date().toLocaleString());
-      console.log('📤 [ProductInfo] 当前localData:', this.localData);
-      console.log('📤 [ProductInfo] localData完整结构:', JSON.stringify(this.localData, null, 2));
+      console.log('📤 [ProductInfo] 当前localData:', toRaw(this.localData));
+      console.log('📤 [ProductInfo] localData完整结构:', toRaw(this.localData));
       console.log('📤 [ProductInfo] 关键字段检查:', {
         ctrip_id: this.localData.ctrip_id,
         title: this.localData.title,
@@ -838,7 +852,7 @@ export default {
       console.log('📤 [ProductInfo] 详情图片数量:', (this.localData.detail_images || []).length);
       
       this.$emit('update', this.localData);
-      console.log('✅ [ProductInfo] 数据更新事件已发送，数据:', this.localData);
+      console.log('✅ [ProductInfo] 数据更新事件已发送，数据:', toRaw(this.localData));
     },
     // 点击事件测试
     onProductUploadClick() {
@@ -850,6 +864,7 @@ export default {
     },
     
     addFeature() {
+	  this.isDirty = true;
       console.log('⭐ [ProductInfo] 添加商品特色');
       if (!Array.isArray(this.localData.features)) {
         this.localData.features = [];
@@ -859,6 +874,7 @@ export default {
       this.updateData();
     },
     removeFeature(index) {
+	  this.isDirty = true;
       console.log('⭐ [ProductInfo] 删除商品特色，索引:', index);
       this.localData.features.splice(index, 1);
       console.log('⭐ [ProductInfo] 商品特色已删除，当前数量:', this.localData.features.length);
@@ -894,6 +910,7 @@ export default {
     
     // 统一的商品图片处理方法
     handleProductImagesUpload(files, eventType) {
+	  this.isDirty = true;
       console.log('📷 [ProductInfo] 商品图片上传开始');
       console.log('📷 [ProductInfo] 触发事件类型:', eventType);
       console.log('📷 [ProductInfo] 接收到的files参数:', files);
@@ -986,6 +1003,7 @@ export default {
     },
     
     addProductImageUrl() {
+		this.isDirty = true;
       console.log('🔗 [ProductInfo] 手动添加商品图片URL开始');
       console.log('🔗 [ProductInfo] 输入的URL:', this.newProductImageUrl);
       console.log('🔗 [ProductInfo] URL长度:', this.newProductImageUrl ? this.newProductImageUrl.length : 0);
@@ -1030,6 +1048,7 @@ export default {
     },
     
     removeProductImage(index) {
+		this.isDirty = true;
       console.log('🗑️ [ProductInfo] 删除商品图片开始');
       console.log('🗑️ [ProductInfo] 要删除的索引:', index);
       console.log('🗑️ [ProductInfo] 当前商品图片数组:', this.localData.product_images);
@@ -1181,6 +1200,7 @@ export default {
     },
     
     addDetailImageUrl() {
+		this.isDirty = true;
       console.log('🔗 [ProductInfo] 手动添加详情图片URL开始');
       console.log('🔗 [ProductInfo] 输入的URL:', this.newDetailImageUrl);
       console.log('🔗 [ProductInfo] URL长度:', this.newDetailImageUrl ? this.newDetailImageUrl.length : 0);
@@ -1225,6 +1245,7 @@ export default {
     },
     
     removeDetailImage(index) {
+		this.isDirty = true;
       console.log('🗑️ [ProductInfo] 删除详情图片开始');
       console.log('🗑️ [ProductInfo] 要删除的索引:', index);
       console.log('🗑️ [ProductInfo] 当前详情图片数组:', this.localData.detail_images);
@@ -1313,6 +1334,7 @@ export default {
       const sourceIndex = this.draggingIndex;
       
       if (sourceIndex !== targetIndex && sourceIndex >= 0) {
+		  this.isDirty = true;
         console.log('📍 [ProductInfo] 开始重排图片数组');
         
         // 重新排列数组

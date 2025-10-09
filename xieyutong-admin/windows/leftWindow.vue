@@ -110,7 +110,7 @@
 	.sidebar {
 		position: fixed;
 		// top: var(--top-window-height); // useless
-		width: 240px;
+		width: 200px;
 		height: calc(100vh - (var(--top-window-height)));
 		box-sizing: border-box;
 		border-right: 1px solid darken($left-window-bg-color, 8%);

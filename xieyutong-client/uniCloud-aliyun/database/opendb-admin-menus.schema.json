@@ -3,9 +3,9 @@
 	"required": ["name", "menu_id"],
 	"permission": {
 		"read": true,
-		"create": "'CREATE_OPENDB_ADMIN_MENUS' in auth.permission",
-		"update": "'UPDATE_OPENDB_ADMIN_MENUS' in auth.permission",
-		"delete": "'DELETE_OPENDB_ADMIN_MENUS' in auth.permission"
+		"create": "'CREATE_OPENDB_ADMIN_MENUS' in auth.permission || 'super_admin' in auth.role",
+		"update": "'UPDATE_OPENDB_ADMIN_MENUS' in auth.permission || 'super_admin' in auth.role",
+		"delete": "'DELETE_OPENDB_ADMIN_MENUS' in auth.permission || 'super_admin' in auth.role"
 	},
 	"properties": {
 		"_id": {

@@ -6,7 +6,7 @@
     "read": true,
     "create": true,
     "update": true, 
-    "delete": "role in ['admin']",
+    "delete": "'admin' in auth.role || 'super_admin' in auth.role",
     "count": true
   },
   "properties": {

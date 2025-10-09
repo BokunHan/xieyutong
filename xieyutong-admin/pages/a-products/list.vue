@@ -124,7 +124,7 @@
           </view>
           
           <!-- Element Plus 表格 -->
-          <div class="p-4">
+          <div class="p-2">
             <el-table
               :data="data"
               style="width: 100%"
@@ -136,7 +136,7 @@
               <!-- 选择列 -->
               <el-table-column
                 type="selection"
-                width="55"
+                width="40"
                 :reserve-selection="true"
               />
               
@@ -165,7 +165,7 @@
               <el-table-column
                 prop="ctrip_id"
                 label="携程商品ID"
-                width="140"
+                width="120"
                 show-overflow-tooltip
               >
                 <template #default="scope">
@@ -185,14 +185,14 @@
               <!-- 商品信息 -->
               <el-table-column
                 label="商品信息"
-                min-width="300"
+                min-width="200"
               >
                 <template #default="scope">
                   <div>
-                    <div class="font-medium text-gray-900 mb-1">
+                    <div class="font-medium text-gray-900 line-clamp-2 mb-1">
                       {{scope.row.title || '未设置标题'}}
                     </div>
-                    <div class="text-xs text-gray-500" v-if="scope.row.subtitle">
+                    <div class="text-xs text-gray-500 line-clamp-3" v-if="scope.row.subtitle">
                       {{scope.row.subtitle}}
                     </div>
                   </div>
@@ -255,7 +255,7 @@
               <el-table-column
                 prop="created_at"
                 label="创建时间"
-                width="160"
+                width="140"
                 sortable
               >
                 <template #default="scope">
@@ -286,17 +286,17 @@
               <!-- 操作 -->
               <el-table-column
                 label="操作"
-                width="180"
+                width="120"
                 fixed="right"
                 align="center"
               >
                 <template #default="scope">
-                  <div class="flex items-center justify-center gap-2">
+                  <div class="flex flex-col items-center justify-center gap-2 mb-1">
                     <el-button
                       type="primary"
                       size="small"
                       @click="navigateTo('./edit?id=' + scope.row._id, false)"
-                      class="min-w-[60px]"
+                      class="w-full"
                     >
                       <i class="fas fa-edit mr-1"></i>
                       编辑
@@ -305,7 +305,7 @@
                       type="danger"
                       size="small"
                       @click="confirmDelete(scope.row._id)"
-                      class="min-w-[60px]"
+                      class="w-full !ml-0"
                     >
                       <i class="fas fa-trash mr-1"></i>
                       删除
@@ -314,29 +314,28 @@
                   
                   <!-- 更多操作下拉菜单 -->
                   <el-dropdown 
-                    class="ml-2" 
                     trigger="click"
                     @command="handleCommand"
                   >
-                    <el-button type="info" size="small" text>
+                    <el-button type="info" size="small" text class="w-full">
                       <i class="fas fa-ellipsis-v"></i>
                     </el-button>
                     <template #dropdown>
                       <el-dropdown-menu>
-                        <el-dropdown-item 
+                        <!-- <el-dropdown-item 
                           :command="{action: 'view', id: scope.row._id}"
                           icon="el-icon-view"
                         >
                           <i class="fas fa-eye mr-2"></i>
                           查看详情
-                        </el-dropdown-item>
-                        <el-dropdown-item 
+                        </el-dropdown-item> -->
+                        <!-- <el-dropdown-item 
                           :command="{action: 'copy', id: scope.row._id}"
                           icon="el-icon-copy-document"
                         >
                           <i class="fas fa-copy mr-2"></i>
                           复制商品
-                        </el-dropdown-item>
+                        </el-dropdown-item> -->
                         <el-dropdown-item 
                           :command="{action: 'toggle-status', id: scope.row._id, status: scope.row.status}"
                           divided
@@ -438,15 +437,28 @@ const pageSize = 15
     },
     onLoad() {
       this._filter = {}
-    this.updateCurrentTime()
-    // 定时更新时间
-    setInterval(() => {
       this.updateCurrentTime()
-    }, 60000)
+      // 定时更新时间
+      setInterval(() => {
+        this.updateCurrentTime()
+      }, 60000)
     },
     onReady() {
-      this.$refs.udb.loadData()
+      // this.$refs.udb.loadData()
     },
+	onShow() {
+	    console.log('🔄 [列表页] onShow 触发，页面已显示，准备检查并刷新数据...');
+	    // onShow 会在页面每次显示时都触发（包括首次进入和从子页面返回）
+	    // 使用 $nextTick 确保 udb 组件已经准备好
+	    this.$nextTick(() => {
+	        if (this.$refs.udb) {
+	             console.log('✅ [列表页] udb 组件已就绪，调用 loadData() 刷新！');
+	             this.$refs.udb.loadData()
+	        } else {
+	             console.error('❌ [列表页] onShow 中未能找到 udb 组件的引用！');
+	        }
+	    })
+	  },
     methods: {
     updateCurrentTime() {
       const now = new Date()
@@ -562,34 +574,34 @@ const pageSize = 15
     },
     
     // 查看商品详情
-    viewProduct(id) {
-      uni.navigateTo({
-        url: './detail?id=' + id
-      })
-    },
+    // viewProduct(id) {
+    //   uni.navigateTo({
+    //     url: './detail?id=' + id
+    //   })
+    // },
     
     // 复制商品
-    copyProduct(id) {
-      this.$confirm('确定要复制这个商品吗？', '确认复制', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info'
-      }).then(async () => {
-        try {
-          // 这里可以调用复制商品的云函数
-          this.$message.success('商品复制成功')
-          this.loadData()
-        } catch (error) {
-          this.$message.error('复制失败：' + error.message)
-        }
-      }).catch(() => {
-        // 用户取消
-      })
-    },
+    // copyProduct(id) {
+    //   this.$confirm('确定要复制这个商品吗？', '确认复制', {
+    //     confirmButtonText: '确定',
+    //     cancelButtonText: '取消',
+    //     type: 'info'
+    //   }).then(async () => {
+    //     try {
+    //       // 这里可以调用复制商品的云函数
+    //       this.$message.success('商品复制成功')
+    //       this.loadData()
+    //     } catch (error) {
+    //       this.$message.error('复制失败：' + error.message)
+    //     }
+    //   }).catch(() => {
+    //     // 用户取消
+    //   })
+    // },
     
     // 切换商品状态
     toggleProductStatus(id, currentStatus) {
-      const newStatus = currentStatus === 1 ? 2 : 1
+      const newStatus = currentStatus === 1 ? 0 : 1
       const actionText = newStatus === 1 ? '上架' : '下架'
       
       this.$confirm(`确定要${actionText}这个商品吗？`, `确认${actionText}`, {

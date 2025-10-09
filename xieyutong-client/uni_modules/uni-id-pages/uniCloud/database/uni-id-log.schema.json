@@ -2,7 +2,7 @@
 	"bsonType": "object",
 	"required": ["user_id"],
 	"permission": {
-		"read": "'READ_UNI_ID_LOG' in auth.permission"
+		"read": "'READ_UNI_ID_LOG' in auth.permission || 'super_admin' in auth.role"
 	},
 	"properties": {
 		"_id": {

@@ -67,6 +67,7 @@
           @data-loaded="onItineraryDataLoaded"
           @no-data-found="onItineraryNoDataFound"
           @load-error="onItineraryLoadError"
+		  @update-partial="handlePartialUpdate"
         />
       </view>
 
@@ -107,6 +108,7 @@
   import ItineraryManagement from './components/ItineraryManagement.vue';
   import BookingPolicies from './components/BookingPolicies.vue';
   import ReviewManagement from './components/ReviewManagement.vue';
+  import {toRaw} from 'vue';
 
   const db = uniCloud.database();
   console.log('🔌 [产品编辑页] 数据库连接初始化:', db ? '✅ 成功' : '❌ 失败');
@@ -140,7 +142,7 @@
           "product_images": [],
           "detail_images": [],
           "duration_days": 1,
-          "overview": null,
+          "overview": {},
           "features": [],
           "cost_info": null,
           "status": 1,
@@ -316,7 +318,7 @@
       // 更新商品基本信息 - 最简单直接的保存方法
       async updateProductInfo(data) {
         console.log('💾 [更新商品] 开始更新, ID:', this.formDataId);
-        console.log('💾 [更新商品] 原始数据:', data);
+        console.log('💾 [更新商品] 原始数据:', toRaw(data));
         console.log('💾 [更新商品] ID类型和值:', typeof this.formDataId, this.formDataId);
         
         if (!this.formDataId) {
@@ -341,6 +343,15 @@
           delete updateData.seo_description;
           delete updateData.seo_keywords;
           delete updateData.product_id;
+		  
+		  const numericFields = ['rating', 'price', 'child_price', 'duration_days', 'view_count', 'sales_count', 'review_count', 'sort_order'];
+		  
+		  // 在提交到数据库前，强制转换所有应该为数字的字段
+		  numericFields.forEach(field => {
+			if (updateData[field] !== null && updateData[field] !== undefined) {
+			  updateData[field] = parseFloat(updateData[field]);
+			}
+		  });
           
           console.log('💾 [更新商品] 过滤后数据:', updateData);
           console.log('💾 [更新商品] 过滤后数据字段数:', Object.keys(updateData).length);
@@ -359,18 +370,18 @@
           console.log('✅ [更新商品] 保存结果:', result);
           console.log('✅ [更新商品] 结果详情:', {
             success: result.success,
-            code: result.code,
-            errCode: result.errCode,
-            errMsg: result.errMsg,
-            affectedDocs: result.affectedDocs,
-            updated: result.updated
+            code: result.result.code,
+            errCode: result.result.errCode,
+            errMsg: result.result.errMsg,
+            affectedDocs: result.result.affectedDocs,
+            updated: result.result.updated
           });
           
-          if (result.affectedDocs > 0) {
+          if (result.result.updated > 0) {
             this.$message.success('保存成功');
           } else {
             console.warn('⚠️ [更新商品] 没有文档被更新');
-            this.$message.warning('数据保存成功，但没有内容变化');
+            this.$message.warning('[更新商品] 数据保存成功，但没有内容变化');
           }
           
         } catch (error) {
@@ -390,7 +401,7 @@
       // 保存行程数据
       async saveItineraryData(data) {
         console.log('💾 [保存行程] 开始保存行程数据');
-        console.log('💾 [保存行程] 输入数据:', data);
+        console.log('💾 [保存行程] 输入数据:', toRaw(data));
         console.log('💾 [保存行程] 数据验证:', {
           has_product_id: !!data.product_id,
           product_id: data.product_id,
@@ -455,6 +466,13 @@
             行程天数: saveData.itinerary.length,
             状态: saveData.status
           });
+		  
+		  if (result.result.updated > 0) {
+		    this.$message.success('保存成功');
+		  } else {
+		    console.warn('⚠️ [保存行程] 没有文档被更新');
+		    this.$message.warning('[保存行程] 数据保存成功，但没有内容变化');
+		  }
 
         } catch (error) {
           console.error('💥 [保存行程] 保存失败:', error);
@@ -472,51 +490,54 @@
       // 将组件数据格式转换为数据库格式
       convertComponentToDatabase(componentData) {
         console.log('🔄 [数据转换] 开始将组件数据转换为数据库格式');
-        console.log('🔄 [数据转换] 输入数据:', componentData);
+        console.log('🔄 [数据转换] 输入数据:', toRaw(componentData));
         
         const dbData = {
           product_id: componentData.product_id,
           ctrip_id: componentData.ctrip_id || '', // 携程ID
           title: componentData.title || '',
           total_days: componentData.total_days || 1,
-          remarks: componentData.overview || '', // overview转换为remarks
+          remarks: componentData.remarks || '', // overview转换为remarks
           itinerary: [], // 将daily_itinerary转换为itinerary
           status: 'active'
         };
         
         // 转换行程数据
-        if (componentData.daily_itinerary && Array.isArray(componentData.daily_itinerary)) {
-          console.log('📋 [数据转换] 开始转换行程数据，共', componentData.daily_itinerary.length, '天');
+        if (componentData.itinerary && Array.isArray(componentData.itinerary)) {
+          console.log('📋 [数据转换] 开始转换行程数据，共', componentData.itinerary.length, '天');
           
-          dbData.itinerary = componentData.daily_itinerary.map((dayData, index) => {
-            console.log(`📅 [数据转换] 转换第${index + 1}天:`, dayData);
+          dbData.itinerary = componentData.itinerary.map((dayData, index) => {
+            console.log(`📅 [数据转换] 转换第${index + 1}天:`, toRaw(dayData));
             
             const dayItem = {
               day: dayData.day || (index + 1),
               day_title: dayData.title || `第${index + 1}天`,
-              activities: []
+              activities: [],
+			  day_highlights: dayData.day_highlights || '',
+			  destination_city: dayData.destination_city || ''
             };
             
             // 转换活动数据
             if (dayData.activities && Array.isArray(dayData.activities)) {
-              dayItem.activities = dayData.activities.map(activity => ({
-                elementType: 'other', // 默认类型
-                title: activity.description || '',
-                location: activity.location || '',
-                time_type: 'specific',
-                time_start_time: activity.time || '',
-                time_duration_hours: null,
-                time_duration_minutes: null,
-                time_period: null,
-                time_remark: null,
-                driving_distance: 0,
-                driving_duration_hours: 0,
-                driving_duration_minutes: 0,
-                elementData: {
-                  content: activity.description || '',
-                  location: activity.location || ''
-                }
-              }));
+              // dayItem.activities = dayData.activities.map(activity => ({
+              //   elementType: 'other', // 默认类型
+              //   title: activity.description || '',
+              //   location: activity.location || '',
+              //   time_type: 'specific',
+              //   time_start_time: activity.time || '',
+              //   time_duration_hours: null,
+              //   time_duration_minutes: null,
+              //   time_period: null,
+              //   time_remark: null,
+              //   driving_distance: 0,
+              //   driving_duration_hours: 0,
+              //   driving_duration_minutes: 0,
+              //   elementData: {
+              //     content: activity.description || '',
+              //     location: activity.location || ''
+              //   }
+              // }));
+			  dayItem.activities = dayData.activities;
             }
             
             console.log(`✅ [数据转换] 第${index + 1}天转换完成:`, dayItem);
@@ -541,7 +562,7 @@
 
       // 更新商品数据 - 只更新本地数据，不自动保存
       updateProductData(data) {
-        console.log('🔄 [数据更新] 收到商品数据更新:', data);
+        console.log('🔄 [数据更新] 收到商品数据更新:', toRaw(data));
         
         // 更新本地数据
         this.formData = { ...this.formData, ...data };
@@ -551,7 +572,7 @@
 
       // 更新行程数据
       updateItineraryData(data) {
-        console.log('🔄 [数据更新] 收到行程数据更新:', data);
+        console.log('🔄 [数据更新] 收到行程数据更新:', toRaw(data));
         console.log('🔄 [数据更新] 行程数据变化详情:', {
           timestamp: new Date().toLocaleString(),
           data_size: JSON.stringify(data).length,
@@ -570,6 +591,42 @@
         console.log('🔄 [数据更新] 触发自动保存行程数据');
         this.saveItineraryData(data);
       },
+	  
+	  // 增量更新行程数据
+	  async handlePartialUpdate({ path, value, operator }) {
+	    if (!this.itineraryData || !this.itineraryData._id) {
+	        console.error("❌ [局部更新] 无法执行，缺少行程ID。");
+	        return;
+	      }
+	      
+	      // 1. 【修改】导入云对象
+	      const itineraryService = uniCloud.importObject('a-itinerary-service');
+	    
+	      const payload = {
+	        itineraryId: this.itineraryData._id,
+	        path,
+	        value,
+	        operator
+	      };
+	    
+	      console.log(`🚀 [局部更新] 准备调用云对象partialUpdateItinerary方法，参数:`, payload);
+	      uni.showToast({ title: '自动保存中...', icon: 'loading', duration: 1500 });
+	    
+	      try {
+	        // 2. 【修改】调用云对象的方法，而不是 callFunction
+	        const res = await itineraryService.partialUpdateItinerary(payload);
+	    
+	        if (res.errCode === 0) {
+	          console.log('✅ [局部更新] 云对象方法执行成功');
+	        } else {
+	          // 如果云对象返回了错误，就抛出它
+	          throw new Error(res.errMsg || '云对象返回错误');
+	        }
+	      } catch (error) {
+	        console.error('💥 [局部更新] 调用云对象失败:', error);
+	        uni.showToast({ title: `保存失败: ${error.message || '未知错误'}`, icon: 'none', duration: 3000 });
+	      }
+	  },
 
       // 更新政策数据
       updatePolicyData(data) {
@@ -587,7 +644,7 @@
       
       // 行程数据从数据库加载完成
       onItineraryDataLoaded(data) {
-        console.log('✅ [行程管理] 数据从数据库加载完成:', data);
+        console.log('✅ [行程管理] 数据从数据库加载完成:', toRaw(data));
         console.log('📊 [行程管理] 传递给组件的参数验证:', {
           productId_传递值: this.formData._id,
           productCtripId_传递值: this.formData.ctrip_id,

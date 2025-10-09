@@ -2,10 +2,10 @@
 	"bsonType": "object",
 	"required": ["user_id", "name", "type", "id_card"],
 	"permission": {
-		"read": "doc.user_id == auth.uid || 'READ_A_TRAVELERS' in auth.permission",
+		"read": "doc.user_id == auth.uid || 'READ_A_TRAVELERS' in auth.permission || 'super_admin' in auth.role",
 		"create": "auth.uid != null",
-		"update": "doc.user_id == auth.uid || 'UPDATE_A_TRAVELERS' in auth.permission",
-		"delete": "doc.user_id == auth.uid || 'DELETE_A_TRAVELERS' in auth.permission"
+		"update": "doc.user_id == auth.uid || 'UPDATE_A_TRAVELERS' in auth.permission || 'super_admin' in auth.role",
+		"delete": "doc.user_id == auth.uid || 'DELETE_A_TRAVELERS' in auth.permission || 'super_admin' in auth.role"
 	},
 	"properties": {
 		"_id": {

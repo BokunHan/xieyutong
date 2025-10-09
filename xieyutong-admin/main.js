@@ -2,6 +2,7 @@ import App from './App'
 import store from './store'
 import plugin from './js_sdk/uni-admin/plugin'
 import messages from './i18n/index.js'
+import uniIdPageInit from '@/uni_modules/uni-id-pages/init.js';
 
 const lang = uni.getLocale()
 // #ifndef VUE3
@@ -32,6 +33,7 @@ import 'element-plus/dist/index.css'
 
 export function createApp() {
   const app = createSSRApp(App)
+  uniIdPageInit(app)
   const i18n = createI18n({
   	locale: lang,
   	messages

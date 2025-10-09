@@ -5,8 +5,8 @@
   "permission": {
     "read": true,
     "create": "auth.uid != null",
-    "update": "role in ['admin', 'super_admin'] || (auth.uid == doc.user_id && doc.status == 'pending')",
-    "delete": "role in ['admin', 'super_admin']",
+    "update": "'admin' in auth.role || 'super_admin' in auth.role || (auth.uid == doc.user_id && doc.status == 'pending')",
+    "delete": "'admin' in auth.role || 'super_admin' in auth.role",
     "count": true
   },
   "properties": {
