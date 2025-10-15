@@ -1,191 +1,191 @@
 {
-  "bsonType": "object",
-  "description": "预订政策表，存储旅游产品的预订须知、限制条件、安全提示等信息",
-  "required": ["product_id"],
-  "permission": {
-    "read": true,
-    "create": true,
-    "update": true, 
-    "delete": "'admin' in auth.role || 'super_admin' in auth.role",
-    "count": true
-  },
-  "properties": {
-    "_id": {
-      "description": "系统自动生成的唯一标识"
-    },
-    "product_id": {
-      "bsonType": "string",
-      "description": "关联的商品ID（携程商品ID）",
-      "title": "商品ID",
-      "required": true,
-      "maxLength": 50
-    },
-    "ctrip_id": {
-      "bsonType": "string",
-      "description": "携程政策ID，用于标识对应的携程预订政策",
-      "title": "携程ID",
-      "maxLength": 100
-    },
-    "travel_agency_info": {
-      "bsonType": "object",
-      "description": "旅行社信息",
-      "title": "旅行社信息",
-      "properties": {
-        "agent": {
-          "bsonType": "string",
-          "description": "主办旅行社",
-          "maxLength": 200
-        },
-        "delegate": {
-          "bsonType": "string", 
-          "description": "委托旅行社",
-          "maxLength": 200
-        }
-      }
-    },
-    "booking_restrictions": {
-      "bsonType": "object",
-      "description": "预订限制条件",
-      "title": "预订限制",
-      "properties": {
-        "age_limit": {
-          "bsonType": "string",
-          "description": "年龄限制说明",
-          "maxLength": 1000
-        },
-        "group_limit": {
-          "bsonType": "string",
-          "description": "团队限制说明", 
-          "maxLength": 1000
-        },
-        "other_limit": {
-          "bsonType": "string",
-          "description": "其他限制说明",
-          "maxLength": 2000
-        }
-      }
-    },
-    "accommodation_policy": {
-      "bsonType": "object",
-      "description": "住宿政策",
-      "title": "住宿政策",
-      "properties": {
-        "multi_person": {
-          "bsonType": "string",
-          "description": "多人入住政策",
-          "maxLength": 1000
-        }
-      }
-    },
-    "group_info": {
-      "bsonType": "object",
-      "description": "团队信息",
-      "title": "团队信息",
-      "properties": {
-        "group_description": {
-          "bsonType": "string",
-          "description": "成团说明",
-          "maxLength": 1000
-        },
-        "departure_notice": {
-          "bsonType": "string",
-          "description": "出团通知说明",
-          "maxLength": 1000
-        }
-      }
-    },
-    "booking_requirements": {
-      "bsonType": "array",
-      "description": "预订要求列表",
-      "title": "预订要求",
-      "items": {
-        "bsonType": "string",
-        "maxLength": 2000
-      }
-    },
-    "violation_terms": {
-      "bsonType": "object",
-      "description": "违约条款",
-      "title": "违约条款",
-      "properties": {
-        "agency_violation": {
-          "bsonType": "array",
-          "description": "旅行社违约条款",
-          "items": {
-            "bsonType": "string",
-            "maxLength": 500
-          }
-        },
-        "tourist_violation": {
-          "bsonType": "array",
-          "description": "游客违约条款",
-          "items": {
-            "bsonType": "string",
-            "maxLength": 1000
-          }
-        }
-      }
-    },
-    "travel_guide": {
-      "bsonType": "array",
-      "description": "旅游指南提示",
-      "title": "旅游指南",
-      "items": {
-        "bsonType": "string",
-        "maxLength": 1000
-      }
-    },
-    "safety_tips": {
-      "bsonType": "array",
-      "description": "安全提示",
-      "title": "安全提示",
-      "items": {
-        "bsonType": "string",
-        "maxLength": 1000
-      }
-    },
-    "payment_info": {
-      "bsonType": "object",
-      "description": "支付信息",
-      "title": "支付信息",
-      "properties": {
-        "supported_methods": {
-          "bsonType": "array",
-          "description": "支持的支付方式",
-          "items": {
-            "bsonType": "string",
-            "maxLength": 50
-          }
-        },
-        "payment_notes": {
-          "bsonType": "array",
-          "description": "支付说明",
-          "items": {
-            "bsonType": "string",
-            "maxLength": 1000
-          }
-        }
-      }
-    },
-    "status": {
-      "bsonType": "string",
-      "description": "政策状态",
-      "enum": ["active", "inactive", "draft"],
-      "default": "active"
-    },
-    "created_at": {
-      "bsonType": "timestamp",
-      "description": "创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updated_at": {
-      "bsonType": "timestamp", 
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    }
-  }
-} 
+	"bsonType": "object",
+	"description": "预订政策表，存储旅游产品的预订须知、限制条件、安全提示等信息",
+	"required": ["product_id"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": "'admin' in auth.role || 'super_admin' in auth.role",
+		"count": true
+	},
+	"properties": {
+		"_id": {
+			"description": "系统自动生成的唯一标识"
+		},
+		"product_id": {
+			"bsonType": "string",
+			"description": "关联的商品ID（携程商品ID）",
+			"title": "商品ID",
+			"required": true,
+			"maxLength": 50
+		},
+		"ctrip_id": {
+			"bsonType": "string",
+			"description": "携程政策ID，用于标识对应的携程预订政策",
+			"title": "携程ID",
+			"maxLength": 100
+		},
+		"travel_agency_info": {
+			"bsonType": "object",
+			"description": "旅行社信息",
+			"title": "旅行社信息",
+			"properties": {
+				"agent": {
+					"bsonType": "string",
+					"description": "主办旅行社",
+					"maxLength": 200
+				},
+				"delegate": {
+					"bsonType": "string",
+					"description": "委托旅行社",
+					"maxLength": 200
+				}
+			}
+		},
+		"booking_restrictions": {
+			"bsonType": "object",
+			"description": "预订限制条件",
+			"title": "预订限制",
+			"properties": {
+				"age_limit": {
+					"bsonType": "string",
+					"description": "年龄限制说明",
+					"maxLength": 1000
+				},
+				"group_limit": {
+					"bsonType": "string",
+					"description": "团队限制说明",
+					"maxLength": 1000
+				},
+				"other_limit": {
+					"bsonType": "string",
+					"description": "其他限制说明",
+					"maxLength": 2000
+				}
+			}
+		},
+		"accommodation_policy": {
+			"bsonType": "object",
+			"description": "住宿政策",
+			"title": "住宿政策",
+			"properties": {
+				"multi_person": {
+					"bsonType": "string",
+					"description": "多人入住政策",
+					"maxLength": 1000
+				}
+			}
+		},
+		"group_info": {
+			"bsonType": "object",
+			"description": "团队信息",
+			"title": "团队信息",
+			"properties": {
+				"group_description": {
+					"bsonType": "string",
+					"description": "成团说明",
+					"maxLength": 1000
+				},
+				"departure_notice": {
+					"bsonType": "string",
+					"description": "出团通知说明",
+					"maxLength": 1000
+				}
+			}
+		},
+		"booking_requirements": {
+			"bsonType": "array",
+			"description": "预订要求列表",
+			"title": "预订要求",
+			"items": {
+				"bsonType": "string",
+				"maxLength": 2000
+			}
+		},
+		"violation_terms": {
+			"bsonType": "object",
+			"description": "违约条款",
+			"title": "违约条款",
+			"properties": {
+				"agency_violation": {
+					"bsonType": "array",
+					"description": "旅行社违约条款",
+					"items": {
+						"bsonType": "string",
+						"maxLength": 500
+					}
+				},
+				"tourist_violation": {
+					"bsonType": "array",
+					"description": "游客违约条款",
+					"items": {
+						"bsonType": "string",
+						"maxLength": 1000
+					}
+				}
+			}
+		},
+		"travel_guide": {
+			"bsonType": "array",
+			"description": "旅游指南提示",
+			"title": "旅游指南",
+			"items": {
+				"bsonType": "string",
+				"maxLength": 1000
+			}
+		},
+		"safety_tips": {
+			"bsonType": "array",
+			"description": "安全提示",
+			"title": "安全提示",
+			"items": {
+				"bsonType": "string",
+				"maxLength": 1000
+			}
+		},
+		"payment_info": {
+			"bsonType": "object",
+			"description": "支付信息",
+			"title": "支付信息",
+			"properties": {
+				"supported_methods": {
+					"bsonType": "array",
+					"description": "支持的支付方式",
+					"items": {
+						"bsonType": "string",
+						"maxLength": 50
+					}
+				},
+				"payment_notes": {
+					"bsonType": "array",
+					"description": "支付说明",
+					"items": {
+						"bsonType": "string",
+						"maxLength": 2000
+					}
+				}
+			}
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "政策状态",
+			"enum": ["active", "inactive", "draft"],
+			"default": "active"
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

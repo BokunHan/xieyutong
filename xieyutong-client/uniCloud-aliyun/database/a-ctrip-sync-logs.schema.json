@@ -1,143 +1,151 @@
 {
-  "bsonType": "object",
-  "description": "携程数据同步记录表",
-  "required": ["ctrip_id", "sync_type", "sync_status"],
-  "properties": {
-    "_id": {
-      "description": "ID，系统自动生成"
-    },
-    "ctrip_id": {
-      "bsonType": "string",
-      "description": "携程商品ID",
-      "label": "携程商品ID",
-      "trim": "both"
-    },
-    "product_id": {
-      "bsonType": "string",
-      "description": "关联的本地商品ID",
-      "label": "商品ID",
-      "trim": "both",
-      "foreignKey": "a-products._id"
-    },
-    "sync_type": {
-      "bsonType": "string",
-      "description": "同步类型",
-      "label": "同步类型",
-      "enum": [
-        {
-          "text": "商品详情",
-          "value": "product_detail"
-        },
-        {
-          "text": "行程安排", 
-          "value": "itinerary"
-        },
-        {
-          "text": "预订须知",
-          "value": "booking_policies"
-        },
-        {
-          "text": "全部同步",
-          "value": "full_sync"
-        }
-      ]
-    },
-    "sync_status": {
-      "bsonType": "string",
-      "description": "同步状态",
-      "label": "同步状态",
-      "enum": [
-        {
-          "text": "同步中",
-          "value": "syncing"
-        },
-        {
-          "text": "成功",
-          "value": "success"
-        },
-        {
-          "text": "失败",
-          "value": "failed"
-        }
-      ],
-      "defaultValue": "syncing"
-    },
-    "sync_result": {
-      "bsonType": "object",
-      "description": "同步结果详情",
-      "label": "同步结果详情",
-      "properties": {
-        "success_count": {
-          "bsonType": "int",
-          "description": "成功同步数量",
-          "minimum": 0,
-          "defaultValue": 0
-        },
-        "failed_count": {
-          "bsonType": "int", 
-          "description": "失败同步数量",
-          "minimum": 0,
-          "defaultValue": 0
-        },
-        "error_message": {
-          "bsonType": "string",
-          "description": "错误信息"
-        },
-        "synced_data": {
-          "bsonType": "object",
-          "description": "已同步的数据概览"
-        }
-      }
-    },
-    "crawl_source": {
-      "bsonType": "string",
-      "description": "爬取数据源",
-      "label": "爬取数据源",
-      "defaultValue": "ctrip_api"
-    },
-    "start_time": {
-      "bsonType": "timestamp",
-      "description": "开始时间",
-      "label": "开始时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "end_time": {
-      "bsonType": "timestamp",
-      "description": "结束时间",
-      "label": "结束时间"
-    },
-    "duration": {
-      "bsonType": "int",
-      "description": "同步耗时(秒)",
-      "label": "同步耗时",
-      "minimum": 0
-    },
-    "operator_id": {
-      "bsonType": "string",
-      "description": "操作人ID",
-      "label": "操作人ID"
-    },
-    "created_at": {
-      "bsonType": "timestamp",
-      "description": "创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updated_at": {
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    }
-  },
-  "permission": {
-    "read": true,
-    "create": true,
-    "update": true,
-    "delete": "auth.uid != null"
-  }
-} 
+	"bsonType": "object",
+	"description": "携程数据同步记录表",
+	"required": ["ctrip_id", "sync_type", "sync_status"],
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"ctrip_id": {
+			"bsonType": "string",
+			"description": "携程商品ID",
+			"label": "携程商品ID",
+			"trim": "both"
+		},
+		"order_id": {
+			"bsonType": "string",
+			"description": "vBooking订单号",
+			"label": "订单号",
+			"trim": "both"
+		},
+		"product_id": {
+			"bsonType": "string",
+			"description": "关联的本地商品ID",
+			"label": "商品ID",
+			"trim": "both",
+			"foreignKey": "a-products._id"
+		},
+		"sync_type": {
+			"bsonType": "string",
+			"description": "同步类型",
+			"label": "同步类型",
+			"enum": [{
+					"text": "商品详情",
+					"value": "product_detail"
+				},
+				{
+					"text": "行程安排",
+					"value": "itinerary"
+				},
+				{
+					"text": "预订须知",
+					"value": "booking_policies"
+				},
+				{
+					"text": "订单快照",
+					"value": "snapshot"
+				},
+				{
+					"text": "全部同步",
+					"value": "full_sync"
+				}
+			]
+		},
+		"sync_status": {
+			"bsonType": "string",
+			"description": "同步状态",
+			"label": "同步状态",
+			"enum": [{
+					"text": "同步中",
+					"value": "syncing"
+				},
+				{
+					"text": "成功",
+					"value": "success"
+				},
+				{
+					"text": "失败",
+					"value": "failed"
+				}
+			],
+			"defaultValue": "syncing"
+		},
+		"sync_result": {
+			"bsonType": "object",
+			"description": "同步结果详情",
+			"label": "同步结果详情",
+			"properties": {
+				"success_count": {
+					"bsonType": "int",
+					"description": "成功同步数量",
+					"minimum": 0,
+					"defaultValue": 0
+				},
+				"failed_count": {
+					"bsonType": "int",
+					"description": "失败同步数量",
+					"minimum": 0,
+					"defaultValue": 0
+				},
+				"error_message": {
+					"bsonType": "string",
+					"description": "错误信息"
+				},
+				"synced_data": {
+					"bsonType": "object",
+					"description": "已同步的数据概览"
+				}
+			}
+		},
+		"crawl_source": {
+			"bsonType": "string",
+			"description": "爬取数据源",
+			"label": "爬取数据源",
+			"defaultValue": "ctrip_api"
+		},
+		"start_time": {
+			"bsonType": "timestamp",
+			"description": "开始时间",
+			"label": "开始时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"end_time": {
+			"bsonType": "timestamp",
+			"description": "结束时间",
+			"label": "结束时间"
+		},
+		"duration": {
+			"bsonType": "int",
+			"description": "同步耗时(秒)",
+			"label": "同步耗时",
+			"minimum": 0
+		},
+		"operator_id": {
+			"bsonType": "string",
+			"description": "操作人ID",
+			"label": "操作人ID"
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	},
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": "auth.uid != null"
+	}
+}

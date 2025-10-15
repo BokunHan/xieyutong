@@ -9,4 +9,4 @@
 // 详细JQL语法，请参考：https://uniapp.dcloud.net.cn/uniCloud/jql.html
 
 // 下面示例查询uni-id-users表的所有数据
-db.collection('uni-id-users').get();
+db.collection('uni-id-users').doc("68d6560a189f86d5e113503e").update()

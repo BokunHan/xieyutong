@@ -86,8 +86,7 @@
 			"bsonType": "int",
 			"defaultValue": 0,
 			"description": "邮箱验证状态：0 未验证 1 已验证",
-			"enum": [
-				{
+			"enum": [{
 					"text": "未验证",
 					"value": 0
 				},
@@ -106,8 +105,7 @@
 			"bsonType": "int",
 			"defaultValue": 0,
 			"description": "用户性别：0 未知 1 男性 2 女性",
-			"enum": [
-				{
+			"enum": [{
 					"text": "未知",
 					"value": 0
 				},
@@ -174,8 +172,7 @@
 			"bsonType": "int",
 			"defaultValue": 0,
 			"description": "手机号验证状态：0 未验证 1 已验证",
-			"enum": [
-				{
+			"enum": [{
 					"text": "未验证",
 					"value": 0
 				},
@@ -202,6 +199,16 @@
 			"bsonType": "string",
 			"description": "用户昵称",
 			"title": "昵称",
+			"trim": "both",
+			"permission": {
+				"read": true,
+				"write": "doc._id == auth.uid || 'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
+			}
+		},
+		"snapshot_order_id": {
+			"bsonType": "string",
+			"description": "临时绑定的快照行程订单号",
+			"title": "快照订单号",
 			"trim": "both",
 			"permission": {
 				"read": true,
@@ -324,12 +331,12 @@
 				"write": "'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
 			},
 			"foreignField": {
-			    "bsonType": "string",
-			    "description": "外键，指向 uni-id-roles 表的 role_id",
-			    "permission": {
-			      "read": true
-			    }
-			  },
+				"bsonType": "string",
+				"description": "外键，指向 uni-id-roles 表的 role_id",
+				"permission": {
+					"read": true
+				}
+			},
 			"title": "角色"
 		},
 		"tags": {
@@ -357,8 +364,7 @@
 				"read": "doc._id == auth.uid || 'READ_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
 				"write": "'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
 			},
-			"enum": [
-				{
+			"enum": [{
 					"text": "正常",
 					"value": 0
 				},

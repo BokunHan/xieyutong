@@ -26,18 +26,18 @@
 			<table class="min-w-full divide-y divide-gray-200">
 				<tbody class="bg-white divide-y divide-gray-200">
 					<!-- 政策标题 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50 w-48">
 							<i class="fas fa-heading text-orange-500 mr-3"></i>
 							政策标题
 						</td>
 						<td class="px-8 py-6">
-							<uni-easyinput v-model="localData.title" @input="updateData" :styles="inputStyles" placeholder="请输入预定政策标题" :clearable="true" />
+							<uni-easyinput v-model="localData.title" @change="updateData" :styles="inputStyles" placeholder="请输入预定政策标题" :clearable="true" />
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 退款政策 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-undo text-red-500 mr-3"></i>
 							退款政策
@@ -45,17 +45,17 @@
 						<td class="px-8 py-6">
 							<uni-easyinput
 								v-model="localData.refund_policy"
-								@input="updateData"
+								@change="updateData"
 								type="textarea"
 								:styles="textareaStyles"
 								:autoHeight="true"
 								placeholder="请详细描述退款政策和退款条件"
 								:clearable="true" />
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 修改政策 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-edit text-blue-500 mr-3"></i>
 							修改政策
@@ -63,17 +63,17 @@
 						<td class="px-8 py-6">
 							<uni-easyinput
 								v-model="localData.change_policy"
-								@input="updateData"
+								@change="updateData"
 								type="textarea"
 								:styles="textareaStyles"
 								:autoHeight="true"
 								placeholder="请详细描述订单修改政策和收费标准"
 								:clearable="true" />
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 预定须知 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-info-circle text-blue-500 mr-3"></i>
 							预定须知
@@ -83,7 +83,7 @@
 								<view v-for="(notice, index) in localData.booking_notes" :key="index" class="flex items-start space-x-3">
 									<uni-easyinput
 										v-model="localData.booking_notes[index]"
-										@input="updateData"
+										@change="updateData"
 										type="textarea"
 										:styles="flexTextareaStyles"
 										:autoHeight="true"
@@ -101,10 +101,10 @@
 								</button>
 							</view>
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 注意事项 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
 							注意事项
@@ -114,7 +114,7 @@
 								<view v-for="(warning, index) in localData.important_notes" :key="index" class="flex items-start space-x-3">
 									<uni-easyinput
 										v-model="localData.important_notes[index]"
-										@input="updateData"
+										@change="updateData"
 										type="textarea"
 										:styles="flexTextareaStyles"
 										:autoHeight="true"
@@ -132,10 +132,10 @@
 								</button>
 							</view>
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 年龄限制 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-users text-purple-500 mr-3"></i>
 							年龄限制
@@ -145,23 +145,23 @@
 								<view>
 									<label class="block text-sm font-medium text-gray-700 mb-2">最小年龄限制</label>
 									<view class="flex items-center space-x-3">
-										<uni-easyinput v-model="localData.min_age" @input="updateData" type="number" :styles="ageInputStyles" :clearable="true" />
+										<uni-easyinput v-model="localData.min_age" @change="updateData" type="number" :styles="ageInputStyles" :clearable="true" />
 										<text class="text-gray-600 text-lg">岁</text>
 									</view>
 								</view>
 								<view>
 									<label class="block text-sm font-medium text-gray-700 mb-2">最大年龄限制</label>
 									<view class="flex items-center space-x-3">
-										<uni-easyinput v-model="localData.max_age" @input="updateData" type="number" :styles="ageInputStyles" :clearable="true" />
+										<uni-easyinput v-model="localData.max_age" @change="updateData" type="number" :styles="ageInputStyles" :clearable="true" />
 										<text class="text-gray-600 text-lg">岁</text>
 									</view>
 								</view>
 							</view>
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 身体要求 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-heartbeat text-red-500 mr-3"></i>
 							身体要求
@@ -169,17 +169,17 @@
 						<td class="px-8 py-6">
 							<uni-easyinput
 								v-model="localData.physical_requirements"
-								@input="updateData"
+								@change="updateData"
 								type="textarea"
 								:styles="textareaStyles"
 								:autoHeight="true"
 								placeholder="请描述对参与者身体健康状况的要求"
 								:clearable="true" />
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 携带物品 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-suitcase text-green-500 mr-3"></i>
 							携带物品
@@ -187,12 +187,7 @@
 						<td class="px-8 py-6">
 							<view class="space-y-4">
 								<view v-for="(item, index) in localData.required_items" :key="index" class="flex items-center space-x-3">
-									<uni-easyinput
-										v-model="localData.required_items[index]"
-										@input="updateData"
-										:styles="flexInputStyles"
-										:placeholder="`物品 ${index + 1}`"
-										:clearable="true" />
+									<uni-easyinput v-model="localData.required_items[index]" @change="updateData" :styles="flexInputStyles" :placeholder="`物品 ${index + 1}`" :clearable="true" />
 									<button @click="removeRequiredItem(index)" class="remove-btn">
 										<i class="fas fa-trash"></i>
 									</button>
@@ -205,10 +200,10 @@
 								</button>
 							</view>
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 保险条款 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-shield-alt text-blue-500 mr-3"></i>
 							保险条款
@@ -216,17 +211,17 @@
 						<td class="px-8 py-6">
 							<uni-easyinput
 								v-model="localData.insurance_terms"
-								@input="updateData"
+								@change="updateData"
 								type="textarea"
 								:styles="textareaStyles"
 								:autoHeight="true"
 								placeholder="请详细描述保险相关条款和理赔流程"
 								:clearable="true" />
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 免责声明 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
 							免责声明
@@ -234,17 +229,17 @@
 						<td class="px-8 py-6">
 							<uni-easyinput
 								v-model="localData.disclaimer"
-								@input="updateData"
+								@change="updateData"
 								type="textarea"
 								:styles="textareaStyles"
 								:autoHeight="true"
 								placeholder="请输入免责声明条款"
 								:clearable="true" />
 						</td>
-					</tr>
+					</tr> -->
 
 					<!-- 联系信息 -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-phone text-green-500 mr-3"></i>
 							联系信息
@@ -253,15 +248,15 @@
 							<view class="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<view>
 									<label class="block text-sm font-medium text-gray-700 mb-2">客服电话</label>
-									<uni-easyinput v-model="localData.contact_phone" @input="updateData" :styles="inputStyles" placeholder="请输入客服电话" :clearable="true" />
+									<uni-easyinput v-model="localData.contact_phone" @change="updateData" :styles="inputStyles" placeholder="请输入客服电话" :clearable="true" />
 								</view>
 								<view>
 									<label class="block text-sm font-medium text-gray-700 mb-2">客服邮箱</label>
-									<uni-easyinput v-model="localData.contact_email" @input="updateData" :styles="inputStyles" placeholder="请输入客服邮箱" :clearable="true" />
+									<uni-easyinput v-model="localData.contact_email" @change="updateData" :styles="inputStyles" placeholder="请输入客服邮箱" :clearable="true" />
 								</view>
 							</view>
 						</td>
-					</tr>
+					</tr> -->
 
 					<tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
@@ -272,21 +267,11 @@
 							<view class="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<view>
 									<label class="block text-sm font-medium text-gray-700 mb-2">代理旅行社</label>
-									<uni-easyinput
-										v-model="localData.travel_agency_info.agent"
-										@input="updateData"
-										:styles="inputStyles"
-										placeholder="请输入代理旅行社名称"
-										:clearable="true" />
+									<uni-easyinput v-model="localData.travel_agency_info.agent" @change="updateData" :styles="inputStyles" placeholder="请输入代理旅行社名称" :clearable="true" />
 								</view>
 								<view>
 									<label class="block text-sm font-medium text-gray-700 mb-2">委托旅行社</label>
-									<uni-easyinput
-										v-model="localData.travel_agency_info.delegate"
-										@input="updateData"
-										:styles="inputStyles"
-										placeholder="请输入委托旅行社名称"
-										:clearable="true" />
+									<uni-easyinput v-model="localData.travel_agency_info.delegate" @change="updateData" :styles="inputStyles" placeholder="请输入委托旅行社名称" :clearable="true" />
 								</view>
 							</view>
 						</td>
@@ -302,37 +287,43 @@
 								<label class="block text-sm font-medium text-gray-700 mb-2">年龄限制</label>
 								<uni-easyinput
 									v-model="localData.booking_restrictions.age_limit"
-									@input="updateData"
+									@change="updateData"
 									:styles="inputStyles"
 									type="textarea"
 									:autoHeight="true"
+									:maxlength="-1"
 									placeholder="年龄限制说明" />
 							</view>
 							<view>
 								<label class="block text-sm font-medium text-gray-700 mb-2">人群限制</label>
 								<uni-easyinput
 									v-model="localData.booking_restrictions.group_limit"
-									@input="updateData"
+									@change="updateData"
 									:styles="inputStyles"
 									type="textarea"
 									:autoHeight="true"
+									:maxlength="-1"
 									placeholder="人群限制说明" />
 							</view>
 							<view>
 								<label class="block text-sm font-medium text-gray-700 mb-2">其他限制</label>
 								<uni-easyinput
 									v-model="localData.booking_restrictions.other_limit"
-									@input="updateData"
+									@change="updateData"
 									:styles="inputStyles"
 									type="textarea"
 									:autoHeight="true"
+									:maxlength="-1"
 									placeholder="其他限制说明" />
 							</view>
 						</td>
 					</tr>
 
 					<tr class="hover:bg-gray-50">
-						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">住宿政策</td>
+						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-key text-gray-500 mr-3"></i>
+							住宿政策
+						</td>
 						<td class="px-8 py-6">
 							<uni-easyinput
 								v-model="localData.accommodation_policy.multi_person"
@@ -340,12 +331,16 @@
 								type="textarea"
 								:styles="textareaStyles"
 								:autoHeight="true"
+								:maxlength="-1"
 								placeholder="多人入住政策说明" />
 						</td>
 					</tr>
 
 					<tr class="hover:bg-gray-50">
-						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">团组信息</td>
+						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-users-cog text-gray-500 mr-3"></i>
+							团组信息
+						</td>
 						<td class="px-8 py-6 space-y-4">
 							<view>
 								<label class="block text-sm font-medium text-gray-700 mb-2">团组描述</label>
@@ -359,7 +354,10 @@
 					</tr>
 
 					<tr class="hover:bg-gray-50">
-						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">预定要求</td>
+						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-clipboard-list text-gray-500 mr-3"></i>
+							预定要求
+						</td>
 						<td class="px-8 py-6">
 							<view class="space-y-4">
 								<view v-for="(req, index) in localData.booking_requirements" :key="index" class="flex items-start space-x-3">
@@ -369,6 +367,7 @@
 										type="textarea"
 										:styles="flexTextareaStyles"
 										:autoHeight="true"
+										:maxlength="-1"
 										:placeholder="`要求 ${index + 1}`" />
 									<button @click="removeBookingRequirement(index)" class="remove-btn">
 										<i class="fas fa-trash"></i>
@@ -393,10 +392,11 @@
 								<view v-for="(term, index) in localData.violation_terms.agency_violation" :key="index" class="flex items-start space-x-3">
 									<uni-easyinput
 										v-model="localData.violation_terms.agency_violation[index]"
-										@input="updateData"
+										@change="updateData"
 										type="textarea"
 										:styles="flexTextareaStyles"
 										:autoHeight="true"
+										:maxlength="-1"
 										:placeholder="`条款 ${index + 1}`" />
 									<button @click="removeViolationTerm('agency', index)" class="remove-btn">
 										<i class="fas fa-trash"></i>
@@ -414,10 +414,11 @@
 								<view v-for="(term, index) in localData.violation_terms.tourist_violation" :key="index" class="flex items-start space-x-3">
 									<uni-easyinput
 										v-model="localData.violation_terms.tourist_violation[index]"
-										@input="updateData"
+										@change="updateData"
 										type="textarea"
 										:styles="flexTextareaStyles"
 										:autoHeight="true"
+										:maxlength="-1"
 										:placeholder="`条款 ${index + 1}`" />
 									<button @click="removeViolationTerm('tourist', index)" class="remove-btn">
 										<i class="fas fa-trash"></i>
@@ -434,7 +435,10 @@
 					</tr>
 
 					<tr class="hover:bg-gray-50">
-						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">出行/安全提示</td>
+						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-shield-heart text-gray-500 mr-1"></i>
+							出行/安全提示
+						</td>
 						<td class="px-8 py-6 space-y-6">
 							<view class="space-y-4">
 								<label class="block font-medium text-gray-700">出行指南</label>
@@ -445,6 +449,7 @@
 										type="textarea"
 										:styles="flexTextareaStyles"
 										:autoHeight="true"
+										:maxlength="-1"
 										:placeholder="`指南 ${index + 1}`" />
 									<button @click="removeTravelGuide(index)" class="remove-btn">
 										<i class="fas fa-trash"></i>
@@ -464,6 +469,7 @@
 										type="textarea"
 										:styles="flexTextareaStyles"
 										:autoHeight="true"
+										:maxlength="-1"
 										:placeholder="`提示 ${index + 1}`" />
 									<button @click="removeSafetyTip(index)" class="remove-btn">
 										<i class="fas fa-trash"></i>
@@ -486,11 +492,7 @@
 							<view class="space-y-4">
 								<label class="block font-medium text-gray-700">支持的支付方式</label>
 								<view v-for="(method, index) in localData.payment_info.supported_methods" :key="index" class="flex items-center space-x-3">
-									<uni-easyinput
-										v-model="localData.payment_info.supported_methods[index]"
-										@change="updateData"
-										:styles="flexInputStyles"
-										:placeholder="`方式 ${index + 1}`" />
+									<uni-easyinput v-model="localData.payment_info.supported_methods[index]" @change="updateData" :styles="flexInputStyles" :placeholder="`方式 ${index + 1}`" />
 									<button @click="removeSupportedMethod(index)" class="remove-btn">
 										<i class="fas fa-trash"></i>
 									</button>
@@ -506,41 +508,14 @@
 							<view class="space-y-4">
 								<label class="block font-medium text-gray-700">支付说明</label>
 								<uni-easyinput
-									:modelValue="
-										Array.isArray(localData.payment_info.payment_notes)
-											? localData.payment_info.payment_notes.join('\\n')
-											: localData.payment_info.payment_notes
-									"
+									:modelValue="Array.isArray(localData.payment_info.payment_notes) ? localData.payment_info.payment_notes.join('\\n') : localData.payment_info.payment_notes"
 									@input="localData.payment_info.payment_notes = $event.split('\\n')"
 									@change="updateData"
 									type="textarea"
 									:styles="textareaStyles"
 									:autoHeight="true"
+									:maxlength="-1"
 									placeholder="请输入支付相关说明" />
-							</view>
-						</td>
-					</tr>
-
-					<tr class="hover:bg-gray-50">
-						<td class="px-8 py-6 font-semibold text-gray-900 bg-gray-50">预定须知 (原)</td>
-						<td class="px-8 py-6">
-							<view class="space-y-4">
-								<view v-for="(note, index) in localData.booking_notes" :key="index" class="flex items-start space-x-3">
-									<uni-easyinput
-										v-model="localData.booking_notes[index]"
-										@change="updateData"
-										type="textarea"
-										:styles="flexTextareaStyles"
-										:autoHeight="true"
-										:placeholder="`须知 ${index + 1}`" />
-									<button @click="removeBookingNote(index)" class="remove-btn">
-										<i class="fas fa-trash"></i>
-									</button>
-								</view>
-								<button @click="addBookingNote" class="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500">
-									<i class="fas fa-plus mr-2"></i>
-									添加预定须知
-								</button>
 							</view>
 						</td>
 					</tr>
@@ -559,6 +534,31 @@
 
 <script>
 import { toRaw } from 'vue';
+
+const defaultLocalData = {
+	// title: '',
+	// refund_policy: '',
+	// change_policy: '',
+	// booking_notes: [''],
+	// important_notes: [''],
+	// min_age: 0,
+	// max_age: 99,
+	// physical_requirements: '',
+	// required_items: [''],
+	// insurance_terms: '',
+	// disclaimer: '',
+	// contact_phone: '',
+	// contact_email: '',
+	travel_agency_info: { agent: '', delegate: '' },
+	booking_restrictions: { age_limit: '', group_limit: '', other_limit: '' },
+	accommodation_policy: { multi_person: '' },
+	group_info: { group_description: '', departure_notice: '' },
+	booking_requirements: [''],
+	violation_terms: { agency_violation: [''], tourist_violation: [''] },
+	travel_guide: [''],
+	safety_tips: [''],
+	payment_info: { supported_methods: [''], payment_notes: [''] }
+};
 
 export default {
 	name: 'BookingPolicies',
@@ -623,31 +623,6 @@ export default {
 			policyDataKeys: this.policyData ? Object.keys(this.policyData) : []
 		});
 
-		const defaultLocalData = {
-			title: '',
-			refund_policy: '',
-			change_policy: '',
-			booking_notes: [''],
-			important_notes: [''],
-			min_age: 0,
-			max_age: 99,
-			physical_requirements: '',
-			required_items: [''],
-			insurance_terms: '',
-			disclaimer: '',
-			contact_phone: '',
-			contact_email: '',
-			travel_agency_info: { agent: '', delegate: '' },
-			booking_restrictions: { age_limit: '', group_limit: '', other_limit: '' },
-			accommodation_policy: { multi_person: '' },
-			group_info: { group_description: '', departure_notice: '' },
-			booking_requirements: [''],
-			violation_terms: { agency_violation: [''], tourist_violation: [''] },
-			travel_guide: [''],
-			safety_tips: [''],
-			payment_info: { supported_methods: [''], payment_notes: [''] }
-		};
-
 		console.log('🏗️ [BookingPolicies] 默认数据模板:', defaultLocalData);
 
 		const mergedData = { ...defaultLocalData, ...this.policyData };
@@ -656,34 +631,34 @@ export default {
 		console.log('🏗️ [BookingPolicies] 数据初始化统计:', {
 			默认字段数: Object.keys(defaultLocalData).length,
 			传入字段数: this.policyData ? Object.keys(this.policyData).length : 0,
-			最终字段数: Object.keys(mergedData).length,
-			数组字段检查: {
-				booking_notes: {
-					类型: typeof mergedData.booking_notes,
-					是否数组: Array.isArray(mergedData.booking_notes),
-					长度: mergedData.booking_notes?.length || 0
-				},
-				important_notes: {
-					类型: typeof mergedData.important_notes,
-					是否数组: Array.isArray(mergedData.important_notes),
-					长度: mergedData.important_notes?.length || 0
-				},
-				required_items: {
-					类型: typeof mergedData.required_items,
-					是否数组: Array.isArray(mergedData.required_items),
-					长度: mergedData.required_items?.length || 0
-				}
-			},
-			数值字段检查: {
-				min_age: {
-					值: mergedData.min_age,
-					类型: typeof mergedData.min_age
-				},
-				max_age: {
-					值: mergedData.max_age,
-					类型: typeof mergedData.max_age
-				}
-			}
+			最终字段数: Object.keys(mergedData).length
+			// 数组字段检查: {
+			// 	booking_notes: {
+			// 		类型: typeof mergedData.booking_notes,
+			// 		是否数组: Array.isArray(mergedData.booking_notes),
+			// 		长度: mergedData.booking_notes?.length || 0
+			// 	},
+			// 	important_notes: {
+			// 		类型: typeof mergedData.important_notes,
+			// 		是否数组: Array.isArray(mergedData.important_notes),
+			// 		长度: mergedData.important_notes?.length || 0
+			// 	},
+			// 	required_items: {
+			// 		类型: typeof mergedData.required_items,
+			// 		是否数组: Array.isArray(mergedData.required_items),
+			// 		长度: mergedData.required_items?.length || 0
+			// 	}
+			// },
+			// 数值字段检查: {
+			// 	min_age: {
+			// 		值: mergedData.min_age,
+			// 		类型: typeof mergedData.min_age
+			// 	},
+			// 	max_age: {
+			// 		值: mergedData.max_age,
+			// 		类型: typeof mergedData.max_age
+			// 	}
+			// }
 		});
 
 		return {
@@ -772,96 +747,101 @@ export default {
 		}
 	},
 	watch: {
-		policyData: {
-			handler(newVal, oldVal) {
-				console.log('🔄 [BookingPolicies] policyData监听器触发');
-				console.log('🔄 [BookingPolicies] 监听器详情:', {
-					timestamp: new Date().toLocaleString(),
-					trigger_reason: '外部policyData变化',
-					has_newVal: !!newVal,
-					has_oldVal: !!oldVal,
-					newVal_keys: newVal ? Object.keys(newVal).length : 0,
-					oldVal_keys: oldVal ? Object.keys(oldVal).length : 0
-				});
-				console.log('🔄 [BookingPolicies] 新值详情:', newVal);
-				console.log('🔄 [BookingPolicies] 旧值详情:', oldVal);
+		// 监听外部传入的 policyData，当它变化时，重置本地数据
+		// 这对于从父组件切换不同产品时很有用
+		policyData(newVal) {
+			this.localData = { ...defaultLocalData, ...newVal };
 
-				if (newVal) {
-					console.log('📝 [BookingPolicies] 开始合并新数据到localData');
-					console.log('📝 [BookingPolicies] 合并前localData:', { ...this.localData });
+			// policyData: {
+			// 	handler(newVal, oldVal) {
+			// 		console.log('🔄 [BookingPolicies] policyData监听器触发');
+			// 		console.log('🔄 [BookingPolicies] 监听器详情:', {
+			// 			timestamp: new Date().toLocaleString(),
+			// 			trigger_reason: '外部policyData变化',
+			// 			has_newVal: !!newVal,
+			// 			has_oldVal: !!oldVal,
+			// 			newVal_keys: newVal ? Object.keys(newVal).length : 0,
+			// 			oldVal_keys: oldVal ? Object.keys(oldVal).length : 0
+			// 		});
+			// 		console.log('🔄 [BookingPolicies] 新值详情:', newVal);
+			// 		console.log('🔄 [BookingPolicies] 旧值详情:', oldVal);
 
-					this.localData = { ...this.localData, ...newVal };
+			// 		if (newVal) {
+			// 			console.log('📝 [BookingPolicies] 开始合并新数据到localData');
+			// 			console.log('📝 [BookingPolicies] 合并前localData:', { ...this.localData });
 
-					console.log('📝 [BookingPolicies] 合并后初步结果:', { ...this.localData });
+			// 			this.localData = { ...this.localData, ...newVal };
 
-					// 确保数组初始化
-					console.log('🔧 [BookingPolicies] 开始数组字段标准化处理');
-					const arrayFixLog = {
-						booking_notes: {
-							原始类型: typeof this.localData.booking_notes,
-							是否数组: Array.isArray(this.localData.booking_notes),
-							原始值: this.localData.booking_notes
-						},
-						important_notes: {
-							原始类型: typeof this.localData.important_notes,
-							是否数组: Array.isArray(this.localData.important_notes),
-							原始值: this.localData.important_notes
-						},
-						required_items: {
-							原始类型: typeof this.localData.required_items,
-							是否数组: Array.isArray(this.localData.required_items),
-							原始值: this.localData.required_items
-						}
-					};
+			// 			console.log('📝 [BookingPolicies] 合并后初步结果:', { ...this.localData });
 
-					if (!Array.isArray(this.localData.booking_notes)) {
-						console.log('🔧 [BookingPolicies] 修复booking_notes为数组');
-						this.localData.booking_notes = [''];
-					}
-					if (!Array.isArray(this.localData.important_notes)) {
-						console.log('🔧 [BookingPolicies] 修复important_notes为数组');
-						this.localData.important_notes = [''];
-					}
-					if (!Array.isArray(this.localData.required_items)) {
-						console.log('🔧 [BookingPolicies] 修复required_items为数组');
-						this.localData.required_items = [''];
-					}
+			// 			// 确保数组初始化
+			// 			console.log('🔧 [BookingPolicies] 开始数组字段标准化处理');
+			// 			const arrayFixLog = {
+			// 				booking_notes: {
+			// 					原始类型: typeof this.localData.booking_notes,
+			// 					是否数组: Array.isArray(this.localData.booking_notes),
+			// 					原始值: this.localData.booking_notes
+			// 				},
+			// 				important_notes: {
+			// 					原始类型: typeof this.localData.important_notes,
+			// 					是否数组: Array.isArray(this.localData.important_notes),
+			// 					原始值: this.localData.important_notes
+			// 				},
+			// 				required_items: {
+			// 					原始类型: typeof this.localData.required_items,
+			// 					是否数组: Array.isArray(this.localData.required_items),
+			// 					原始值: this.localData.required_items
+			// 				}
+			// 			};
 
-					arrayFixLog.booking_notes.修复后 = this.localData.booking_notes;
-					arrayFixLog.important_notes.修复后 = this.localData.important_notes;
-					arrayFixLog.required_items.修复后 = this.localData.required_items;
+			// 			if (!Array.isArray(this.localData.booking_notes)) {
+			// 				console.log('🔧 [BookingPolicies] 修复booking_notes为数组');
+			// 				this.localData.booking_notes = [''];
+			// 			}
+			// 			if (!Array.isArray(this.localData.important_notes)) {
+			// 				console.log('🔧 [BookingPolicies] 修复important_notes为数组');
+			// 				this.localData.important_notes = [''];
+			// 			}
+			// 			if (!Array.isArray(this.localData.required_items)) {
+			// 				console.log('🔧 [BookingPolicies] 修复required_items为数组');
+			// 				this.localData.required_items = [''];
+			// 			}
 
-					console.log('🔧 [BookingPolicies] 数组字段修复日志:', arrayFixLog);
-				}
+			// 			arrayFixLog.booking_notes.修复后 = this.localData.booking_notes;
+			// 			arrayFixLog.important_notes.修复后 = this.localData.important_notes;
+			// 			arrayFixLog.required_items.修复后 = this.localData.required_items;
 
-				console.log('✅ [BookingPolicies] localData最终更新结果:', this.localData);
-				console.log('📊 [BookingPolicies] 更新后数据统计:', {
-					总字段数: Object.keys(this.localData).length,
-					文本字段: {
-						title: this.localData.title?.length || 0,
-						refund_policy: this.localData.refund_policy?.length || 0,
-						change_policy: this.localData.change_policy?.length || 0,
-						physical_requirements: this.localData.physical_requirements?.length || 0,
-						insurance_terms: this.localData.insurance_terms?.length || 0,
-						disclaimer: this.localData.disclaimer?.length || 0
-					},
-					数组字段: {
-						booking_notes: this.localData.booking_notes?.length || 0,
-						important_notes: this.localData.important_notes?.length || 0,
-						required_items: this.localData.required_items?.length || 0
-					},
-					联系信息: {
-						contact_phone: !!this.localData.contact_phone,
-						contact_email: !!this.localData.contact_email
-					},
-					年龄设置: {
-						min_age: this.localData.min_age,
-						max_age: this.localData.max_age
-					}
-				});
-			},
-			deep: true,
-			immediate: true
+			// 			console.log('🔧 [BookingPolicies] 数组字段修复日志:', arrayFixLog);
+			// 		}
+
+			// 		console.log('✅ [BookingPolicies] localData最终更新结果:', toRaw(this.localData));
+			// 		console.log('📊 [BookingPolicies] 更新后数据统计:', {
+			// 			总字段数: Object.keys(this.localData).length
+			// 			// 文本字段: {
+			// 			// 	title: this.localData.title?.length || 0,
+			// 			// 	refund_policy: this.localData.refund_policy?.length || 0,
+			// 			// 	change_policy: this.localData.change_policy?.length || 0,
+			// 			// 	physical_requirements: this.localData.physical_requirements?.length || 0,
+			// 			// 	insurance_terms: this.localData.insurance_terms?.length || 0,
+			// 			// 	disclaimer: this.localData.disclaimer?.length || 0
+			// 			// },
+			// 			// 数组字段: {
+			// 			// 	booking_notes: this.localData.booking_notes?.length || 0,
+			// 			// 	important_notes: this.localData.important_notes?.length || 0,
+			// 			// 	required_items: this.localData.required_items?.length || 0
+			// 			// },
+			// 			// 联系信息: {
+			// 			// 	contact_phone: !!this.localData.contact_phone,
+			// 			// 	contact_email: !!this.localData.contact_email
+			// 			// },
+			// 			// 年龄设置: {
+			// 			// 	min_age: this.localData.min_age,
+			// 			// 	max_age: this.localData.max_age
+			// 			// }
+			// 		});
+			// 	},
+			// 	deep: true,
+			// 	immediate: true
 		},
 
 		// 监听productId变化
@@ -908,19 +888,19 @@ export default {
 		console.log('🎬 [BookingPolicies] 组件创建完成');
 		console.log('🎬 [BookingPolicies] 初始productId:', this.productId);
 		console.log('🎬 [BookingPolicies] 初始ctripId:', this.ctripId);
-		console.log('🎬 [BookingPolicies] 初始policyData:', this.policyData);
-		console.log('🎬 [BookingPolicies] 初始localData:', this.localData);
+		console.log('🎬 [BookingPolicies] 初始policyData:', toRaw(this.policyData));
+		console.log('🎬 [BookingPolicies] 初始localData:', toRaw(this.localData));
 		console.log('🎬 [BookingPolicies] 组件创建时状态:', {
 			timestamp: new Date().toLocaleString(),
 			hasProductId: !!this.productId,
 			hasCtripId: !!this.ctripId,
-			hasPolicyData: !!this.policyData && Object.keys(this.policyData).length > 0,
-			localDataFields: Object.keys(this.localData).length,
-			arrayFields: {
-				booking_notes: Array.isArray(this.localData.booking_notes) ? this.localData.booking_notes.length : 'not array',
-				important_notes: Array.isArray(this.localData.important_notes) ? this.localData.important_notes.length : 'not array',
-				required_items: Array.isArray(this.localData.required_items) ? this.localData.required_items.length : 'not array'
-			}
+			hasPolicyData: !!this.policyData && Object.keys(this.policyData).length > 0
+			// localDataFields: Object.keys(this.localData).length,
+			// arrayFields: {
+			// 	booking_notes: Array.isArray(this.localData.booking_notes) ? this.localData.booking_notes.length : 'not array',
+			// 	important_notes: Array.isArray(this.localData.important_notes) ? this.localData.important_notes.length : 'not array',
+			// 	required_items: Array.isArray(this.localData.required_items) ? this.localData.required_items.length : 'not array'
+			// }
 		});
 
 		// 如果有productId或ctripId但没有政策数据，尝试从数据库获取
@@ -934,17 +914,17 @@ export default {
 		console.log('🎯 [BookingPolicies] 挂载时状态检查:', {
 			productId: this.productId,
 			ctripId: this.ctripId,
-			hasPolicy: this.hasPolicy,
-			localDataStructure: {
-				title: typeof this.localData.title,
-				refund_policy: typeof this.localData.refund_policy,
-				change_policy: typeof this.localData.change_policy,
-				booking_notes_length: this.localData.booking_notes?.length,
-				important_notes_length: this.localData.important_notes?.length,
-				required_items_length: this.localData.required_items?.length,
-				min_age: this.localData.min_age,
-				max_age: this.localData.max_age
-			}
+			hasPolicy: this.hasPolicy
+			// localDataStructure: {
+			// 	title: typeof this.localData.title,
+			// 	refund_policy: typeof this.localData.refund_policy,
+			// 	change_policy: typeof this.localData.change_policy,
+			// 	booking_notes_length: this.localData.booking_notes?.length,
+			// 	important_notes_length: this.localData.important_notes?.length,
+			// 	required_items_length: this.localData.required_items?.length,
+			// 	min_age: this.localData.min_age,
+			// 	max_age: this.localData.max_age
+			// }
 		});
 	},
 	beforeDestroy() {
@@ -953,16 +933,16 @@ export default {
 			timestamp: new Date().toLocaleString(),
 			productId: this.productId,
 			ctripId: this.ctripId,
-			hasPolicy: this.hasPolicy,
-			localDataSummary: {
-				总字段数: Object.keys(this.localData).length,
-				有内容字段数: Object.values(this.localData).filter((v) => v && (typeof v === 'string' ? v.trim() : true)).length,
-				数组字段状态: {
-					booking_notes: this.localData.booking_notes?.length || 0,
-					important_notes: this.localData.important_notes?.length || 0,
-					required_items: this.localData.required_items?.length || 0
-				}
-			}
+			hasPolicy: this.hasPolicy
+			// localDataSummary: {
+			// 	总字段数: Object.keys(this.localData).length,
+			// 	有内容字段数: Object.values(this.localData).filter((v) => v && (typeof v === 'string' ? v.trim() : true)).length,
+			// 	数组字段状态: {
+			// 		booking_notes: this.localData.booking_notes?.length || 0,
+			// 		important_notes: this.localData.important_notes?.length || 0,
+			// 		required_items: this.localData.required_items?.length || 0
+			// 	}
+			// }
 		});
 	},
 	destroyed() {
@@ -1035,24 +1015,24 @@ export default {
 
 					console.log('✅ [BookingPolicies] localData更新完成:', toRaw(this.localData));
 					console.log('📊 [BookingPolicies] 数据加载统计:', {
-						字段数量: Object.keys(processedData).length,
-						数组字段: {
-							booking_notes: processedData.booking_notes.length,
-							important_notes: processedData.important_notes.length,
-							required_items: processedData.required_items.length
-						},
-						年龄限制: {
-							min_age: processedData.min_age,
-							max_age: processedData.max_age
-						},
-						文本字段长度: {
-							title: processedData.title?.length || 0,
-							refund_policy: processedData.refund_policy?.length || 0,
-							change_policy: processedData.change_policy?.length || 0,
-							physical_requirements: processedData.physical_requirements?.length || 0,
-							insurance_terms: processedData.insurance_terms?.length || 0,
-							disclaimer: processedData.disclaimer?.length || 0
-						}
+						字段数量: Object.keys(processedData).length
+						// 数组字段: {
+						// 	booking_notes: processedData.booking_notes.length,
+						// 	important_notes: processedData.important_notes.length,
+						// 	required_items: processedData.required_items.length
+						// },
+						// 年龄限制: {
+						// 	min_age: processedData.min_age,
+						// 	max_age: processedData.max_age
+						// },
+						// 文本字段长度: {
+						// 	title: processedData.title?.length || 0,
+						// 	refund_policy: processedData.refund_policy?.length || 0,
+						// 	change_policy: processedData.change_policy?.length || 0,
+						// 	physical_requirements: processedData.physical_requirements?.length || 0,
+						// 	insurance_terms: processedData.insurance_terms?.length || 0,
+						// 	disclaimer: processedData.disclaimer?.length || 0
+						// }
 					});
 				} else {
 					console.log('ℹ️ [BookingPolicies] 未找到现有政策数据，使用默认值');
@@ -1083,18 +1063,18 @@ export default {
 				has_product_id: !!this.productId,
 				has_ctrip_id: !!this.ctripId,
 				product_id: this.productId,
-				ctrip_id: this.ctripId,
-				title_length: data.title?.length || 0,
-				refund_policy_length: data.refund_policy?.length || 0,
-				change_policy_length: data.change_policy?.length || 0,
-				booking_notes_count: data.booking_notes?.length || 0,
-				important_notes_count: data.important_notes?.length || 0,
-				required_items_count: data.required_items?.length || 0,
-				has_contact_info: !!(data.contact_phone || data.contact_email),
-				age_range: {
-					min: data.min_age,
-					max: data.max_age
-				}
+				ctrip_id: this.ctripId
+				// title_length: data.title?.length || 0,
+				// refund_policy_length: data.refund_policy?.length || 0,
+				// change_policy_length: data.change_policy?.length || 0,
+				// booking_notes_count: data.booking_notes?.length || 0,
+				// important_notes_count: data.important_notes?.length || 0,
+				// required_items_count: data.required_items?.length || 0,
+				// has_contact_info: !!(data.contact_phone || data.contact_email),
+				// age_range: {
+				// 	min: data.min_age,
+				// 	max: data.max_age
+				// }
 			});
 
 			if (!this.productId && !this.ctripId) {
@@ -1129,19 +1109,19 @@ export default {
 
 				// 准备保存的数据
 				const saveData = {
-					title: data.title || '',
-					refund_policy: data.refund_policy || '',
-					change_policy: data.change_policy || '',
-					booking_notes: Array.isArray(data.booking_notes) ? data.booking_notes.filter((note) => note.trim()) : [],
-					important_notes: Array.isArray(data.important_notes) ? data.important_notes.filter((note) => note.trim()) : [],
-					min_age: Number(data.min_age) || 0,
-					max_age: Number(data.max_age) || 99,
-					physical_requirements: data.physical_requirements || '',
-					required_items: Array.isArray(data.required_items) ? data.required_items.filter((item) => item.trim()) : [],
-					insurance_terms: data.insurance_terms || '',
-					disclaimer: data.disclaimer || '',
-					contact_phone: data.contact_phone || '',
-					contact_email: data.contact_email || '',
+					// title: data.title || '',
+					// refund_policy: data.refund_policy || '',
+					// change_policy: data.change_policy || '',
+					// booking_notes: Array.isArray(data.booking_notes) ? data.booking_notes.filter((note) => note.trim()) : [],
+					// important_notes: Array.isArray(data.important_notes) ? data.important_notes.filter((note) => note.trim()) : [],
+					// min_age: Number(data.min_age) || 0,
+					// max_age: Number(data.max_age) || 99,
+					// physical_requirements: data.physical_requirements || '',
+					// required_items: Array.isArray(data.required_items) ? data.required_items.filter((item) => item.trim()) : [],
+					// insurance_terms: data.insurance_terms || '',
+					// disclaimer: data.disclaimer || '',
+					// contact_phone: data.contact_phone || '',
+					// contact_email: data.contact_email || '',
 					travel_agency_info: data.travel_agency_info || { agent: '', delegate: '' },
 					booking_restrictions: data.booking_restrictions || { age_limit: '', group_limit: '', other_limit: '' },
 					accommodation_policy: data.accommodation_policy || { multi_person: '' },
@@ -1172,25 +1152,25 @@ export default {
 				console.log('📝 [BookingPolicies] 数据完整性检查:', {
 					字段数量: Object.keys(saveData).length,
 					必填字段: {
-						product_id: !!saveData.product_id,
-						title: typeof saveData.title === 'string',
-						数组字段完整性: {
-							booking_notes_is_array: Array.isArray(saveData.booking_notes),
-							important_notes_is_array: Array.isArray(saveData.important_notes),
-							required_items_is_array: Array.isArray(saveData.required_items)
-						},
-						数值字段: {
-							min_age_type: typeof saveData.min_age,
-							max_age_type: typeof saveData.max_age,
-							min_age_value: saveData.min_age,
-							max_age_value: saveData.max_age
-						}
-					},
-					过滤后数组长度: {
-						booking_notes: saveData.booking_notes.length,
-						important_notes: saveData.important_notes.length,
-						required_items: saveData.required_items.length
+						product_id: !!saveData.product_id
+						// title: typeof saveData.title === 'string',
+						// 数组字段完整性: {
+						// 	booking_notes_is_array: Array.isArray(saveData.booking_notes),
+						// 	important_notes_is_array: Array.isArray(saveData.important_notes),
+						// 	required_items_is_array: Array.isArray(saveData.required_items)
+						// },
+						// 数值字段: {
+						// 	min_age_type: typeof saveData.min_age,
+						// 	max_age_type: typeof saveData.max_age,
+						// 	min_age_value: saveData.min_age,
+						// 	max_age_value: saveData.max_age
+						// }
 					}
+					// 过滤后数组长度: {
+					// 	booking_notes: saveData.booking_notes.length,
+					// 	important_notes: saveData.important_notes.length,
+					// 	required_items: saveData.required_items.length
+					// }
 				});
 
 				let result;
@@ -1219,13 +1199,13 @@ export default {
 				console.log('🎉 [BookingPolicies] 政策数据保存成功');
 				console.log('📊 [BookingPolicies] 保存统计:', {
 					操作类型: existQuery.data && existQuery.data.length > 0 ? '更新' : '创建',
-					数据大小: JSON.stringify(saveData).length + ' 字符',
-					政策条目总数: saveData.booking_notes.length + saveData.important_notes.length + saveData.required_items.length,
-					联系方式完整性: {
-						有电话: !!saveData.contact_phone,
-						有邮箱: !!saveData.contact_email
-					},
-					年龄限制: `${saveData.min_age}-${saveData.max_age}岁`
+					数据大小: JSON.stringify(saveData).length + ' 字符'
+					// 政策条目总数: saveData.booking_notes.length + saveData.important_notes.length + saveData.required_items.length,
+					// 联系方式完整性: {
+					// 	有电话: !!saveData.contact_phone,
+					// 	有邮箱: !!saveData.contact_email
+					// },
+					// 年龄限制: `${saveData.min_age}-${saveData.max_age}岁`
 				});
 
 				// 显示成功提示
@@ -1236,13 +1216,7 @@ export default {
 				});
 			} catch (error) {
 				console.error('💥 [BookingPolicies] 保存失败:', error);
-				console.error('💥 [BookingPolicies] 错误详情:', {
-					message: error.message,
-					code: error.code,
-					requestId: error.requestId,
-					stack: error.stack,
-					saveData: saveData
-				});
+				console.error('💥 [BookingPolicies] 完整错误对象:', JSON.parse(JSON.stringify(error)));
 
 				// 显示用户友好的错误信息
 				uni.showToast({
@@ -1261,15 +1235,15 @@ export default {
 				productId: this.productId,
 				ctripId: this.ctripId,
 				hasProductId: !!this.productId,
-				hasCtripId: !!this.ctripId,
-				数据变化: {
-					title: this.localData.title,
-					refund_policy_length: this.localData.refund_policy?.length || 0,
-					change_policy_length: this.localData.change_policy?.length || 0,
-					booking_notes_count: this.localData.booking_notes?.length || 0,
-					important_notes_count: this.localData.important_notes?.length || 0,
-					required_items_count: this.localData.required_items?.length || 0
-				}
+				hasCtripId: !!this.ctripId
+				// 数据变化: {
+				// 	title: this.localData.title,
+				// 	refund_policy_length: this.localData.refund_policy?.length || 0,
+				// 	change_policy_length: this.localData.change_policy?.length || 0,
+				// 	booking_notes_count: this.localData.booking_notes?.length || 0,
+				// 	important_notes_count: this.localData.important_notes?.length || 0,
+				// 	required_items_count: this.localData.required_items?.length || 0
+				// }
 			});
 
 			// 发送更新事件给父组件
@@ -1283,6 +1257,7 @@ export default {
 				console.warn('⚠️ [BookingPolicies] 无productId和ctripId，跳过自动保存');
 			}
 		},
+
 		createPolicy() {
 			console.log('🆕 [BookingPolicies] 开始创建新政策');
 			console.log('🆕 [BookingPolicies] 创建前状态:', {
@@ -1292,223 +1267,225 @@ export default {
 				timestamp: new Date().toLocaleString()
 			});
 
-			const defaultPolicy = {
-				title: '',
-				refund_policy: '',
-				change_policy: '',
-				booking_notes: [''],
-				important_notes: [''],
-				min_age: 0,
-				max_age: 99,
-				physical_requirements: '',
-				required_items: [''],
-				insurance_terms: '',
-				disclaimer: '',
-				contact_phone: '',
-				contact_email: '',
+			// const defaultPolicy = {
+			// 	// title: '',
+			// 	// refund_policy: '',
+			// 	// change_policy: '',
+			// 	// booking_notes: [''],
+			// 	// important_notes: [''],
+			// 	// min_age: 0,
+			// 	// max_age: 99,
+			// 	// physical_requirements: '',
+			// 	// required_items: [''],
+			// 	// insurance_terms: '',
+			// 	// disclaimer: '',
+			// 	// contact_phone: '',
+			// 	// contact_email: '',
 
-				travel_agency_info: {
-					agent: '',
-					delegate: ''
-				},
-				booking_restrictions: {
-					age_limit: '',
-					group_limit: '',
-					other_limit: ''
-				},
-				accommodation_policy: {
-					multi_person: ''
-				},
-				group_info: {
-					group_description: '',
-					departure_notice: ''
-				},
-				booking_requirements: [''],
-				violation_terms: {
-					agency_violation: [''],
-					tourist_violation: ['']
-				},
-				travel_guide: [''],
-				safety_tips: [''],
-				payment_info: {
-					supported_methods: [''],
-					payment_notes: ''
-				}
-			};
+			// 	travel_agency_info: {
+			// 		agent: '',
+			// 		delegate: ''
+			// 	},
+			// 	booking_restrictions: {
+			// 		age_limit: '',
+			// 		group_limit: '',
+			// 		other_limit: ''
+			// 	},
+			// 	accommodation_policy: {
+			// 		multi_person: ''
+			// 	},
+			// 	group_info: {
+			// 		group_description: '',
+			// 		departure_notice: ''
+			// 	},
+			// 	booking_requirements: [''],
+			// 	violation_terms: {
+			// 		agency_violation: [''],
+			// 		tourist_violation: ['']
+			// 	},
+			// 	travel_guide: [''],
+			// 	safety_tips: [''],
+			// 	payment_info: {
+			// 		supported_methods: [''],
+			// 		payment_notes: ''
+			// 	}
+			// };
 
-			console.log('🆕 [BookingPolicies] 默认政策模板:', defaultPolicy);
+			// console.log('🆕 [BookingPolicies] 默认政策模板:', defaultPolicy);
 
-			this.localData = defaultPolicy;
+			// this.localData = defaultPolicy;
+
+			this.localData = JSON.parse(JSON.stringify(defaultLocalData));
 
 			console.log('✅ [BookingPolicies] 政策创建完成');
 			console.log('✅ [BookingPolicies] 新政策状态:', {
-				字段数量: Object.keys(this.localData).length,
-				数组字段初始化: {
-					booking_notes: this.localData.booking_notes.length,
-					important_notes: this.localData.important_notes.length,
-					required_items: this.localData.required_items.length
-				},
-				年龄设置: {
-					min: this.localData.min_age,
-					max: this.localData.max_age
-				}
+				字段数量: Object.keys(this.localData).length
+				// 数组字段初始化: {
+				// 	booking_notes: this.localData.booking_notes.length,
+				// 	important_notes: this.localData.important_notes.length,
+				// 	required_items: this.localData.required_items.length
+				// },
+				// 年龄设置: {
+				// 	min: this.localData.min_age,
+				// 	max: this.localData.max_age
+				// }
 			});
 
 			this.updateData();
 		},
 
-		addBookingNote() {
-			console.log('➕ [BookingPolicies] 添加预定须知');
-			console.log('➕ [BookingPolicies] 添加前状态:', {
-				当前数量: this.localData.booking_notes.length,
-				现有内容: this.localData.booking_notes,
-				timestamp: new Date().toLocaleString()
-			});
+		// addBookingNote() {
+		// 	console.log('➕ [BookingPolicies] 添加预定须知');
+		// 	console.log('➕ [BookingPolicies] 添加前状态:', {
+		// 		当前数量: this.localData.booking_notes.length,
+		// 		现有内容: this.localData.booking_notes,
+		// 		timestamp: new Date().toLocaleString()
+		// 	});
 
-			this.localData.booking_notes.push('');
+		// 	this.localData.booking_notes.push('');
 
-			console.log('✅ [BookingPolicies] 预定须知添加完成');
-			console.log('✅ [BookingPolicies] 添加后状态:', {
-				新数量: this.localData.booking_notes.length,
-				最后项索引: this.localData.booking_notes.length - 1,
-				数组内容: this.localData.booking_notes
-			});
+		// 	console.log('✅ [BookingPolicies] 预定须知添加完成');
+		// 	console.log('✅ [BookingPolicies] 添加后状态:', {
+		// 		新数量: this.localData.booking_notes.length,
+		// 		最后项索引: this.localData.booking_notes.length - 1,
+		// 		数组内容: this.localData.booking_notes
+		// 	});
 
-			this.updateData();
-		},
+		// 	this.updateData();
+		// },
 
-		removeBookingNote(index) {
-			console.log('🗑️ [BookingPolicies] 删除预定须知');
-			console.log('🗑️ [BookingPolicies] 删除参数:', {
-				删除索引: index,
-				删除前数量: this.localData.booking_notes.length,
-				被删除内容: this.localData.booking_notes[index],
-				删除前数组: [...this.localData.booking_notes],
-				timestamp: new Date().toLocaleString()
-			});
+		// removeBookingNote(index) {
+		// 	console.log('🗑️ [BookingPolicies] 删除预定须知');
+		// 	console.log('🗑️ [BookingPolicies] 删除参数:', {
+		// 		删除索引: index,
+		// 		删除前数量: this.localData.booking_notes.length,
+		// 		被删除内容: this.localData.booking_notes[index],
+		// 		删除前数组: [...this.localData.booking_notes],
+		// 		timestamp: new Date().toLocaleString()
+		// 	});
 
-			if (index >= 0 && index < this.localData.booking_notes.length) {
-				this.localData.booking_notes.splice(index, 1);
+		// 	if (index >= 0 && index < this.localData.booking_notes.length) {
+		// 		this.localData.booking_notes.splice(index, 1);
 
-				console.log('✅ [BookingPolicies] 预定须知删除完成');
-				console.log('✅ [BookingPolicies] 删除后状态:', {
-					新数量: this.localData.booking_notes.length,
-					删除后数组: this.localData.booking_notes,
-					是否还有内容: this.localData.booking_notes.length > 0
-				});
-			} else {
-				console.error('❌ [BookingPolicies] 删除索引无效:', {
-					提供索引: index,
-					有效范围: `0-${this.localData.booking_notes.length - 1}`,
-					当前数组长度: this.localData.booking_notes.length
-				});
-				return;
-			}
+		// 		console.log('✅ [BookingPolicies] 预定须知删除完成');
+		// 		console.log('✅ [BookingPolicies] 删除后状态:', {
+		// 			新数量: this.localData.booking_notes.length,
+		// 			删除后数组: this.localData.booking_notes,
+		// 			是否还有内容: this.localData.booking_notes.length > 0
+		// 		});
+		// 	} else {
+		// 		console.error('❌ [BookingPolicies] 删除索引无效:', {
+		// 			提供索引: index,
+		// 			有效范围: `0-${this.localData.booking_notes.length - 1}`,
+		// 			当前数组长度: this.localData.booking_notes.length
+		// 		});
+		// 		return;
+		// 	}
 
-			this.updateData();
-		},
+		// 	this.updateData();
+		// },
 
-		addImportantNote() {
-			console.log('➕ [BookingPolicies] 添加注意事项');
-			console.log('➕ [BookingPolicies] 添加前状态:', {
-				当前数量: this.localData.important_notes.length,
-				现有内容: this.localData.important_notes,
-				timestamp: new Date().toLocaleString()
-			});
+		// addImportantNote() {
+		// 	console.log('➕ [BookingPolicies] 添加注意事项');
+		// 	console.log('➕ [BookingPolicies] 添加前状态:', {
+		// 		当前数量: this.localData.important_notes.length,
+		// 		现有内容: this.localData.important_notes,
+		// 		timestamp: new Date().toLocaleString()
+		// 	});
 
-			this.localData.important_notes.push('');
+		// 	this.localData.important_notes.push('');
 
-			console.log('✅ [BookingPolicies] 注意事项添加完成');
-			console.log('✅ [BookingPolicies] 添加后状态:', {
-				新数量: this.localData.important_notes.length,
-				最后项索引: this.localData.important_notes.length - 1,
-				数组内容: this.localData.important_notes
-			});
+		// 	console.log('✅ [BookingPolicies] 注意事项添加完成');
+		// 	console.log('✅ [BookingPolicies] 添加后状态:', {
+		// 		新数量: this.localData.important_notes.length,
+		// 		最后项索引: this.localData.important_notes.length - 1,
+		// 		数组内容: this.localData.important_notes
+		// 	});
 
-			this.updateData();
-		},
+		// 	this.updateData();
+		// },
 
-		removeImportantNote(index) {
-			console.log('🗑️ [BookingPolicies] 删除注意事项');
-			console.log('🗑️ [BookingPolicies] 删除参数:', {
-				删除索引: index,
-				删除前数量: this.localData.important_notes.length,
-				被删除内容: this.localData.important_notes[index],
-				删除前数组: [...this.localData.important_notes],
-				timestamp: new Date().toLocaleString()
-			});
+		// removeImportantNote(index) {
+		// 	console.log('🗑️ [BookingPolicies] 删除注意事项');
+		// 	console.log('🗑️ [BookingPolicies] 删除参数:', {
+		// 		删除索引: index,
+		// 		删除前数量: this.localData.important_notes.length,
+		// 		被删除内容: this.localData.important_notes[index],
+		// 		删除前数组: [...this.localData.important_notes],
+		// 		timestamp: new Date().toLocaleString()
+		// 	});
 
-			if (index >= 0 && index < this.localData.important_notes.length) {
-				this.localData.important_notes.splice(index, 1);
+		// 	if (index >= 0 && index < this.localData.important_notes.length) {
+		// 		this.localData.important_notes.splice(index, 1);
 
-				console.log('✅ [BookingPolicies] 注意事项删除完成');
-				console.log('✅ [BookingPolicies] 删除后状态:', {
-					新数量: this.localData.important_notes.length,
-					删除后数组: this.localData.important_notes,
-					是否还有内容: this.localData.important_notes.length > 0
-				});
-			} else {
-				console.error('❌ [BookingPolicies] 删除索引无效:', {
-					提供索引: index,
-					有效范围: `0-${this.localData.important_notes.length - 1}`,
-					当前数组长度: this.localData.important_notes.length
-				});
-				return;
-			}
+		// 		console.log('✅ [BookingPolicies] 注意事项删除完成');
+		// 		console.log('✅ [BookingPolicies] 删除后状态:', {
+		// 			新数量: this.localData.important_notes.length,
+		// 			删除后数组: this.localData.important_notes,
+		// 			是否还有内容: this.localData.important_notes.length > 0
+		// 		});
+		// 	} else {
+		// 		console.error('❌ [BookingPolicies] 删除索引无效:', {
+		// 			提供索引: index,
+		// 			有效范围: `0-${this.localData.important_notes.length - 1}`,
+		// 			当前数组长度: this.localData.important_notes.length
+		// 		});
+		// 		return;
+		// 	}
 
-			this.updateData();
-		},
+		// 	this.updateData();
+		// },
 
-		addRequiredItem() {
-			console.log('➕ [BookingPolicies] 添加携带物品');
-			console.log('➕ [BookingPolicies] 添加前状态:', {
-				当前数量: this.localData.required_items.length,
-				现有内容: this.localData.required_items,
-				timestamp: new Date().toLocaleString()
-			});
+		// addRequiredItem() {
+		// 	console.log('➕ [BookingPolicies] 添加携带物品');
+		// 	console.log('➕ [BookingPolicies] 添加前状态:', {
+		// 		当前数量: this.localData.required_items.length,
+		// 		现有内容: this.localData.required_items,
+		// 		timestamp: new Date().toLocaleString()
+		// 	});
 
-			this.localData.required_items.push('');
+		// 	this.localData.required_items.push('');
 
-			console.log('✅ [BookingPolicies] 携带物品添加完成');
-			console.log('✅ [BookingPolicies] 添加后状态:', {
-				新数量: this.localData.required_items.length,
-				最后项索引: this.localData.required_items.length - 1,
-				数组内容: this.localData.required_items
-			});
+		// 	console.log('✅ [BookingPolicies] 携带物品添加完成');
+		// 	console.log('✅ [BookingPolicies] 添加后状态:', {
+		// 		新数量: this.localData.required_items.length,
+		// 		最后项索引: this.localData.required_items.length - 1,
+		// 		数组内容: this.localData.required_items
+		// 	});
 
-			this.updateData();
-		},
+		// 	this.updateData();
+		// },
 
-		removeRequiredItem(index) {
-			console.log('🗑️ [BookingPolicies] 删除携带物品');
-			console.log('🗑️ [BookingPolicies] 删除参数:', {
-				删除索引: index,
-				删除前数量: this.localData.required_items.length,
-				被删除内容: this.localData.required_items[index],
-				删除前数组: [...this.localData.required_items],
-				timestamp: new Date().toLocaleString()
-			});
+		// removeRequiredItem(index) {
+		// 	console.log('🗑️ [BookingPolicies] 删除携带物品');
+		// 	console.log('🗑️ [BookingPolicies] 删除参数:', {
+		// 		删除索引: index,
+		// 		删除前数量: this.localData.required_items.length,
+		// 		被删除内容: this.localData.required_items[index],
+		// 		删除前数组: [...this.localData.required_items],
+		// 		timestamp: new Date().toLocaleString()
+		// 	});
 
-			if (index >= 0 && index < this.localData.required_items.length) {
-				this.localData.required_items.splice(index, 1);
+		// 	if (index >= 0 && index < this.localData.required_items.length) {
+		// 		this.localData.required_items.splice(index, 1);
 
-				console.log('✅ [BookingPolicies] 携带物品删除完成');
-				console.log('✅ [BookingPolicies] 删除后状态:', {
-					新数量: this.localData.required_items.length,
-					删除后数组: this.localData.required_items,
-					是否还有内容: this.localData.required_items.length > 0
-				});
-			} else {
-				console.error('❌ [BookingPolicies] 删除索引无效:', {
-					提供索引: index,
-					有效范围: `0-${this.localData.required_items.length - 1}`,
-					当前数组长度: this.localData.required_items.length
-				});
-				return;
-			}
+		// 		console.log('✅ [BookingPolicies] 携带物品删除完成');
+		// 		console.log('✅ [BookingPolicies] 删除后状态:', {
+		// 			新数量: this.localData.required_items.length,
+		// 			删除后数组: this.localData.required_items,
+		// 			是否还有内容: this.localData.required_items.length > 0
+		// 		});
+		// 	} else {
+		// 		console.error('❌ [BookingPolicies] 删除索引无效:', {
+		// 			提供索引: index,
+		// 			有效范围: `0-${this.localData.required_items.length - 1}`,
+		// 			当前数组长度: this.localData.required_items.length
+		// 		});
+		// 		return;
+		// 	}
 
-			this.updateData();
-		},
+		// 	this.updateData();
+		// },
 
 		addBookingRequirement() {
 			this.localData.booking_requirements.push('');

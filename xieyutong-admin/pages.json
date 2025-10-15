@@ -336,6 +336,13 @@
 	{
 		"navigationBarTitleText" : ""
 	}
+},
+{
+	"path" : "pages/snapshot-sync/snapshot-sync",
+	"style" : 
+	{
+		"navigationBarTitleText" : ""
+	}
 }
 ],
 	"subPackages": [{
