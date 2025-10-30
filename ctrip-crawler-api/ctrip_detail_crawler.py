@@ -15,6 +15,17 @@ def extract_product_data_from_markdown(markdown_content):
         "product_id": "",
         "title": "",
         "subtitle": "",
+        "route_title": "",
+        "route_overview": {
+            "transport": "",
+            "accommodation": "",
+            "spots": "",
+            "meals": "",
+            "activities": "",
+        },
+        "rating": 0,
+        "sales_count": 0,
+        "review_count": 0,
         "price": "",
         "product_images": [],  # 商品展示图（去掉尺寸参数的大图）
         "detail_images": [],   # 详情介绍图（保持原尺寸）
@@ -36,6 +47,78 @@ def extract_product_data_from_markdown(markdown_content):
     }
     
     lines = markdown_content.split('\n')
+
+    for line in lines:
+        print(line)
+
+    # 1. 提取销售量、评分、评价数
+    sales_count_pattern = r'已售(\d+)人'
+    rating_pattern = r'(\d(\.\d)?)分.+'
+    review_count_pattern = r'(\d+)条!\[\]\(.+'
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        sales_count_match = re.search(sales_count_pattern, line)
+        if sales_count_match:
+            sales_count = int(sales_count_match.group(1))
+            product_data["sales_count"] = sales_count
+            continue
+
+        rating_match = re.search(rating_pattern, line)
+        if rating_match:
+            rating = float(rating_match.group(1))
+            product_data["rating"] = rating
+            continue
+
+        review_count_match = re.search(review_count_pattern, line)
+        if review_count_match:
+            review_count = int(review_count_match.group(1))
+            product_data["review_count"] = review_count
+            break
+
+
+    # 2. 提取线路字母，并提取线路标题和概述
+    route_letter_pattern = r'([A-Z])线'
+    for i, line in enumerate(lines):
+        line = line.strip()
+        if not line:
+            continue
+
+        match = re.search(route_letter_pattern, line)
+        if match:
+            route_letter = match.group(1)
+            for j in range(i + 1, len(lines)):
+                next_line = lines[j].strip()
+                if not next_line:
+                    continue
+
+                if next_line.startswith(f'{route_letter}线|'):
+                    product_data["route_title"] = next_line
+                    for k in range(j + 1, len(lines)):
+                        next_line = lines[k].strip()
+                        if not next_line:
+                            continue
+
+                        print(next_line)
+                        print(lines[k+1].strip())
+                        if re.match(r'[A-Z]线\|', next_line):
+                            break
+                        elif next_line == "行":
+                            product_data["route_overview"]["transport"] = lines[k + 1]
+                        elif next_line == "住":
+                            product_data["route_overview"]["accommodation"] = lines[k + 1]
+                        elif next_line == "游":
+                            product_data["route_overview"]["spots"] = lines[k + 1]
+                        elif next_line == "餐":
+                            product_data["route_overview"]["meals"] = lines[k + 1]
+                        elif next_line == "活":
+                            product_data["route_overview"]["activities"] = lines[k + 1]
+
+
+    title_pattern = r'.+\+.+私家团'
+    subtitle_pattern = r'.+·.+'
     
     # 1. 提取商品ID和标题
     for i, line in enumerate(lines):
@@ -46,17 +129,21 @@ def extract_product_data_from_markdown(markdown_content):
                 product_data["product_id"] = match.group(1)
         
         # 提取标题 (通常是第一个较长的文本行)
-        if not product_data["title"] and len(line.strip()) > 20 and '拉萨' in line and '私家团' in line:
-            product_data["title"] = line.strip()
-            # 寻找真正的副标题（景点列表）
-            for j in range(i + 1, min(i + 10, len(lines))):
-                next_line = lines[j].strip()
-                # 副标题通常包含景点名称，用·分隔
-                if next_line and '·' in next_line and len(next_line) > 30:
-                    # 检查是否包含景点关键词
-                    if any(keyword in next_line for keyword in ['羊卓雍错', '珠峰', '陈塘沟', '卡若拉', '白居寺']):
-                        product_data["subtitle"] = next_line
-                        break
+        if not product_data["title"] and '+' in line:
+            match = re.search(title_pattern, line.strip())
+            if match:
+                product_data["title"] = line.strip()
+                # 寻找真正的副标题（景点列表）
+                for j in range(i + 1, min(i + 10, len(lines))):
+                    next_line = lines[j].strip()
+                    # 副标题通常包含景点名称，用·分隔
+                    if next_line and '·' in next_line:
+                        match = re.search(subtitle_pattern, next_line)
+                        if match:
+                        # # 检查是否包含景点关键词
+                        # if any(keyword in next_line for keyword in ['羊卓雍错', '珠峰', '陈塘沟', '卡若拉', '白居寺']):
+                            product_data["subtitle"] = next_line
+                            break
     
     # 2. 提取价格信息
     price_pattern = r'¥(\d+)'
@@ -73,17 +160,19 @@ def extract_product_data_from_markdown(markdown_content):
     def remove_size_params(url):
         """去掉图片URL中的尺寸参数，获取大图"""
         # 去掉 _C_数字_数字_R1_Q80 这样的尺寸参数
-        url = re.sub(r'_C_\d+_\d+_R1_Q80', '', url)
+        url = re.sub(r'_[A-Za-z]_\d+_\d+(_R\d+_Q\d+)?', '', url)
         return url
     
-    def is_product_image(url):
+    def is_detail_image(url):
         """判断是否为商品展示图"""
         # 商品图特征：通常包含特定的尺寸参数，且在页面前部出现
         # 详情图特征：通常是.jpg格式，或者没有复杂的尺寸参数
+        size_pattern = r'_[A-Za-z]_\d+_\d+'
+        size_match = re.search(size_pattern, url)
+        if size_match:
+            return False
         if url.endswith('.jpg'):
             return True  # .jpg通常是详情图
-        if '_C_500_500_' in url or '_C_750_430_' in url or '_C_386_386_' in url:
-            return False   # 这些尺寸通常是商品展示图
         return False
     
     processed_images = set()  # 用于去重
@@ -95,15 +184,15 @@ def extract_product_data_from_markdown(markdown_content):
                 continue
             processed_images.add(original_url)
             
-            if is_product_image(original_url):
+            if is_detail_image(original_url):
+                # 详情图：保持原尺寸
+                if original_url not in product_data["detail_images"]:
+                    product_data["detail_images"].append(original_url)
+            else:
                 # 商品图：去掉尺寸参数保存大图
                 large_url = remove_size_params(original_url)
                 if large_url not in product_data["product_images"]:
                     product_data["product_images"].append(large_url)
-            else:
-                # 详情图：保持原尺寸
-                if original_url not in product_data["detail_images"]:
-                    product_data["detail_images"].append(original_url)
     
     # 4. 提取线路总览信息 - 完整优化版本
     overview_section = False
@@ -114,7 +203,7 @@ def extract_product_data_from_markdown(markdown_content):
     meals_info_parts = []  # 用于收集餐食的完整信息
     
     for i, line in enumerate(lines):
-        if '线路总览' in line:
+        if '线总览' in line:
             overview_section = True
             continue
         
@@ -130,9 +219,10 @@ def extract_product_data_from_markdown(markdown_content):
                 # 查找后续几行的详细描述
                 for j in range(i+1, min(i+15, len(lines))):
                     desc_line = lines[j].strip()
-                    
+                    score_pattern = r'\d\.\d分'
+
                     # 跳过空行和图片链接
-                    if not desc_line or desc_line.startswith('!['):
+                    if not desc_line or desc_line.startswith('![') or desc_line == '•':
                         continue
                     
                     # 收集基本服务描述
@@ -144,12 +234,12 @@ def extract_product_data_from_markdown(markdown_content):
                         guide_info_parts.append(desc_line)
                     
                     # 收集司机信息
-                    elif any(name in desc_line for name in ['刘华山', '彭亚平']) and '分' in desc_line:
-                        guide_info_parts.append(desc_line)
+                    elif re.search(score_pattern, desc_line):
+                        guide_info_parts.append(lines[j - 1].strip()[:-1])
                     
                     # 收集司机数量信息
                     elif '全部' in desc_line and '位' in desc_line:
-                        guide_info_parts.append(desc_line)
+                        guide_info_parts.append(desc_line.strip()[:-1])
                     
                     # 收集补充说明
                     elif '以上为近期带过本团的司机' in desc_line:
@@ -168,18 +258,18 @@ def extract_product_data_from_markdown(markdown_content):
                     desc_line = lines[j].strip()
                     
                     # 跳过空行和图片链接
-                    if not desc_line or desc_line.startswith('!['):
+                    if not desc_line or desc_line.startswith('![') or desc_line == '•':
                         continue
-                    
-                    # 收集交通相关信息
-                    if ('含行中专属用车' in desc_line or '不拼车' in desc_line or 
-                        '经济' in desc_line and '座' in desc_line):
-                        transport_info_parts.append(desc_line.replace('• ', ''))
-                    
+
                     # 如果遇到下一个section，停止收集
                     if any(keyword in desc_line for keyword in ['游玩', '住宿', '餐食']):
                         break
-                
+
+                    # 收集交通相关信息
+                    # if ('含行中专属用车' in desc_line or '不拼车' in desc_line or
+                    #     '经济' in desc_line and '座' in desc_line):
+                    transport_info_parts.append(desc_line.replace('• ', '').replace(' 详情', ''))
+
                 if transport_info_parts:
                     product_data["overview"]["transport"] = '; '.join(transport_info_parts)
                     
@@ -191,18 +281,18 @@ def extract_product_data_from_markdown(markdown_content):
                     desc_line = lines[j].strip()
                     
                     # 跳过空行和图片链接
-                    if not desc_line or desc_line.startswith('!['):
+                    if not desc_line or desc_line.startswith('![') or desc_line == '•':
                         continue
-                    
-                    # 收集游玩相关信息
-                    if ('个景点' in desc_line or '场馆' in desc_line or 
-                        '儿童票' in desc_line or '无购物' in desc_line):
-                        activities_info_parts.append(desc_line.replace('• ', ''))
-                    
+
                     # 如果遇到下一个section，停止收集
                     if any(keyword in desc_line for keyword in ['住宿', '餐食', '团队服务']):
                         break
-                
+
+                    # 收集游玩相关信息
+                    # if ('个景点' in desc_line or '场馆' in desc_line or
+                    #     '儿童票' in desc_line or '无购物' in desc_line):
+                    activities_info_parts.append(desc_line.replace('• ', '').replace(' 详情', ''))
+
                 if activities_info_parts:
                     product_data["overview"]["activities"] = '; '.join(activities_info_parts)
                     
@@ -214,17 +304,17 @@ def extract_product_data_from_markdown(markdown_content):
                     desc_line = lines[j].strip()
                     
                     # 跳过空行和图片链接
-                    if not desc_line or desc_line.startswith('!['):
+                    if not desc_line or desc_line.startswith('![') or desc_line == '•':
                         continue
-                    
-                    # 收集住宿相关信息
-                    if ('钻酒店' in desc_line or '平措康桑' in desc_line or 
-                        '详情' in desc_line):
-                        accommodation_info_parts.append(desc_line.replace('• ', ''))
-                    
+
                     # 如果遇到下一个section，停止收集
                     if any(keyword in desc_line for keyword in ['餐食', '团队服务', '交通']):
                         break
+
+                    # 收集住宿相关信息
+                    # if ('钻酒店' in desc_line or '平措康桑' in desc_line or
+                    #     '详情' in desc_line):
+                    accommodation_info_parts.append(desc_line.replace('• ', '').replace(' 详情', ''))
                 
                 if accommodation_info_parts:
                     product_data["overview"]["accommodation"] = '; '.join(accommodation_info_parts)
@@ -237,18 +327,18 @@ def extract_product_data_from_markdown(markdown_content):
                     desc_line = lines[j].strip()
                     
                     # 跳过空行和图片链接
-                    if not desc_line or desc_line.startswith('!['):
+                    if not desc_line or desc_line.startswith('![') or desc_line == '•':
                         continue
-                    
-                    # 收集餐食相关信息
-                    if ('成人' in desc_line and ('早餐' in desc_line or '晚餐' in desc_line or '自理' in desc_line)) or \
-                       ('儿童' in desc_line and ('晚餐' in desc_line or '自理' in desc_line)):
-                        meals_info_parts.append(desc_line.replace('• ', ''))
-                    
+
                     # 如果遇到下一个section，停止收集
                     if any(keyword in desc_line for keyword in ['产品特色', '团队服务', '交通']):
                         break
-                
+
+                    # 收集餐食相关信息
+                    # if ('成人' in desc_line and ('早餐' in desc_line or '晚餐' in desc_line or '自理' in desc_line)) or \
+                    #    ('儿童' in desc_line and ('晚餐' in desc_line or '自理' in desc_line)):
+                    meals_info_parts.append(desc_line.replace('• ', '').replace(' 详情', ''))
+
                 if meals_info_parts:
                     product_data["overview"]["meals"] = '; '.join(meals_info_parts)
     
@@ -259,14 +349,14 @@ def extract_product_data_from_markdown(markdown_content):
             features_section = True
             continue
         
-        if features_section and ('5日行程' in line or 'D1|' in line):
+        if features_section and ('日行程' in line or 'D1|' in line or '展开全部' in line):
             features_section = False
             break
             
-        if features_section and line.strip() and not line.startswith('!['):
+        if features_section and line.strip() and not line.startswith('![') and '![' not in line:
             # 特色通常以关键词开头，如"大牌驾到"、"精选酒店"等
-            if any(keyword in line for keyword in ['大牌驾到', '精选酒店', '服务保障', '独特', '精选', '保障']):
-                product_data["features"].append(line.strip())
+            # if any(keyword in line for keyword in ['大牌驾到', '精选酒店', '服务保障', '独特', '精选', '保障', '首选', '度假', '景点']):
+            product_data["features"].append(line.strip())
     
     # 6. 提取费用信息 - 优化版本
     cost_section = False
@@ -407,8 +497,6 @@ async def crawl_and_extract_ctrip_data(url):
             # with open(markdown_file, 'w', encoding='utf-8') as f:
             #     f.write(result.markdown)
             # print(f"📝 Markdown文件已保存: {markdown_file}")
-
-            print(f"RESULT.MARKDOWN: {result.markdown}")
             
             # 提取结构化数据
             print("🎯 开始提取结构化数据...")

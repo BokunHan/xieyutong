@@ -1,44 +1,39 @@
 <template>
 	<view class="min-h-screen bg-gray-50 font-sans">
-		<!-- 页面标题栏 -->
 		<view class="bg-white border-b border-gray-200 shadow-sm">
 			<view class="max-w-7xl mx-auto px-6 py-4">
 				<view class="flex items-center justify-between">
 					<view class="flex items-center">
 						<i class="fas fa-sync-alt text-blue-600 text-2xl mr-4"></i>
 						<view>
-							<text class="text-2xl font-bold text-gray-900" style="font-family: 'Microsoft YaHei', sans-serif;">携程商品同步</text>
-							<text class="text-sm text-gray-500 block mt-1">输入携程商品ID，一键同步商品详情、行程安排和预订须知</text>
+							<text class="text-2xl font-bold text-gray-900" style="font-family: 'Microsoft YaHei', sans-serif">携程商品同步</text>
+							<text class="text-sm text-gray-500 block mt-1">输入商品ID，一键同步商品全部线路</text>
 						</view>
 					</view>
 				</view>
 			</view>
 		</view>
 
-		<!-- 主内容区 -->
 		<view class="max-w-7xl mx-auto px-6 py-8">
-			
-			<!-- 操作区域 -->
 			<view class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
 				<view class="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
 					<view class="flex items-center">
 						<i class="fas fa-search text-blue-600 text-xl mr-3"></i>
-						<text class="text-xl font-semibold text-gray-800" style="font-family: 'Microsoft YaHei', sans-serif;">商品信息查询与同步</text>
+						<text class="text-xl font-semibold text-gray-800" style="font-family: 'Microsoft YaHei', sans-serif">商品信息查询与同步</text>
 					</view>
 				</view>
-				
+
 				<view class="p-8">
-					<!-- 步骤一：输入商品ID -->
 					<view class="mb-8">
 						<view class="flex items-center mb-4">
 							<view class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</view>
-							<text class="text-lg font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif;">输入携程商品ID</text>
+							<text class="text-lg font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif">输入商品ID</text>
 						</view>
-						
+
 						<view class="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
 							<view class="lg:col-span-2">
-								<uni-easyinput 
-									v-model="productId"
+								<uni-easyinput
+									v-model="mainProductId"
 									placeholder="请输入携程商品ID，例如：41767537"
 									:clearable="true"
 									:inputBorder="true"
@@ -51,142 +46,221 @@
 										fontFamily: 'Microsoft YaHei, sans-serif',
 										padding: '16px 24px',
 										minHeight: '56px'
-									}"
-									:focus-style="{
-										borderColor: '#3b82f6',
-										boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.2)'
-									}"
-								></uni-easyinput>
+									}"></uni-easyinput>
 							</view>
-							
-							<view class="lg:col-span-2">
-								<button 
+
+							<view class="lg:col-span-1">
+								<button
 									class="w-full px-6 py-4 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-									style="font-family: 'Microsoft YaHei', sans-serif;"
-									@click="getProductDetail"
-									:disabled="loading || !productId.trim()"
-								>
-									<i class="fas fa-search mr-2" :class="{ 'fa-spin': loadingDetail }"></i>
-									<text v-if="!loadingDetail">获取商品详情</text>
+									style="font-family: 'Microsoft YaHei', sans-serif"
+									@click="getRouteIds"
+									:disabled="loadingRouteIds || !mainProductId.trim() || loadingReviews">
+									<i class="fas fa-search mr-2" :class="{ 'fa-spin': loadingRouteIds }"></i>
+									<text v-if="!loadingRouteIds">获取商品线路</text>
 									<text v-else>查询中...</text>
 								</button>
 							</view>
-						</view>
-					</view>
-					
-					<!-- 商品详情预览 -->
-					<view v-if="productDetail" class="mb-8">
-						<view class="flex items-center mb-4">
-							<view class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</view>
-							<text class="text-lg font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif;">确认商品信息</text>
-						</view>
-						
-						<view class="bg-gray-50 rounded-lg p-6 border border-gray-200">
-							<view class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								<view>
-									<text class="text-sm font-medium text-gray-500 mb-1">商品标题</text>
-									<text class="text-lg font-semibold text-gray-900 block" style="font-family: 'Microsoft YaHei', sans-serif;">{{ productDetail.title || '未获取到标题' }}</text>
-								</view>
-								<view>
-									<text class="text-sm font-medium text-gray-500 mb-1">商品价格</text>
-									<text class="text-lg font-semibold text-red-600" style="font-family: 'Microsoft YaHei', sans-serif;">{{ productDetail.price || '未获取到价格' }}</text>
-								</view>
-								<view class="lg:col-span-2" v-if="productDetail.subtitle">
-									<text class="text-sm font-medium text-gray-500 mb-1">商品描述</text>
-									<text class="text-gray-700 leading-relaxed" style="font-family: 'Microsoft YaHei', sans-serif;">{{ productDetail.subtitle }}</text>
-								</view>
-								<view class="lg:col-span-2" v-if="productDetail.images && productDetail.images.length > 0">
-									<text class="text-sm font-medium text-gray-500 mb-2 block">商品图片（共{{ productDetail.images.length }}张）</text>
-									<view class="grid grid-cols-6 gap-2">
-										<view 
-											v-for="(img, index) in productDetail.images.slice(0, 12)" 
-											:key="index"
-											class="relative group cursor-pointer"
-											@click="previewImage(img, index)"
-										>
-											<image 
-												:src="img" 
-												class="w-full h-20 rounded-lg object-cover border border-gray-200 hover:border-blue-400 transition-all duration-200"
-												mode="aspectFill"
-												@error="handleImageError"
-											></image>
-											<view class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
-												<i class="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
-											</view>
-										</view>
-										<view v-if="productDetail.images.length > 12" class="w-full h-20 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all duration-200" @click="showAllImages">
-											<view class="text-center">
-												<i class="fas fa-images text-gray-400 text-lg block mb-1"></i>
-												<text class="text-xs text-gray-500">+{{ productDetail.images.length - 12 }}</text>
-											</view>
-										</view>
-									</view>
-								</view>
-							</view>
-							
-							<view class="mt-6 flex items-center justify-between">
-								<view class="text-sm text-gray-500">
-									<i class="fas fa-info-circle mr-1"></i>
-									请确认以上信息无误后，点击右侧按钮开始同步
-								</view>
-								<button 
-									class="px-8 py-3 bg-green-600 text-white text-lg font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-									style="font-family: 'Microsoft YaHei', sans-serif;"
-									@click="startSync"
-									:disabled="loading"
-								>
-									<i class="fas fa-sync mr-2" :class="{ 'fa-spin': loading }"></i>
-									<text v-if="!loading">开始同步商品</text>
+
+							<view class="lg:col-span-1">
+								<button
+									class="w-full px-6 py-4 bg-purple-600 text-white text-lg font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+									style="font-family: 'Microsoft YaHei', sans-serif"
+									@click="syncReviews"
+									:disabled="loadingReviews || !mainProductId.trim() || loadingRouteIds">
+									<i class="fas fa-star mr-2" :class="{ 'fa-spin': loadingReviews }"></i>
+									<text v-if="!loadingReviews">同步评价</text>
 									<text v-else>同步中...</text>
 								</button>
 							</view>
 						</view>
+
+						<view v-if="reviewSyncResult" class="mt-4 p-4 rounded-lg" :class="reviewSyncResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+							<view class="flex items-center">
+								<i class="fas" :class="reviewSyncResult.success ? 'fa-check-circle text-green-600' : 'fa-exclamation-triangle text-red-600'"></i>
+								<text class="ml-3 text-sm font-medium" :class="reviewSyncResult.success ? 'text-green-800' : 'text-red-800'">
+									{{ reviewSyncResult.message }}
+								</text>
+							</view>
+						</view>
 					</view>
-					
-					<!-- 步骤三：同步进度 -->
+
+					<view v-if="routeIdList.length > 0" class="mb-8">
+						<view class="flex items-center justify-between mb-4">
+							<view class="flex items-center">
+								<view class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</view>
+								<text class="text-lg font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif">选择要同步的线路 (共 {{ routeIdList.length }} 条)</text>
+							</view>
+							<view class="flex space-x-2">
+								<button class="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded hover:bg-gray-300" @click="toggleSelectAll(true)">全选</button>
+								<button class="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded hover:bg-gray-300" @click="toggleSelectAll(false)">全不选</button>
+							</view>
+						</view>
+
+						<view class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+							<view class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								<label
+									v-for="route in routeIdList"
+									:key="route.id"
+									class="flex items-center p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-all"
+									@click.prevent="toggleRouteSelection(route)">
+									<checkbox :value="route.id" :checked="route.selected" class="transform scale-110 mr-3" />
+									<text class="font-medium text-gray-800">{{ route.id }}</text>
+									<text v-if="route.exists" class="ml-auto text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded-full">已存在</text>
+									<text v-else class="ml-auto text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">新商品</text>
+								</label>
+							</view>
+
+							<view class="mt-6 flex items-center justify-between">
+								<view class="text-sm text-gray-500">
+									<i class="fas fa-info-circle mr-1"></i>
+									已选择 {{ selectedRouteIds.length }} 条线路
+								</view>
+								<button
+									class="px-8 py-3 bg-indigo-600 text-white text-lg font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+									style="font-family: 'Microsoft YaHei', sans-serif"
+									@click="fetchProductDetails"
+									:disabled="loadingProductDetails || selectedRouteIds.length === 0">
+									<i class="fas fa-download mr-2" :class="{ 'fa-spin': loadingProductDetails }"></i>
+									<text v-if="!loadingProductDetails">获取商品详情</text>
+									<text v-else>获取中...</text>
+								</button>
+							</view>
+						</view>
+					</view>
+
+					<view v-if="productDetailList.length > 0" class="mb-8">
+						<view class="flex items-center mb-4">
+							<view class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</view>
+							<text class="text-lg font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif">确认商品信息</text>
+						</view>
+
+						<view class="space-y-4">
+							<view v-for="(product, index) in productDetailList" :key="product.id" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+								<view v-if="product.status === 'loading'" class="flex items-center justify-center py-10">
+									<i class="fas fa-spinner fa-spin text-blue-500 text-2xl mr-3"></i>
+									<text class="text-gray-600">正在加载 {{ product.id }} 详情...</text>
+								</view>
+
+								<view v-else-if="product.status === 'error'" class="flex items-center justify-between">
+									<view>
+										<text class="font-semibold text-red-600">商品 {{ product.id }} 加载失败</text>
+										<text class="text-sm text-gray-500 block mt-1">{{ product.error }}</text>
+									</view>
+									<view class="flex space-x-2">
+										<button class="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700" @click="retryProductDetail(product, index)">重试</button>
+										<button class="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded hover:bg-gray-300" @click="cancelProductDetail(index)">取消</button>
+									</view>
+								</view>
+
+								<view v-else-if="product.status === 'success'">
+									<view class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+										<view class="lg:col-span-3">
+											<text class="text-sm font-medium text-gray-500 mb-1">商品 {{ product.id }}</text>
+											<text class="text-base font-semibold text-gray-900 block" style="font-family: 'Microsoft YaHei', sans-serif">{{ product.data.title || 'N/A' }}</text>
+											<text class="text-sm text-gray-600 block mt-1" style="font-family: 'Microsoft YaHei', sans-serif">{{ product.data.subtitle || 'N/A' }}</text>
+										</view>
+										<view class="lg:col-span-1">
+											<text class="text-sm font-medium text-gray-500 mb-1">价格</text>
+											<text class="text-base font-semibold text-red-600" style="font-family: 'Microsoft YaHei', sans-serif">{{ product.data.price || 'N/A' }}</text>
+										</view>
+										<view class="lg:col-span-1 flex items-center justify-end">
+											<button class="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded hover:bg-gray-300" @click="cancelProductDetail(index)">取消</button>
+										</view>
+										<view class="lg:col-span-5" v-if="product.data.images && product.data.images.length > 0">
+											<view class="grid grid-cols-10 gap-2">
+												<image
+													v-for="(img, imgIndex) in product.data.images.slice(0, 10)"
+													:key="imgIndex"
+													:src="img"
+													class="w-full h-16 rounded object-cover border border-gray-200"
+													mode="aspectFill"
+													@error="handleImageError"></image>
+											</view>
+										</view>
+									</view>
+								</view>
+							</view>
+						</view>
+
+						<view class="mt-6 flex items-center justify-between">
+							<view class="text-sm text-gray-500">
+								<i class="fas fa-info-circle mr-1"></i>
+								将同步 {{ successfulProductIds.length }} 个商品 (已自动过滤失败项)
+							</view>
+							<button
+								class="px-8 py-3 bg-green-600 text-white text-lg font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+								style="font-family: 'Microsoft YaHei', sans-serif"
+								@click="startSync"
+								:disabled="loadingSync || successfulProductIds.length === 0">
+								<i class="fas fa-sync mr-2" :class="{ 'fa-spin': loadingSync }"></i>
+								<text v-if="!loadingSync">开始同步商品</text>
+								<text v-else>同步中...</text>
+							</button>
+						</view>
+					</view>
+
 					<view v-if="showSyncProgress" class="mb-8">
 						<view class="flex items-center mb-4">
-							<view class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</view>
-							<text class="text-lg font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif;">同步进度</text>
+							<view class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</view>
+							<text class="text-lg font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif">同步进度</text>
 						</view>
-						
+
 						<view class="bg-gray-50 rounded-lg p-6 border border-gray-200">
-							<view class="space-y-4">
-								<view v-for="(status, key) in syncStatus" :key="key" class="flex items-center justify-between p-4 bg-white rounded-lg border">
+							<view class="mb-4 p-4 bg-white rounded-lg border border-gray-200">
+								<text class="text-lg font-semibold text-gray-800">同步结果统计</text>
+								<view class="flex justify-around mt-2">
+									<view class="text-center">
+										<text class="text-2xl font-bold text-blue-600 block">{{ syncStats.total }}</text>
+										<text class="text-sm text-gray-500">总任务</text>
+									</view>
+									<view class="text-center">
+										<text class="text-2xl font-bold text-green-600 block">{{ syncStats.success }}</text>
+										<text class="text-sm text-gray-500">成功</text>
+									</view>
+									<view class="text-center">
+										<text class="text-2xl font-bold text-red-600 block">{{ syncStats.failed }}</text>
+										<text class="text-sm text-gray-500">失败</text>
+									</view>
+								</view>
+							</view>
+
+							<view class="space-y-2">
+								<view v-for="result in syncResults" :key="result.id" class="flex items-center justify-between p-3 bg-white rounded-lg border">
 									<view class="flex items-center">
-										<i :class="getStatusIcon(status)" class="mr-3 text-lg"></i>
-										<text class="font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif;">{{ getSyncTypeText(key) }}</text>
+										<i :class="getStatusIcon(result.status)" class="mr-3 text-lg"></i>
+										<text class="font-medium text-gray-700" style="font-family: 'Microsoft YaHei', sans-serif">商品 {{ result.id }}</text>
 									</view>
 									<view class="flex items-center">
-										<text :class="getStatusColor(status)" class="text-sm font-medium mr-2" style="font-family: 'Microsoft YaHei', sans-serif;">{{ getStatusText(status) }}</text>
-										<view v-if="status === 'error'" class="text-xs text-red-500 cursor-pointer" @click="showErrorDetail(key)">
+										<text :class="getStatusColor(result.status)" class="text-sm font-medium mr-2" style="font-family: 'Microsoft YaHei', sans-serif">
+											{{ getStatusText(result.status) }}
+										</text>
+										<view v-if="result.status === 'error'" class="text-xs text-red-500 cursor-pointer" @click="showErrorDetail(result.error)">
 											<i class="fas fa-exclamation-circle"></i>
 										</view>
 									</view>
 								</view>
 							</view>
-							
-							<!-- 总进度条 -->
-							<view v-if="loading" class="mt-6">
-								<text class="text-sm text-gray-600 mb-2 block" style="font-family: 'Microsoft YaHei', sans-serif;">总体进度: {{ progress }}%</text>
-								<view class="w-full bg-gray-200 rounded-full h-3">
-									<view class="bg-blue-600 h-3 rounded-full transition-all duration-300" :style="{width: progress + '%'}"></view>
-								</view>
-							</view>
-							
-							<!-- 同步完成后的操作按钮 -->
-							<view v-if="!loading && progress === 100" class="mt-6 pt-4 border-t border-gray-200">
+
+							<view v-if="!loadingSync" class="mt-6 pt-4 border-t border-gray-200">
 								<view class="flex items-center justify-between">
-									<view class="text-sm text-gray-600">
+									<button
+										v-if="syncStats.failed > 0"
+										class="px-6 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200 flex items-center disabled:opacity-50"
+										@click="retryFailedSyncs"
+										:disabled="loadingSync">
+										<i class="fas fa-redo mr-2"></i>
+										重试失败
+									</button>
+									<view v-else class="text-sm text-gray-600">
 										<i class="fas fa-check-circle text-green-500 mr-2"></i>
-										同步已完成，您可以查看同步的商品详情
+										全部同步已完成
 									</view>
-									<button 
+
+									<button
 										class="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
-										@click="goToProductDetail"
-									>
+										@click="goToProductList">
 										<i class="fas fa-eye mr-2"></i>
-										查看商品详情
+										查看商品列表
 									</button>
 								</view>
 							</view>
@@ -195,11 +269,10 @@
 				</view>
 			</view>
 
-			<!-- 空状态提示 -->
-			<view v-if="!productDetail && !showSyncProgress && !loading" class="bg-white rounded-xl shadow-sm border border-gray-200 p-16 text-center">
+			<view v-if="routeIdList.length === 0 && productDetailList.length === 0 && !loadingRouteIds" class="bg-white rounded-xl shadow-sm border border-gray-200 p-16 text-center">
 				<i class="fas fa-cloud-download-alt text-gray-300 text-6xl mb-6"></i>
-				<text class="text-xl text-gray-500 block mb-2" style="font-family: 'Microsoft YaHei', sans-serif;">输入商品ID开始查询</text>
-				<text class="text-sm text-gray-400" style="font-family: 'Microsoft YaHei', sans-serif;">请输入携程商品ID，获取商品详情后进行同步</text>
+				<text class="text-xl text-gray-500 block mb-2" style="font-family: 'Microsoft YaHei', sans-serif">输入商品ID开始查询</text>
+				<text class="text-sm text-gray-400" style="font-family: 'Microsoft YaHei', sans-serif">第一步：获取商品包含的所有线路ID</text>
 			</view>
 		</view>
 	</view>
@@ -207,322 +280,426 @@
 
 <script>
 export default {
-	components: {
-		// uni-easyinput 已通过 uni_modules 自动注册，无需手动导入
-	},
 	data() {
 		return {
-			productId: '41767537',
-			loading: false,
-			loadingDetail: false,
-			progress: 0,
-			productDetail: null,
-			showSyncProgress: false,
-			syncStatus: {
-				product_detail: 'idle',    // idle, loading, success, error
-				itinerary: 'idle',         // idle, loading, success, error
-				booking_policies: 'idle'   // idle, loading, success, error
+			mainProductId: '41767537',
+			loadingRouteIds: false,
+			loadingReviews: false,
+			loadingProductDetails: false,
+			loadingSync: false,
+
+			routeIdList: [], // 步骤1: { id: '123', exists: true, selected: false }
+			reviewSyncResult: null, // 存储评价同步的结果 { success: true/false, message: '...' }
+			productDetailList: [], // 步骤2: { id: '123', status: 'loading' | 'success' | 'error', data: {...}, error: '...' }
+			syncResults: [], // 步骤3: { id: '123', status: 'loading' | 'success' | 'error', error: '...' }
+
+			syncStats: {
+				// 步骤3
+				total: 0,
+				success: 0,
+				failed: 0
 			},
-			currentSyncLogId: null
+
+			showSyncProgress: false
+		};
+	},
+	computed: {
+		/**
+		 * 计算属性：获取所有选中的 route ID
+		 */
+		selectedRouteIds() {
+			return this.routeIdList.filter((r) => r.selected).map((r) => r.id);
+		},
+		/**
+		 * 计算属性：获取所有成功加载详情的 product ID
+		 */
+		successfulProductIds() {
+			return this.productDetailList.filter((p) => p.status === 'success').map((p) => p.id);
 		}
 	},
 	methods: {
-		// 获取商品详情预览
-		async getProductDetail() {
-			if (!this.productId.trim()) {
-				this.$message.warning('请输入商品ID')
-				return
+		// 步骤1：获取商品线路ID
+		async getRouteIds() {
+			if (!this.mainProductId.trim()) {
+				this.$message.warning('请输入商品ID');
+				return;
 			}
-			
-			this.loadingDetail = true
-			
+
+			this.loadingRouteIds = true;
+			this.routeIdList = [];
+			this.productDetailList = [];
+			this.syncResults = [];
+			this.showSyncProgress = false;
+			this.reviewSyncResult = null;
+
 			try {
-				// 调用云函数获取商品详情
+				// 1. 调用云函数获取所有 Route IDs
+				console.log(`[步骤1] 获取Route IDs, 主ID: ${this.mainProductId.trim()}`);
+				const routeResult = await uniCloud.callFunction({
+					name: 'ctrip-sync-service',
+					data: {
+						action: 'getProductRouteIds',
+						productId: this.mainProductId.trim()
+					}
+				});
+
+				if (routeResult.result.errCode !== 0) {
+					throw new Error(routeResult.result.errMsg);
+				}
+
+				const routeIds = routeResult.result.data.route_ids || [];
+				if (routeIds.length === 0) {
+					this.$message.warning('未找到任何商品线路ID，请检查主ID是否正确');
+					return;
+				}
+				console.log(`[步骤1] 成功获取 ${routeIds.length} 个Route ID`);
+
+				// 2. 检查哪些ID已经存在
+				const checkResult = await uniCloud.callFunction({
+					name: 'ctrip-sync-service',
+					data: {
+						action: 'checkExistingProducts',
+						route_ids: routeIds
+					}
+				});
+
+				if (checkResult.result.errCode !== 0) {
+					this.$message.warning(`检查商品存在状态失败: ${checkResult.result.errMsg}。将假定所有商品为新商品。`);
+				}
+
+				const existingIds = new Set(checkResult.result.data.existing_ids || []);
+				console.log(`[步骤1] ${existingIds.size} 个商品已存在`);
+
+				// 3. 填充 routeIdList
+				this.routeIdList = routeIds.map((id) => {
+					const exists = existingIds.has(id);
+					return {
+						id: id,
+						exists: exists,
+						selected: !exists // 默认勾选不存在的
+					};
+				});
+			} catch (error) {
+				console.error('获取商品线路ID失败:', error);
+				this.$message.error(error.message || '获取线路ID失败');
+			} finally {
+				this.loadingRouteIds = false;
+			}
+		},
+
+		// 步骤1 同步商品评价
+		async syncReviews() {
+			if (!this.mainProductId.trim()) {
+				this.$message.warning('请输入商品ID');
+				return;
+			}
+
+			this.loadingReviews = true;
+			this.reviewSyncResult = null; // 清除旧结果
+
+			try {
+				console.log(`[步骤1-B] 同步评价, 主ID: ${this.mainProductId.trim()}`);
+
+				const result = await uniCloud.callFunction({
+					name: 'ctrip-sync-service',
+					data: {
+						action: 'getProductReviews',
+						productId: this.mainProductId.trim()
+					}
+				});
+
+				if (result.result.errCode !== 0) {
+					throw new Error(result.result.errMsg);
+				}
+
+				const data = result.result.data;
+				const message = `评价同步成功。该产品A线路ID: ${data.productId}, 更新评分: ${data.productUpdateResult.updated > 0 ? '是' : '否'}, 新增评论: ${
+					data.newCount
+				} 条, 更新评论: ${data.updatedCount} 条。`;
+
+				this.reviewSyncResult = { success: true, message: message };
+				this.$message.success('评价同步成功');
+			} catch (error) {
+				console.error('同步评价失败:', error);
+				const errMsg = error.message || '同步评价时发生未知错误';
+				this.reviewSyncResult = { success: false, message: errMsg };
+				this.$message.error(errMsg);
+			} finally {
+				this.loadingReviews = false;
+			}
+		},
+
+		// 步骤1.5: 切换线路选择
+		toggleRouteSelection(route) {
+			route.selected = !route.selected;
+		},
+
+		// 步骤1.5: 全选/全不选
+		toggleSelectAll(selectAll) {
+			this.routeIdList.forEach((route) => {
+				route.selected = selectAll;
+			});
+		},
+
+		// 步骤2：获取所选商品的详情
+		async fetchProductDetails() {
+			const idsToFetch = this.selectedRouteIds;
+			if (idsToFetch.length === 0) {
+				this.$message.warning('请至少选择一条商品线路');
+				return;
+			}
+
+			this.loadingProductDetails = true;
+			this.showSyncProgress = false;
+			this.syncResults = [];
+
+			// 初始化详情列表
+			this.productDetailList = idsToFetch.map((id) => ({
+				id: id,
+				status: 'loading',
+				data: null,
+				error: null
+			}));
+
+			// 并发获取所有详情
+			const promises = idsToFetch.map((id) => {
+				return uniCloud.callFunction({
+					name: 'ctrip-sync-service',
+					data: {
+						action: 'getProductDetail',
+						productId: id
+					}
+				});
+			});
+
+			const results = await Promise.allSettled(promises);
+
+			// 处理结果
+			results.forEach((result, index) => {
+				const productId = idsToFetch[index];
+				const product = this.productDetailList.find((p) => p.id === productId);
+
+				if (result.status === 'fulfilled') {
+					if (result.value.result.errCode === 0) {
+						product.status = 'success';
+						product.data = {
+							...result.value.result.data,
+							// 兼容旧模板的图片字段
+							images: result.value.result.data.product_images || result.value.result.data.images || []
+						};
+					} else {
+						product.status = 'error';
+						product.error = result.value.result.errMsg;
+					}
+				} else {
+					product.status = 'error';
+					product.error = result.reason.message || '请求失败';
+				}
+			});
+
+			this.loadingProductDetails = false;
+		},
+
+		// 步骤2: 重试获取单个商品详情
+		async retryProductDetail(product, index) {
+			product.status = 'loading';
+
+			try {
 				const result = await uniCloud.callFunction({
 					name: 'ctrip-sync-service',
 					data: {
 						action: 'getProductDetail',
-						productId: this.productId.trim()
+						productId: product.id
 					}
-				})
-				
+				});
+
 				if (result.result.errCode === 0) {
-					const productData = result.result.data
-					console.log(`[管理端] 获取到的商品数据字段:`, Object.keys(productData))
-					console.log(`[管理端] 商品详情数据:`, {
-						title: productData.title,
-						price: productData.price,
-						imageCount: (productData.product_images || productData.images || []).length
-					})
-					
-					this.productDetail = {
-						title: productData.title || '未获取到标题',
-						subtitle: productData.subtitle || productData.sub_title || '未获取到描述',
-						price: productData.price || '未获取到价格',
-						// 兼容不同的图片字段名
-						images: productData.product_images || productData.images || []
-					}
-					
-					this.$message.success('获取成功')
+					product.status = 'success';
+					product.data = {
+						...result.result.data,
+						images: result.result.data.product_images || result.value.result.data.images || []
+					};
+					product.error = null;
 				} else {
-					throw new Error(result.result.errMsg)
+					throw new Error(result.result.errMsg);
 				}
 			} catch (error) {
-				console.error('获取商品详情失败:', error)
-				this.$message.error(error.message || '获取失败')
-			} finally {
-				this.loadingDetail = false
+				product.status = 'error';
+				product.error = error.message || '重试失败';
 			}
 		},
 
-		// 开始同步流程
+		// 步骤2: 取消同步单个商品
+		cancelProductDetail(index) {
+			this.productDetailList.splice(index, 1);
+		},
+
+		// 步骤3：开始同步
 		async startSync() {
-			if (!this.productDetail) {
-				this.$message.warning('请先获取商品详情')
-				return
+			const productsToSync = this.productDetailList.filter((p) => p.status === 'success');
+			if (productsToSync.length === 0) {
+				this.$message.warning('没有可同步的商品');
+				return;
 			}
-			
-			this.loading = true
-			this.showSyncProgress = true
-			this.progress = 0
-			
-			// 重置同步状态
-			this.syncStatus = {
-				product_detail: 'loading',
-				itinerary: 'loading', 
-				booking_policies: 'loading'
-			}
-			
-			// 模拟进度更新
-			this.updateProgress(20)
-			
-			try {
-				// 创建同步记录
-				await this.createSyncLog()
-				
-				// 执行同步流程
-				await this.executeSync()
-				
-			} catch (error) {
-				console.error(`[管理端同步] 同步过程出错:`, error)
-				this.$message.error(error.message || '同步失败')
-				
-				// 将所有状态标记为错误
-				Object.keys(this.syncStatus).forEach(key => {
-					this.syncStatus[key] = 'error'
-				})
-				
-				// 同步记录的更新现在由云函数处理
-				console.log(`[管理端同步] 同步失败，错误信息:`, error.message)
-			} finally {
-				this.loading = false
-			}
+
+			this.loadingSync = true;
+			this.showSyncProgress = true;
+
+			// 初始化同步结果
+			this.syncResults = productsToSync.map((p) => ({
+				id: p.id,
+				status: 'loading',
+				error: null
+			}));
+			this.syncStats = {
+				total: productsToSync.length,
+				success: 0,
+				failed: 0
+			};
+
+			await this.executeSync(productsToSync.map((p) => p.id));
 		},
 
-		// 执行同步流程
-		async executeSync() {
-			try {
-				// 调用云函数进行全量同步
-				const token = uni.getStorageSync('uni_id_token')
-				console.log(`[管理端同步] 开始同步商品，产品ID: ${this.productId.trim()}`)
-				
-				const result = await uniCloud.callFunction({
+		// 步骤3：执行同步（可被重试调用）
+		async executeSync(productIds) {
+			const token = uni.getStorageSync('uni_id_token');
+
+			const promises = productIds.map((id) => {
+				return uniCloud.callFunction({
 					name: 'ctrip-sync-service',
 					data: {
 						action: 'syncFullProduct',
-						productId: this.productId.trim(),
+						productId: id,
 						uniIdToken: token
 					}
-				})
-				
-				console.log(`[管理端同步] 云函数调用结果:`, result.result)
-				
-				if (result.result.errCode === 0) {
-					const syncData = result.result.data
-					console.log(`[管理端同步] 同步数据结果:`, syncData)
-					
-					// 更新同步状态
-					if (syncData.syncResults) {
-						Object.keys(this.syncStatus).forEach(key => {
-							const status = syncData.syncResults[key]
-							this.syncStatus[key] = (status === 'success' || status === 'skipped') ? 'success' : 'error'
-							console.log(`[管理端同步] 更新状态 ${key}: ${this.syncStatus[key]} (原始: ${status})`)
-						})
-					}
-					
-					this.currentSyncLogId = syncData.syncLogId
-					this.updateProgress(100)
-					
-					console.log(`[管理端同步] 同步完成 - 成功: ${syncData.successCount}, 失败: ${syncData.failedCount}`)
-					
-					if (syncData.failedCount === 0) {
-						this.$message.success(`全部同步成功！成功项目: ${syncData.successCount}`)
-					} else if (syncData.successCount > 0) {
-						this.$message.warning(`部分同步成功 - 成功: ${syncData.successCount}, 失败: ${syncData.failedCount}`)
+				});
+			});
+
+			const results = await Promise.allSettled(promises);
+
+			// 处理结果
+			results.forEach((result, index) => {
+				const productId = productIds[index];
+				const syncResult = this.syncResults.find((r) => r.id === productId);
+
+				if (result.status === 'fulfilled') {
+					if (result.value.result.errCode === 0) {
+						syncResult.status = 'success';
+						syncResult.error = null;
+						this.syncStats.success++;
 					} else {
-						this.$message.error('同步失败，所有项目都未能成功同步')
+						syncResult.status = 'error';
+						syncResult.error = result.value.result.errMsg;
+						this.syncStats.failed++;
 					}
 				} else {
-					throw new Error(result.result.errMsg)
+					syncResult.status = 'error';
+					syncResult.error = result.reason.message || '请求失败';
+					this.syncStats.failed++;
 				}
-			} catch (error) {
-				console.error('同步失败:', error)
-				
-				// 将所有状态标记为错误
-				Object.keys(this.syncStatus).forEach(key => {
-					this.syncStatus[key] = 'error'
-				})
-				
-				this.$message.error(error.message || '同步失败')
+			});
+
+			this.loadingSync = false;
+			this.$message.success('同步任务执行完成');
+		},
+
+		// 步骤3: 重试失败的同步
+		async retryFailedSyncs() {
+			const idsToRetry = this.syncResults.filter((r) => r.status === 'error').map((r) => r.id);
+
+			if (idsToRetry.length === 0) {
+				this.$message.info('没有需要重试的失败任务');
+				return;
 			}
+
+			this.loadingSync = true;
+
+			// 重置失败项的状态
+			this.syncStats.failed = 0;
+			idsToRetry.forEach((id) => {
+				const syncResult = this.syncResults.find((r) => r.id === id);
+				if (syncResult) {
+					syncResult.status = 'loading';
+					syncResult.error = null;
+				}
+			});
+
+			// 重新执行同步
+			await this.executeSync(idsToRetry);
 		},
 
-		// 创建同步记录（现已集成到云函数中）
-		async createSyncLog() {
-			// 同步记录的创建现在由云函数处理
-			console.log(`[管理端同步] 准备创建同步记录，产品ID: ${this.productId.trim()}`)
-			this.updateProgress(10)
-		},
-
-		// 这些同步方法已经集成到云函数的 syncFullProduct 中
-		// 保留这些方法以保证兼容性
-		async syncProductDetail() {
-			// 现在由云函数统一处理
-		},
-
-		async syncItinerary() {
-			// 现在由云函数统一处理
-		},
-
-		async syncBookingPolicies() {
-			// 现在由云函数统一处理
-		},
-
-		// 更新同步记录（现已集成到云函数中）
-		async updateSyncLog(logId, status, result) {
-			// 同步记录的更新现在由云函数处理
-			console.log('同步记录已由云函数更新:', { logId, status, result })
-		},
-
-		// 更新进度条
-		updateProgress(value) {
-			this.progress = value
-		},
+		// --- 辅助方法 ---
 
 		// 获取状态图标
 		getStatusIcon(status) {
 			switch (status) {
-				case 'idle': return 'fas fa-circle text-gray-400'
-				case 'loading': return 'fas fa-spinner fa-spin text-blue-500'
-				case 'success': return 'fas fa-check-circle text-green-500'
-				case 'error': return 'fas fa-times-circle text-red-500'
-				default: return 'fas fa-circle text-gray-400'
+				case 'loading':
+					return 'fas fa-spinner fa-spin text-blue-500';
+				case 'success':
+					return 'fas fa-check-circle text-green-500';
+				case 'error':
+					return 'fas fa-times-circle text-red-500';
+				default:
+					return 'fas fa-circle text-gray-400';
 			}
 		},
 
 		// 获取状态颜色
 		getStatusColor(status) {
 			switch (status) {
-				case 'idle': return 'text-gray-500'
-				case 'loading': return 'text-blue-600'
-				case 'success': return 'text-green-600'
-				case 'error': return 'text-red-600'
-				default: return 'text-gray-500'
+				case 'loading':
+					return 'text-blue-600';
+				case 'success':
+					return 'text-green-600';
+				case 'error':
+					return 'text-red-600';
+				default:
+					return 'text-gray-500';
 			}
 		},
 
 		// 获取状态文本
 		getStatusText(status) {
 			switch (status) {
-				case 'idle': return '待同步'
-				case 'loading': return '同步中'
-				case 'success': return '已完成'
-				case 'error': return '失败'
-				default: return '待同步'
-			}
-		},
-
-		// 获取同步类型文本
-		getSyncTypeText(key) {
-			switch (key) {
-				case 'product_detail': return '商品详情'
-				case 'itinerary': return '行程安排'
-				case 'booking_policies': return '预订须知'
-				default: return '未知类型'
-			}
-		},
-
-		// 获取类型颜色
-		getTypeColor(type) {
-			switch (type) {
-				case 'product_detail': return 'bg-blue-100 text-blue-800'
-				case 'itinerary': return 'bg-green-100 text-green-800'
-				case 'booking_policies': return 'bg-orange-100 text-orange-800'
-				default: return 'bg-gray-100 text-gray-800'
-			}
-		},
-
-		// 获取类型文本
-		getTypeText(type) {
-			switch (type) {
-				case 'product_detail': return '商品详情'
-				case 'itinerary': return '行程安排'
-				case 'booking_policies': return '预订须知'
-				default: return '未知类型'
+				case 'loading':
+					return '处理中';
+				case 'success':
+					return '已完成';
+				case 'error':
+					return '失败';
+				default:
+					return '待定';
 			}
 		},
 
 		// 处理图片加载错误
 		handleImageError(e) {
-			console.log('图片加载失败:', e)
+			console.log('图片加载失败:', e);
+			// 可以在这里设置一个默认的占位图
+			// e.target.src = '/static/images/placeholder.png'
 		},
 
 		// 预览图片
 		previewImage(imageUrl, index) {
-			// 简单的图片预览，在新窗口打开图片
-			window.open(imageUrl, '_blank')
-		},
-
-		// 显示所有图片
-		showAllImages() {
-			if (this.productDetail.images && this.productDetail.images.length > 0) {
-				this.$alert(`该商品共有 ${this.productDetail.images.length} 张图片，点击任意图片可查看大图`, '全部图片', {
-					confirmButtonText: '确定'
-				})
-			}
+			// uni-app的预览API
+			uni.previewImage({
+				current: index,
+				urls: this.productDetailList.flatMap((p) => (p.status === 'success' ? p.data.images || [] : []))
+			});
 		},
 
 		// 显示错误详情
-		showErrorDetail(key) {
-			this.$alert(`${this.getSyncTypeText(key)} 同步失败，请检查网络连接或联系技术支持`, '错误详情', {
+		showErrorDetail(errorMessage) {
+			this.$alert(errorMessage || '未知错误', '错误详情', {
 				confirmButtonText: '确定'
-			})
+			});
 		},
 
-		// 跳转到商品详情页面
-		goToProductDetail() {
-			if (!this.productId.trim()) {
-				this.$message.warning('商品ID无效')
-				return
-			}
-			
-			// 跳转到商品管理页面，通过查询参数定位到具体商品
+		// 跳转到商品列表页面
+		goToProductList() {
 			uni.navigateTo({
-				url: `/pages/a-products/list?search=${this.productId.trim()}`
-			})
-		},
-
-		// 重置同步状态
-		resetSyncState() {
-			this.productDetail = null
-			this.showSyncProgress = false
-			this.progress = 0
-			this.syncStatus = {
-				product_detail: 'idle',
-				itinerary: 'idle',
-				booking_policies: 'idle'
-			}
-			this.currentSyncLogId = null
+				url: '/pages/a-products/list' // 直接跳转到列表页，不带搜索
+			});
 		},
 
 		// 测试API连接
@@ -533,67 +710,21 @@ export default {
 					data: {
 						action: 'checkApiHealth'
 					}
-				})
-				
+				});
+
 				if (result.result.errCode === 0) {
-					this.$message.success('API连接正常')
+					this.$message.success('API连接正常');
 				} else {
-					throw new Error(result.result.errMsg)
+					throw new Error(result.result.errMsg);
 				}
 			} catch (error) {
 				this.$alert(`连接失败：${error.message}`, 'API连接测试', {
 					confirmButtonText: '确定'
-				})
-			}
-		},
-
-		// 测试数据清洗功能
-		async testDataCleaning() {
-			try {
-				const testData = {
-					title: '北京"故宫"深度游 - 一日游体验',
-					subtitle: '探索"紫禁城"的神秘历史，感受"皇家"文化的魅力',
-					description: '这是一个包含"双引号"的描述文本，还有\'单引号\'和\\反斜杠\\的内容',
-					features: [
-						'专业导游"贴心"服务',
-						'含"午餐"和"门票"',
-						'小团"私享"体验'
-					],
-					nested: {
-						info: {
-							note: '注意：请"准时"到达集合地点',
-							warning: '警告：携带"有效证件"'
-						}
-					}
-				}
-
-				const result = await uniCloud.callFunction({
-					name: 'ctrip-sync-service',
-					data: {
-						action: 'testDataCleaning',
-						testData: testData
-					}
-				})
-				
-				if (result.result.errCode === 0) {
-					const cleaningResult = result.result.data
-					
-					this.$alert(`测试完成！\n清理了 ${cleaningResult.summary.total_changes} 个字段\n移除了 ${cleaningResult.summary.total_chars_removed} 个特殊字符\n详细结果请查看控制台`, '数据清洗测试结果', {
-						confirmButtonText: '确定'
-					})
-					
-					console.log('数据清洗测试结果:', cleaningResult)
-				} else {
-					throw new Error(result.result.errMsg)
-				}
-			} catch (error) {
-				this.$alert(`测试失败：${error.message}`, '数据清洗测试', {
-					confirmButtonText: '确定'
-				})
+				});
 			}
 		}
 	}
-}
+};
 </script>
 
 <style>
@@ -607,20 +738,10 @@ export default {
 	transition: all 0.2s ease-in-out;
 }
 
-/* 表格样式优化 */
-table {
-	border-collapse: collapse;
-}
-
 /* 按钮禁用状态 */
 button:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
-}
-
-/* 输入框样式 */
-input:focus {
-	outline: none;
 }
 
 /* 滚动条样式 */
@@ -641,5 +762,14 @@ input:focus {
 
 ::-webkit-scrollbar-thumb:hover {
 	background: #a8a8a8;
+}
+
+/* 强制 uni-app checkbox 样式 */
+label {
+	cursor: pointer;
+}
+checkbox {
+	transform: scale(1.1);
+	margin-right: 12px;
 }
 </style>

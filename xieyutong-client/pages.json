@@ -71,11 +71,34 @@
 			"needLogin": false
 		},
 		{
+			"path": "pages/product-detail/product-itinerary",
+			"style": {
+				"navigationBarTitleText": "产品行程"
+			}
+		},
+		{
 			"path": "pages/itinerary/itinerary",
 			"style": {
 				"navigationBarTitleText": ""
 			},
 			"needLogin": true
+		},
+		{
+			"path": "pages/album/list",
+			"style": {
+				"navigationBarTitleText": "我的相册"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/album/detail",
+			"style": {
+				"navigationBarTitleText": "相册详情"
+			},
+			"needLogin": true,
+			"require": [
+				"/pages/album/piexif.js"
+			]
 		},
 		{
 			"path": "pages/favorites-list/favorites-list",
@@ -147,52 +170,73 @@
 				"navigationStyle": "default"
 			},
 			"needLogin": false
-		}
-	],
-"globalStyle": {
-	"navigationBarTextStyle": "black",
-	"navigationBarTitleText": "uni-app",
-	"navigationBarBackgroundColor": "#F8F8F8",
-	"backgroundColor": "#F8F8F8",
-	"navigationStyle": "custom"
-},
-"uniIdRouter": {
-	"loginPage": "pages/login/login",
-	"needLogin": [
-		"pages/profile/.*",
-		"pages/order/.*",
-		"pages/favorites-list/.*",
-		"pages/coupon/.*",
-		"pages/traveler-add/.*",
-		"pages/travelers/.*",
-		"pages/itinerary/.*"
-	],
-	"resToLogin": true
-},
-"navigationStyle": "custom",
-"tabBar": {
-	"color": "#999999",
-	"selectedColor": "#0086F6",
-	"backgroundColor": "#FFFFFF",
-	"borderStyle": "black",
-	"list": [{
-			"pagePath": "pages/home/home",
-			"text": "首页",
-			"iconPath": "static/tab_icons/home.png",
-			"selectedIconPath": "static/tab_icons/home_cur.png"
 		},
 		{
-			"pagePath": "pages/itinerary/itinerary",
-			"text": "行程",
-			"iconPath": "static/tab_icons/itinerary.png",
-			"selectedIconPath": "static/tab_icons/itinerary_cur.png"
+			"path" : "pages/product-detail/booking-policies",
+			"style" : 
+			{
+				"navigationBarTitleText" : "预订须知及安全提示"
+			}
 		},
 		{
-			"pagePath": "pages/profile/profile",
-			"text": "我的",
-			"iconPath": "static/tab_icons/my.png",
-			"selectedIconPath": "static/tab_icons/my_cur.png"
+			"path" : "pages/product-detail/product-reviews",
+			"style" : 
+			{
+				"navigationBarTitleText" : "点评"
+			}
 		}
-	]
-}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"navigationStyle": "custom"
+	},
+	"uniIdRouter": {
+		"loginPage": "pages/login/login",
+		"needLogin": [
+			"pages/profile/.*",
+			"pages/order/.*",
+			"pages/favorites-list/.*",
+			"pages/coupon/.*",
+			"pages/traveler-add/.*",
+			"pages/travelers/.*",
+			"pages/itinerary/.*",
+			"pages/album/.*"
+		],
+		"resToLogin": true
+	},
+	"navigationStyle": "custom",
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#0086F6",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [{
+				"pagePath": "pages/home/home",
+				"text": "首页",
+				"iconPath": "static/tab_icons/home.png",
+				"selectedIconPath": "static/tab_icons/home_cur.png"
+			},
+			{
+				"pagePath": "pages/itinerary/itinerary",
+				"text": "行程",
+				"iconPath": "static/tab_icons/itinerary.png",
+				"selectedIconPath": "static/tab_icons/itinerary_cur.png"
+			},
+			{
+				"pagePath": "pages/album/list",
+				"text": "相册",
+				"iconPath": "static/tab_icons/album.png",
+				"selectedIconPath": "static/tab_icons/album_cur.png"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"text": "我的",
+				"iconPath": "static/tab_icons/my.png",
+				"selectedIconPath": "static/tab_icons/my_cur.png"
+			}
+		]
+	}
 }

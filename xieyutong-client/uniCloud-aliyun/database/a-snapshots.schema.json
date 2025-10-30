@@ -1,7 +1,7 @@
 {
 	"bsonType": "object",
 	"description": "行程信息表，存储旅游产品的详细行程安排",
-	"required": ["order_id", "product_id", "departure_date", "total_days", "itinerary"],
+	"required": ["order_id", "departure_date", "total_days", "itinerary"],
 	"permission": {
 		"read": true,
 		"create": true,
@@ -32,7 +32,6 @@
 			"bsonType": "string",
 			"description": "关联的商品ID",
 			"title": "商品ID",
-			"required": true,
 			"maxLength": 50,
 			"foreignKey": "a-products._id"
 		},

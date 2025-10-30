@@ -40,6 +40,11 @@
 					"bsonType": "string",
 					"description": "委托旅行社",
 					"maxLength": 200
+				},
+				"claim": {
+					"bsonType": "string",
+					"description": "委托声明",
+					"maxLength": 200
 				}
 			}
 		},
@@ -139,6 +144,15 @@
 			"bsonType": "array",
 			"description": "安全提示",
 			"title": "安全提示",
+			"items": {
+				"bsonType": "string",
+				"maxLength": 1000
+			}
+		},
+		"protection_tips": {
+			"bsonType": "array",
+			"description": "保障提示",
+			"title": "保障提示",
 			"items": {
 				"bsonType": "string",
 				"maxLength": 1000

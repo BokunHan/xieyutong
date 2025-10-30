@@ -205,10 +205,10 @@
 				"write": "doc._id == auth.uid || 'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
 			}
 		},
-		"snapshot_order_id": {
+		"user_input_order_id": {
 			"bsonType": "string",
-			"description": "临时绑定的快照行程订单号",
-			"title": "快照订单号",
+			"description": "用户输入的行程订单号",
+			"title": "用户输入订单号",
 			"trim": "both",
 			"permission": {
 				"read": true,

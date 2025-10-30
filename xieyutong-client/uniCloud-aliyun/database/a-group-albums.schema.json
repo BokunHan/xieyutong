@@ -1,0 +1,70 @@
+{
+	"bsonType": "object",
+	"required": ["order_id", "product_id", "departure_date", "total_days", "status"],
+	"permission": {
+		"read": "doc.user_id == auth.uid || doc.members.user_id==auth.uid || 'admin' in auth.role || 'super_admin' in auth.role",
+		"create": "auth.uid != null || 'admin' in auth.role || 'super_admin' in auth.role",
+		"update": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"order_id": {
+			"bsonType": "string",
+			"description": "关联的订单ID",
+			"required": true
+		},
+		"product_id": {
+			"bsonType": "string",
+			"description": "关联的商品ID",
+			"required": true
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "订单所属用户ID",
+			"foreignKey": "uni-id-users._id"
+		},
+		"album_name": {
+			"bsonType": "string",
+			"description": "相册名称"
+		},
+		"departure_date": {
+			"bsonType": "timestamp",
+			"description": "行程开始日期",
+			"required": true
+		},
+		"total_days": {
+			"bsonType": "int",
+			"description": "行程天数",
+			"required": true
+		},
+		"status": {
+			"bsonType": "int",
+			"description": "相册状态：0-待激活, 1-进行中, 2-已归档",
+			"enum": [0, 1, 2],
+			"required": true
+		},
+		"members": {
+			"bsonType": "array",
+			"description": "相册成员列表",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"user_id": {
+						"bsonType": "string",
+						"foreignKey": "uni-id-users._id"
+					}
+				}
+			}
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

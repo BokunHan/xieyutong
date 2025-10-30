@@ -1,0 +1,35 @@
+{
+	"bsonType": "object",
+	"required": ["A_route_id", "route_ids"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null || 'admin' in auth.role || 'super_admin' in auth.role",
+		"update": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"A_route_id": {
+			"bsonType": "string",
+			"description": "A线的ctripId",
+			"required": true
+		},
+		"route_ids": {
+			"bsonType": "array",
+			"description": "此产品所有路线的ctripId列表",
+			"items": {
+				"bsonType": "string"
+			},
+			"required": true
+		},
+		"last_updated": {
+			"bsonType": "timestamp",
+			"description": "最后更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

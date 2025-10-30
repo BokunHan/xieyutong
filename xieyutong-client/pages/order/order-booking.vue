@@ -48,14 +48,10 @@
 						<text class="fa fa-chevron-right action-icon"></text>
 					</view>
 				</view>
-				
+
 				<!-- 已选择的出行人列表 -->
 				<view v-if="selectedTravelers.length > 0" class="selected-travelers">
-					<view 
-						v-for="(traveler, index) in selectedTravelers" 
-						:key="traveler._id"
-						class="traveler-item selected"
-					>
+					<view v-for="(traveler, index) in selectedTravelers" :key="traveler._id" class="traveler-item selected">
 						<view class="traveler-avatar">
 							<text class="avatar-text">{{ traveler.name.substring(0, 1) }}</text>
 						</view>
@@ -68,7 +64,7 @@
 						</view>
 					</view>
 				</view>
-				
+
 				<!-- 选择出行人按钮 -->
 				<view class="select-travelers-btn" @click="showTravelerSelector">
 					<text class="fa fa-plus select-icon"></text>
@@ -86,23 +82,12 @@
 				<view class="contact-form">
 					<view class="form-row">
 						<text class="form-label">姓名</text>
-						<input 
-							class="form-input" 
-							v-model="contactInfo.name" 
-							placeholder="请输入联系人姓名" 
-							:class="{ 'auto-filled': contactInfo.name }"
-						/>
+						<input class="form-input" v-model="contactInfo.name" placeholder="请输入联系人姓名" :class="{ 'auto-filled': contactInfo.name }" />
 						<text v-if="contactInfo.name" class="fa fa-edit edit-icon"></text>
 					</view>
 					<view class="form-row">
 						<text class="form-label">手机号</text>
-						<input 
-							class="form-input" 
-							v-model="contactInfo.phone" 
-							placeholder="请输入手机号码" 
-							type="number"
-							:class="{ 'auto-filled': contactInfo.phone }"
-						/>
+						<input class="form-input" v-model="contactInfo.phone" placeholder="请输入手机号码" type="number" :class="{ 'auto-filled': contactInfo.phone }" />
 						<text v-if="contactInfo.phone" class="fa fa-edit edit-icon"></text>
 					</view>
 				</view>
@@ -117,7 +102,7 @@
 						<text class="fa fa-chevron-right action-icon"></text>
 					</view>
 				</view>
-				
+
 				<!-- 已选择的优惠券 -->
 				<view v-if="selectedCoupon" class="selected-coupon">
 					<view class="coupon-item">
@@ -135,14 +120,14 @@
 						</view>
 						<view class="coupon-amount">
 							<text class="amount-symbol">{{ selectedCoupon.type === 'fixed' ? '¥' : '' }}</text>
-							<text class="amount-value">{{ selectedCoupon.type === 'fixed' ? selectedCoupon.amount : (selectedCoupon.amount + '折') }}</text>
+							<text class="amount-value">{{ selectedCoupon.type === 'fixed' ? selectedCoupon.amount : selectedCoupon.amount + '折' }}</text>
 						</view>
 						<view class="remove-coupon" @click="removeCoupon">
 							<text class="fa fa-times"></text>
 						</view>
 					</view>
 				</view>
-				
+
 				<!-- 未选择优惠券时的提示 -->
 				<view v-else class="no-coupon-selected">
 					<view class="coupon-placeholder" @click="showCouponSelector">
@@ -197,20 +182,19 @@
 					<text class="text-xs text-gray-500 ml-2" v-if="selectedDate">{{ formatDate(selectedDate).split(' ')[0] }}</text>
 				</view>
 			</view>
-			
-					<button 
-			class="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded-lg px-6 py-3 text-sm font-medium shadow-md transition-all"
-			:class="{'pay-button-disabled': !canSubmit}"
-			:disabled="!canSubmit"
-			@click="submitOrder"
-		>
+
+			<button
+				class="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded-lg px-6 py-3 text-sm font-medium shadow-md transition-all"
+				:class="{ 'pay-button-disabled': !canSubmit }"
+				:disabled="!canSubmit"
+				@click="submitOrder">
 				微信支付
 			</button>
 		</view>
 
 		<!-- 挂载支付组件(隐藏，直接调用微信支付) -->
-		<uni-pay 
-			ref="uniPay" 
+		<uni-pay
+			ref="uniPay"
 			:to-success-page="true"
 			:return-url="'/pages/order/order-detail'"
 			:main-color="'#ff6b35'"
@@ -218,8 +202,7 @@
 			@success="onPaySuccess"
 			@fail="onPayFail"
 			@cancel="onPayCancel"
-			@mounted="onPayMounted"
-		/>
+			@mounted="onPayMounted" />
 
 		<!-- 日期选择组件 -->
 		<date-picker
@@ -229,37 +212,39 @@
 			:max-date="datePickerEnd"
 			title="重新选择出发日期"
 			@confirm="onDateConfirm"
-			@cancel="onDateCancel"
-		/>
+			@cancel="onDateCancel" />
 
 		<!-- 优惠券选择弹窗 -->
 		<view v-if="showCouponModal" class="modal-overlay" @click="closeCouponModal">
 			<view class="coupon-modal" @click.stop>
-					<view class="modal-header">
-		<view class="header-content">
-			<text class="modal-title">选择优惠券</text>
-			<text class="modal-subtitle">为您精选了{{ availableCoupons.length }}张可用优惠券</text>
-		</view>
-		<view class="close-button" @click="closeCouponModal">
-			<text class="fa fa-times"></text>
-		</view>
-	</view>
+				<view class="modal-header">
+					<view class="header-content">
+						<text class="modal-title">选择优惠券</text>
+						<text class="modal-subtitle">为您精选了{{ availableCoupons.length }}张可用优惠券</text>
+					</view>
+					<view class="close-button" @click="closeCouponModal">
+						<text class="fa fa-times"></text>
+					</view>
+				</view>
 				<view class="modal-content">
 					<!-- 加载状态 -->
 					<view v-if="loadingCoupons" class="loading-coupons">
 						<text class="loading-text">加载中...</text>
 					</view>
-					
+
 					<!-- 优惠券列表 -->
 					<view v-else class="coupons-list">
 						<!-- 可用优惠券 -->
-						<view v-for="coupon in availableCoupons" :key="coupon.id" class="coupon-option available"
-							:class="{ 'selected': tempSelectedCoupon && tempSelectedCoupon.id === coupon.id }"
+						<view
+							v-for="coupon in availableCoupons"
+							:key="coupon.id"
+							class="coupon-option available"
+							:class="{ selected: tempSelectedCoupon && tempSelectedCoupon.id === coupon.id }"
 							@click="selectCoupon(coupon)">
 							<view class="coupon-left">
 								<view class="coupon-amount-display">
 									<text class="amount-symbol">{{ coupon.type === 'fixed' ? '¥' : '' }}</text>
-									<text class="amount-value">{{ coupon.type === 'fixed' ? coupon.amount : (coupon.amount + '折') }}</text>
+									<text class="amount-value">{{ coupon.type === 'fixed' ? coupon.amount : coupon.amount + '折' }}</text>
 								</view>
 								<text class="coupon-type-label">{{ coupon.type === 'fixed' ? '立减券' : '折扣券' }}</text>
 							</view>
@@ -278,7 +263,7 @@
 							<view class="coupon-left">
 								<view class="coupon-amount-display disabled">
 									<text class="amount-symbol">{{ coupon.type === 'fixed' ? '¥' : '' }}</text>
-									<text class="amount-value">{{ coupon.type === 'fixed' ? coupon.amount : (coupon.amount + '折') }}</text>
+									<text class="amount-value">{{ coupon.type === 'fixed' ? coupon.amount : coupon.amount + '折' }}</text>
 								</view>
 								<text class="coupon-type-label">{{ coupon.type === 'fixed' ? '立减券' : '折扣券' }}</text>
 							</view>
@@ -292,7 +277,7 @@
 								<text class="fa fa-circle-o disabled"></text>
 							</view>
 						</view>
-						
+
 						<!-- 空状态 -->
 						<view v-if="availableCoupons.length === 0 && unavailableCoupons.length === 0" class="empty-coupons">
 							<text class="fa fa-ticket empty-icon"></text>
@@ -300,11 +285,9 @@
 							<text class="empty-desc">完成更多操作可获得优惠券</text>
 						</view>
 					</view>
-					
+
 					<!-- 不使用优惠券选项 -->
-					<view class="no-coupon-option" 
-						:class="{ 'selected': !tempSelectedCoupon }"
-						@click="selectCoupon(null)">
+					<view class="no-coupon-option" :class="{ selected: !tempSelectedCoupon }" @click="selectCoupon(null)">
 						<text class="no-coupon-text">不使用优惠券</text>
 						<view class="coupon-status">
 							<text class="fa" :class="!tempSelectedCoupon ? 'fa-check-circle selected' : 'fa-circle-o'"></text>
@@ -336,16 +319,15 @@
 					<view v-if="loadingTravelers" class="loading-travelers">
 						<text class="loading-text">加载中...</text>
 					</view>
-					
+
 					<!-- 出行人列表 -->
 					<view v-else class="travelers-list">
-						<view 
-							v-for="traveler in availableTravelers" 
+						<view
+							v-for="traveler in availableTravelers"
 							:key="traveler._id"
 							class="traveler-option"
-							:class="{ 'selected': isTravelerSelected(traveler._id) }"
-							@click="toggleTravelerSelection(traveler)"
-						>
+							:class="{ selected: isTravelerSelected(traveler._id) }"
+							@click="toggleTravelerSelection(traveler)">
 							<view class="traveler-checkbox">
 								<text class="fa" :class="isTravelerSelected(traveler._id) ? 'fa-check-circle selected' : 'fa-circle-o'"></text>
 							</view>
@@ -354,7 +336,7 @@
 								<text class="traveler-type">{{ traveler.type }}</text>
 							</view>
 						</view>
-						
+
 						<!-- 空状态 -->
 						<view v-if="availableTravelers.length === 0" class="empty-travelers">
 							<text class="fa fa-user-plus empty-icon"></text>
@@ -362,7 +344,7 @@
 							<text class="empty-desc">请先添加出行人信息</text>
 						</view>
 					</view>
-					
+
 					<!-- 添加新出行人按钮 -->
 					<view class="add-traveler-btn" @click="addNewTraveler">
 						<text class="fa fa-plus add-icon"></text>
@@ -375,15 +357,14 @@
 				</view>
 			</view>
 		</view>
-
 	</view>
 </template>
 
 <script>
-import DatePicker from '@/components/date-picker/date-picker.vue'
+import DatePicker from '@/components/date-picker/date-picker.vue';
 
 // 引入支付云对象
-const uniPayCo = uniCloud.importObject("uni-pay-co");
+const uniPayCo = uniCloud.importObject('uni-pay-co');
 
 export default {
 	components: {
@@ -394,55 +375,55 @@ export default {
 			// 页面状态
 			loading: true,
 			productId: '',
-			
+
 			// 产品数据
 			productData: {},
-			
-					// 预订信息
-		selectedDate: null,
-		showDateModal: false,
-		selectedTravelers: [],
-		contactInfo: {
-			name: '',
-			phone: ''
-		},
-			
+
+			// 预订信息
+			selectedDate: null,
+			showDateModal: false,
+			selectedTravelers: [],
+			contactInfo: {
+				name: '',
+				phone: ''
+			},
+
 			// 价格计算
 			userMemberLevel: 'gold',
 			selectedCoupon: null,
-			
+
 			// 优惠券相关
 			showCouponModal: false,
 			loadingCoupons: false,
 			availableCoupons: [],
 			unavailableCoupons: [],
 			tempSelectedCoupon: null, // 临时选择的优惠券，确认后才赋值给selectedCoupon
-			
-					// UI状态
-		showTravelerModal: false,
-		availableTravelers: [],
-		loadingTravelers: false
-		}
+
+			// UI状态
+			showTravelerModal: false,
+			availableTravelers: [],
+			loadingTravelers: false
+		};
 	},
-	
+
 	computed: {
 		// 原价计算
 		originalPrice() {
 			const basePrice = this.productData.price || 0;
 			return Math.round(basePrice * 1.2);
 		},
-		
+
 		// 会员等级文字
 		memberLevelText() {
 			const levelMap = {
 				normal: '普通会员',
-				silver: '银卡会员', 
+				silver: '银卡会员',
 				gold: '金卡会员',
 				diamond: '钻石会员'
 			};
 			return levelMap[this.userMemberLevel] || '普通会员';
 		},
-		
+
 		// 会员折扣
 		memberDiscount() {
 			const originalPrice = this.originalPrice;
@@ -455,62 +436,59 @@ export default {
 			const discountRate = discountMap[this.userMemberLevel] || 0;
 			return Math.round(originalPrice * discountRate);
 		},
-		
+
 		// 优惠券折扣
 		couponDiscount() {
 			if (!this.selectedCoupon) return 0;
-			
+
 			const priceAfterMember = this.originalPrice - this.memberDiscount;
-			console.log("selectedCoupon: ", this.selectedCoupon.amount);
-			
+			console.log('selectedCoupon: ', this.selectedCoupon.amount);
+
 			if (this.selectedCoupon.type === 'fixed') {
 				return Math.min(this.selectedCoupon.amount, priceAfterMember);
 			} else if (this.selectedCoupon.type === 'percent') {
-				return Math.round(priceAfterMember * (1 - (this.selectedCoupon.amount / 10)));
+				return Math.round(priceAfterMember * (1 - this.selectedCoupon.amount / 10));
 			}
 			return 0;
 		},
-		
+
 		// 总节省
 		totalSavings() {
 			return this.memberDiscount + this.couponDiscount;
 		},
-		
+
 		// 最终单价
 		finalPrice() {
 			const final = this.originalPrice - this.totalSavings;
 			return Math.max(final, this.productData.price || 0);
 		},
-		
+
 		// 成人总价
 		adultTotalPrice() {
 			return this.finalPrice * this.adultCount;
 		},
-		
+
 		// 儿童总价
 		childTotalPrice() {
 			const childPrice = this.productData.child_price || 0;
 			return childPrice * this.childCount;
 		},
-		
+
 		// 总折扣
 		totalDiscount() {
 			return (this.memberDiscount + this.couponDiscount) * this.adultCount;
 		},
-		
+
 		// 应付总额
 		totalAmount() {
 			return this.adultTotalPrice + this.childTotalPrice;
 		},
-		
+
 		// 是否可以提交订单
 		canSubmit() {
-			return this.selectedDate && 
-				   this.selectedTravelers.length > 0 && 
-				   this.contactInfo.name && 
-				   this.contactInfo.phone;
+			return this.selectedDate && this.selectedTravelers.length > 0 && this.contactInfo.name && this.contactInfo.phone;
 		},
-		
+
 		// 支付按钮文字
 		payButtonText() {
 			if (!this.selectedDate) return '请选择出发日期';
@@ -519,41 +497,41 @@ export default {
 			if (!this.agreedToTerms) return '请同意预订协议';
 			return '微信支付';
 		},
-		
+
 		// 日期选择器的开始日期（明天）
 		datePickerStart() {
 			const tomorrow = new Date();
 			tomorrow.setDate(tomorrow.getDate() + 1);
 			return tomorrow.toISOString().split('T')[0];
 		},
-		
+
 		// 日期选择器的结束日期（3个月后）
 		datePickerEnd() {
 			const endDate = new Date();
 			endDate.setMonth(endDate.getMonth() + 3);
 			return endDate.toISOString().split('T')[0];
 		},
-		
+
 		// 选中日期的字符串格式（用于日期选择组件）
 		selectedDateString() {
 			if (!this.selectedDate) return '';
 			const d = new Date(this.selectedDate);
 			return d.toISOString().split('T')[0];
 		},
-		
+
 		// 成人数量
 		adultCount() {
 			if (!this.selectedTravelers || this.selectedTravelers.length === 0) return 1; // 默认至少1个成人
-			return this.selectedTravelers.filter(t => t.type === '成人' || t.type === 'adult').length || 1;
+			return this.selectedTravelers.filter((t) => t.type === '成人' || t.type === 'adult').length || 1;
 		},
-		
+
 		// 儿童数量
 		childCount() {
 			if (!this.selectedTravelers || this.selectedTravelers.length === 0) return 0;
-			return this.selectedTravelers.filter(t => t.type === '儿童' || t.type === 'child').length;
+			return this.selectedTravelers.filter((t) => t.type === '儿童' || t.type === 'child').length;
 		}
 	},
-	
+
 	watch: {
 		// 监听总金额变化，自动重新选择最佳优惠券
 		totalAmount: {
@@ -568,7 +546,7 @@ export default {
 			},
 			immediate: false // 不在初始化时立即执行
 		},
-		
+
 		// 监听出行人变化，重新加载优惠券数据
 		selectedTravelers: {
 			handler(newTravelers, oldTravelers) {
@@ -583,36 +561,36 @@ export default {
 			deep: true
 		}
 	},
-	
+
 	onLoad(options) {
 		if (options.id) {
 			this.productId = options.id;
-			
+
 			// 如果传递了日期参数，设置选中的日期
 			if (options.date) {
 				this.selectedDate = new Date(options.date);
 			}
-			
+
 			this.loadData();
 		} else {
 			this.loading = false;
 		}
 	},
-	
+
 	onShow() {
 		// 从添加出行人页面返回时重新加载出行人数据
 		if (this.showTravelerModal) {
 			this.loadTravelers();
 		}
 	},
-	
+
 	methods: {
 		// 加载数据
 		async loadData() {
 			try {
 				this.loading = true;
 				this.error = null;
-				
+
 				// 并行加载产品数据、用户信息、出行人数据和优惠券数据
 				const [productResult, userResult, travelersResult] = await Promise.all([
 					this.loadProductData(),
@@ -620,13 +598,13 @@ export default {
 					this.loadTravelers(false), // 不显示加载状态
 					this.loadCoupons(false) // 不显示加载状态
 				]);
-				
+
 				if (productResult.success) {
 					this.productData = productResult.data;
 				} else {
 					throw new Error(productResult.error || '加载产品数据失败');
 				}
-				
+
 				// 自动填充用户联系信息
 				if (userResult.success && userResult.data) {
 					const userData = userResult.data;
@@ -636,7 +614,6 @@ export default {
 					};
 					console.log('[预订页面] 自动填充联系人信息:', this.contactInfo);
 				}
-				
 			} catch (err) {
 				console.error('加载数据失败:', err);
 				this.error = err.message || '加载数据失败，请重试';
@@ -644,13 +621,13 @@ export default {
 				this.loading = false;
 			}
 		},
-		
+
 		// 加载产品数据
 		async loadProductData() {
 			try {
 				const db = uniCloud.database();
 				const res = await db.collection('a-products').doc(this.productId).get();
-				
+
 				if (res.result.data.length > 0) {
 					return {
 						success: true,
@@ -670,7 +647,7 @@ export default {
 				};
 			}
 		},
-		
+
 		// 加载用户信息
 		async loadUserInfo() {
 			try {
@@ -680,16 +657,13 @@ export default {
 					console.log('[预订页面] 用户未登录，跳过加载用户信息');
 					return { success: false, error: '用户未登录' };
 				}
-				
+
 				// 使用 ClientDB 查询当前用户信息
 				const db = uniCloud.database();
-				const res = await db.collection('uni-id-users')
-					.where('_id == $cloudEnv_uid')
-					.field('username,nickname,mobile,realname_auth')
-					.get();
-				
+				const res = await db.collection('uni-id-users').where('_id == $cloudEnv_uid').field('username,nickname,mobile,realname_auth').get();
+
 				console.log('[预订页面] 查询用户信息结果:', res);
-				
+
 				if (res.result && res.result.data && res.result.data.length > 0) {
 					return {
 						success: true,
@@ -704,14 +678,14 @@ export default {
 				return { success: false, error: error.message || '加载用户信息失败' };
 			}
 		},
-		
+
 		// 加载出行人数据
 		async loadTravelers(setLoadingState = true) {
 			try {
 				if (setLoadingState) {
 					this.loadingTravelers = true;
 				}
-				
+
 				// 检查用户登录状态
 				const token = uni.getStorageSync('uni_id_token');
 				if (!token) {
@@ -721,21 +695,22 @@ export default {
 
 				// 使用 ClientDB 查询出行人列表
 				const db = uniCloud.database();
-				const result = await db.collection('a-travelers')
+				const result = await db
+					.collection('a-travelers')
 					.where('status == "active" && user_id == $env.uid')
 					.field('_id,name,id_card,phone,type,gender,birthday,is_main')
 					.orderBy('is_main desc, created_at desc')
 					.get();
 
 				console.log('[ClientDB] 查询出行人列表结果:', result);
-				
+
 				if (result.result && result.result.data) {
 					this.availableTravelers = result.result.data;
 					console.log('[ClientDB] 加载出行人列表成功，共', this.availableTravelers.length, '条数据');
-					
+
 					// 自动选择主要出行人（is_main为true的出行人）
 					this.autoSelectMainTraveler();
-					
+
 					return { success: true, data: result.result.data };
 				} else {
 					this.availableTravelers = [];
@@ -752,7 +727,7 @@ export default {
 				}
 			}
 		},
-		
+
 		// 自动选择主要出行人
 		autoSelectMainTraveler() {
 			// 如果已经有选中的出行人，则不再自动选择
@@ -760,10 +735,10 @@ export default {
 				console.log('[预订页面] 已有选中的出行人，跳过自动选择');
 				return;
 			}
-			
+
 			// 查找主要出行人（is_main为true）
-			const mainTraveler = this.availableTravelers.find(traveler => traveler.is_main === true);
-			
+			const mainTraveler = this.availableTravelers.find((traveler) => traveler.is_main === true);
+
 			if (mainTraveler) {
 				this.selectedTravelers = [mainTraveler];
 				console.log('[预订页面] 自动选择主要出行人:', mainTraveler.name);
@@ -774,7 +749,6 @@ export default {
 			}
 		},
 
-		
 		// 格式化日期
 		formatDate(date) {
 			if (!date) return '';
@@ -785,62 +759,62 @@ export default {
 			const weekDay = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
 			return `${year}-${month}-${day} ${weekDay}`;
 		},
-		
+
 		// 选择日期
 		selectDate() {
 			this.showDateModal = true;
 		},
-		
+
 		// 日期选择确认
 		onDateConfirm(selectedDate) {
 			console.log('[预订页面] 确认选择的日期：', selectedDate);
-			
+
 			this.selectedDate = new Date(selectedDate);
 			this.showDateModal = false;
 		},
-		
+
 		// 取消日期选择
 		onDateCancel() {
 			this.showDateModal = false;
 		},
-		
+
 		// 跳转到出行人管理页面
 		goToTravelersPage() {
 			uni.navigateTo({
 				url: '/pages/travelers/travelers'
 			});
 		},
-		
+
 		// 移除出行人
 		removeTraveler(index) {
 			this.selectedTravelers.splice(index, 1);
 		},
-		
+
 		// 显示出行人选择弹窗
 		async showTravelerSelector() {
 			this.showTravelerModal = true;
 			await this.loadTravelers(true); // 在弹窗中显示加载状态
 		},
-		
+
 		// 关闭出行人选择弹窗
 		closeTravelerModal() {
 			this.showTravelerModal = false;
 		},
-		
+
 		// 切换出行人选择
 		toggleTravelerSelection(traveler) {
 			if (this.isTravelerSelected(traveler._id)) {
-				this.selectedTravelers = this.selectedTravelers.filter(t => t._id !== traveler._id);
+				this.selectedTravelers = this.selectedTravelers.filter((t) => t._id !== traveler._id);
 			} else {
 				this.selectedTravelers.push(traveler);
 			}
 		},
-		
+
 		// 判断出行人是否被选中
 		isTravelerSelected(travelerId) {
-			return this.selectedTravelers.some(t => t._id === travelerId);
+			return this.selectedTravelers.some((t) => t._id === travelerId);
 		},
-		
+
 		// 添加新出行人
 		addNewTraveler() {
 			// 关闭弹窗并跳转到添加出行人页面
@@ -849,77 +823,77 @@ export default {
 				url: '/pages/traveler-add/traveler-add'
 			});
 		},
-		
+
 		// 确认出行人选择
 		confirmTravelerSelection() {
 			console.log('确认选择的出行人：', this.selectedTravelers);
 			this.closeTravelerModal();
 		},
-		
+
 		// 提交订单并发起支付
 		async submitOrder() {
 			if (!this.canSubmit) return;
-			
+
 			try {
 				uni.showLoading({
 					title: '正在创建订单...'
 				});
-				
+
 				// 1. 先创建业务订单
 				const orderData = await this.createBusinessOrder();
 				console.log('[支付] 创建业务订单成功:', orderData);
-				
+
 				// 2. 获取用户openid（微信小程序支付必需）
 				console.log('[支付] 开始获取用户openid');
-				
+
 				let openid = '';
-				
+
 				// 尝试从缓存获取openid
 				const cachedOpenid = uni.getStorageSync('wx_openid');
 				const openidExpired = uni.getStorageSync('openid_expired') || 0;
 				const now = Date.now();
-				
+
 				if (cachedOpenid && now < openidExpired) {
 					console.log('[支付] 使用缓存的openid:', cachedOpenid);
 					openid = cachedOpenid;
 				} else {
 					console.log('[支付] 重新获取openid');
-					
+
 					// 获取微信登录code
 					const loginRes = await uni.login({
 						provider: 'weixin'
 					});
-					
+
 					console.log('[支付] 微信登录结果:', loginRes);
-					
+
 					// uni.login 在 Promise 化后直接返回结果对象，不是数组
 					if (!loginRes || !loginRes.code) {
 						throw new Error('获取微信登录code失败');
 					}
-					
+
 					console.log('[支付] 获取到微信code:', loginRes.code);
-					
+
 					// 通过code获取openid
 					const openidRes = await uniPayCo.getOpenid({
 						provider: 'wxpay',
 						code: loginRes.code
 					});
-					
+
 					console.log('[支付] 获取openid结果:', openidRes);
-					
+
 					if (openidRes.errCode !== 0 || !openidRes.openid) {
 						throw new Error(openidRes.errMsg || '获取用户openid失败');
 					}
-					
+
 					openid = openidRes.openid;
-					
+
 					// 缓存openid，有效期1小时
 					uni.setStorageSync('wx_openid', openid);
 					uni.setStorageSync('openid_expired', now + 3600000); // 1小时后过期
-					
+
 					console.log('[支付] 获取openid成功:', openid);
 				}
-				
+
 				// 3. 创建微信支付订单
 				const paymentParams = {
 					provider: 'wxpay', // 仅支持微信支付
@@ -936,20 +910,19 @@ export default {
 						business_order_id: orderData._id
 					}
 				};
-				
+
 				console.log('[支付] 支付参数:', paymentParams);
-				
+
 				uni.hideLoading();
-				
+
 				// 4. 直接发起微信支付，不显示选择界面
 				try {
 					// 直接调用微信支付
 					const payResult = await uniPayCo.createOrder(paymentParams);
 					console.log('[支付] 创建支付订单成功:', payResult);
-					
+
 					// 直接调用微信支付
 					this.triggerWxPay(payResult);
-					
 				} catch (payError) {
 					console.error('[支付] 创建支付订单失败:', payError);
 					uni.showToast({
@@ -957,7 +930,6 @@ export default {
 						icon: 'none'
 					});
 				}
-				
 			} catch (error) {
 				uni.hideLoading();
 				console.error('[支付] 订单创建失败:', error);
@@ -967,21 +939,21 @@ export default {
 				});
 			}
 		},
-		
+
 		// 创建业务订单
 		async createBusinessOrder() {
 			try {
 				// 生成业务订单号
 				const orderNo = 'TRIP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase();
-				
+
 				// 检查用户登录状态
 				const token = uni.getStorageSync('uni_id_token');
 				if (!token) {
 					throw new Error('用户未登录，无法创建订单');
 				}
-				
+
 				console.log('[创建订单] 用户已登录，token存在');
-				
+
 				const orderData = {
 					order_no: orderNo,
 					// user_id 会由 ClientDB 根据当前用户token自动设置
@@ -1006,7 +978,7 @@ export default {
 						name: this.contactInfo.name,
 						phone: this.contactInfo.phone
 					},
-					travelers: this.selectedTravelers.map(traveler => ({
+					travelers: this.selectedTravelers.map((traveler) => ({
 						name: traveler.name,
 						id_card: traveler.id_card,
 						phone: traveler.phone,
@@ -1016,30 +988,29 @@ export default {
 					duration_days: this.productData.duration_days || 1
 					// 移除 created_at 字段，让数据库根据 schema 自动生成
 				};
-				
+
 				console.log('[创建订单] 最终订单数据:', JSON.stringify(orderData, null, 2));
-				
+
 				// 使用云对象创建订单，确保用户认证正确处理
 				const orderService = uniCloud.importObject('a-order-service');
 				const result = await orderService.createOrder(orderData);
-				
+
 				if (result.errCode === 0) {
 					console.log('[订单] 业务订单创建成功:', result.data._id);
 					return result.data;
 				} else {
 					throw new Error(result.errMsg || '订单创建失败');
 				}
-				
 			} catch (error) {
 				console.error('[订单] 创建业务订单失败:', error);
 				throw error;
 			}
 		},
-		
+
 		// 支付成功回调
 		onPaySuccess(payResult) {
 			console.log('[支付] 支付成功回调:', payResult);
-			
+
 			if (payResult.user_order_success) {
 				// 用户已付款，且回调执行成功
 				uni.showToast({
@@ -1047,14 +1018,15 @@ export default {
 					icon: 'success',
 					duration: 2000
 				});
-				
+
+				this.createAlbum(payResult.pay_order.order_no);
+
 				// 延迟跳转到订单详情页
 				setTimeout(() => {
 					uni.redirectTo({
 						url: `/pages/order/order-detail?orderId=${payResult.pay_order.custom.business_order_id}&orderNo=${payResult.pay_order.order_no}`
 					});
 				}, 2000);
-				
 			} else {
 				// 用户已付款，但回调执行失败
 				uni.showModal({
@@ -1070,11 +1042,35 @@ export default {
 				});
 			}
 		},
-		
+
+		// 创建群相册
+		async createAlbum(orderId) {
+			try {
+				// 导入album-service云对象
+				const albumService = uniCloud.importObject('album-service', {
+					customUI: true // 如果你的云对象需要前端的上下文信息，请保留此项
+				});
+				// 调用创建相册的方法
+				const albumRes = await albumService.createAlbum(orderId);
+				if (albumRes.errCode !== 0) {
+					// 如果创建相册失败，在云函数日志中记录错误
+					console.error(`订单 ${orderId} 创建相册失败:`, albumRes.errMsg);
+				}
+			} catch (e) {
+				// 如果调用云对象本身失败，同样记录错误
+				console.error(`调用album-service创建相册时发生异常，订单ID: ${orderId}`, e);
+			}
+
+			return {
+				errCode: 0,
+				errMsg: '创建相册成功'
+			};
+		},
+
 		// 支付失败回调
 		onPayFail(error) {
 			console.error('[支付] 支付失败:', error);
-			
+
 			uni.showModal({
 				title: '支付失败',
 				content: error.errMsg || '支付过程中出现问题，请重试',
@@ -1089,27 +1085,27 @@ export default {
 				}
 			});
 		},
-		
-		// 支付取消回调  
+
+		// 支付取消回调
 		onPayCancel() {
 			console.log('[支付] 用户取消支付');
-			
+
 			uni.showToast({
 				title: '支付已取消',
 				icon: 'none',
 				duration: 1500
 			});
 		},
-		
+
 		// 支付组件挂载完成
 		onPayMounted(data) {
 			console.log('[支付] uni-pay组件挂载完成:', data);
 		},
-		
+
 		// 直接触发微信支付
 		triggerWxPay(payResult) {
 			console.log('[支付] 开始微信支付:', payResult);
-			
+
 			// #ifdef MP-WEIXIN
 			// 小程序环境直接调用微信支付
 			if (payResult.order) {
@@ -1138,7 +1134,7 @@ export default {
 				});
 			}
 			// #endif
-			
+
 			// #ifdef APP-PLUS
 			// APP环境处理
 			if (payResult.order) {
@@ -1156,7 +1152,7 @@ export default {
 				});
 			}
 			// #endif
-			
+
 			// #ifdef H5
 			// H5环境处理（二维码或跳转）
 			if (payResult.mweb_url) {
@@ -1181,39 +1177,38 @@ export default {
 			}
 			// #endif
 		},
-		
+
 		// 检查支付结果
 		async checkPaymentResult(outTradeNo) {
 			try {
 				uni.showLoading({
 					title: '确认支付结果...'
 				});
-				console.log("---------outTradeNo---------", outTradeNo);
-				
+				console.log('---------outTradeNo---------', outTradeNo);
+
 				const result = await uniPayCo.getOrder({
 					out_trade_no: outTradeNo,
 					await_notify: true
 				});
-				
-				console.log("result: ", result);
-				
+
+				console.log('result: ', result);
+
 				uni.hideLoading();
-				
+
 				if (result.status === 'success' || result.status === 1) {
 					this.onPaySuccess(result);
 				} else {
 					throw new Error('支付状态异常');
 				}
-				
 			} catch (error) {
 				uni.hideLoading();
 				console.error('[支付] 检查支付结果失败:', error);
 				this.onPayFail(error);
 			}
 		},
-		
+
 		// ========== 优惠券相关方法 ==========
-		
+
 		// 显示优惠券选择器
 		showCouponSelector() {
 			console.log('[优惠券] 点击选择优惠券按钮');
@@ -1222,7 +1217,7 @@ export default {
 			console.log('[优惠券] 弹窗状态设置为:', this.showCouponModal);
 			this.loadCoupons(true); // 显示加载状态
 		},
-		
+
 		// 移除当前优惠券
 		removeCoupon() {
 			this.selectedCoupon = null;
@@ -1232,7 +1227,7 @@ export default {
 				duration: 1500
 			});
 		},
-		
+
 		// 格式化过期日期
 		formatExpireDate(dateStr) {
 			if (!dateStr) return '长期有效';
@@ -1242,7 +1237,7 @@ export default {
 			const day = String(date.getDate()).padStart(2, '0');
 			return `${year}.${month}.${day}`;
 		},
-		
+
 		// 加载优惠券数据
 		async loadCoupons(showLoading = true) {
 			try {
@@ -1251,7 +1246,7 @@ export default {
 					this.loadingCoupons = true;
 					console.log('[优惠券] 设置加载状态为true');
 				}
-				
+
 				// 检查用户登录状态
 				const token = uni.getStorageSync('uni_id_token');
 				if (!token) {
@@ -1259,17 +1254,16 @@ export default {
 					this.setMockCoupons();
 					return;
 				}
-				
+
 				// 模拟优惠券数据（后续可替换为真实API调用）
 				console.log('[优惠券] 模拟网络延迟...');
-				await new Promise(resolve => setTimeout(resolve, 500)); // 模拟网络延迟
+				await new Promise((resolve) => setTimeout(resolve, 500)); // 模拟网络延迟
 				this.setMockCoupons();
-				
+
 				console.log('[优惠券] 加载完成:', {
 					available: this.availableCoupons.length,
 					unavailable: this.unavailableCoupons.length
 				});
-				
 			} catch (error) {
 				console.error('[优惠券] 加载失败:', error);
 				uni.showToast({
@@ -1283,11 +1277,11 @@ export default {
 				}
 			}
 		},
-		
+
 		// 设置模拟优惠券数据
 		setMockCoupons() {
 			const currentAmount = this.totalAmount;
-			
+
 			this.availableCoupons = [
 				{
 					id: 'coupon1',
@@ -1299,7 +1293,7 @@ export default {
 					description: '新用户专享立减券'
 				},
 				{
-					id: 'coupon2', 
+					id: 'coupon2',
 					name: '限时优惠',
 					type: 'fixed',
 					amount: 100,
@@ -1316,11 +1310,11 @@ export default {
 					expire_date: '2024-09-30',
 					description: '九折优惠券'
 				}
-			].filter(coupon => {
+			].filter((coupon) => {
 				// 过滤掉不满足最低金额要求的优惠券
 				return currentAmount >= (coupon.min_amount || 0);
 			});
-			
+
 			this.unavailableCoupons = [
 				{
 					id: 'coupon4',
@@ -1332,15 +1326,15 @@ export default {
 					description: '超级优惠立减券',
 					unavailable_reason: `满${2000}元可用`
 				}
-			].filter(coupon => {
+			].filter((coupon) => {
 				// 不满足条件的优惠券
 				return currentAmount < (coupon.min_amount || 0);
 			});
-			
+
 			// 自动选择最佳优惠券
 			this.selectBestCoupon();
 		},
-		
+
 		// 自动选择最佳优惠券
 		selectBestCoupon() {
 			if (this.availableCoupons.length === 0) {
@@ -1348,15 +1342,15 @@ export default {
 				this.selectedCoupon = null;
 				return;
 			}
-			
+
 			const currentAmount = this.totalAmount;
 			let bestCoupon = null;
 			let maxDiscount = 0;
-			
+
 			// 计算每个优惠券的实际优惠金额
-			this.availableCoupons.forEach(coupon => {
+			this.availableCoupons.forEach((coupon) => {
 				let discount = 0;
-				
+
 				if (coupon.type === 'fixed') {
 					// 立减券：直接减免金额
 					discount = coupon.amount;
@@ -1364,21 +1358,21 @@ export default {
 					// 折扣券：计算折扣金额
 					discount = currentAmount * (1 - coupon.amount / 10);
 				}
-				
+
 				console.log(`[优惠券] ${coupon.name} 优惠金额: ¥${discount}`);
-				
+
 				// 选择优惠金额最大的券
 				if (discount > maxDiscount) {
 					maxDiscount = discount;
 					bestCoupon = coupon;
 				}
 			});
-			
+
 			if (bestCoupon) {
 				this.selectedCoupon = bestCoupon;
 				this.tempSelectedCoupon = bestCoupon; // 同步临时选择
 				console.log(`[优惠券] 自动选择最佳优惠券: ${bestCoupon.name}，可省¥${maxDiscount.toFixed(2)}`);
-				
+
 				// 显示提示信息
 				setTimeout(() => {
 					uni.showToast({
@@ -1392,13 +1386,13 @@ export default {
 				console.log('[优惠券] 未找到最佳优惠券');
 			}
 		},
-		
+
 		// 选择优惠券（临时选择）
 		selectCoupon(coupon) {
 			this.tempSelectedCoupon = coupon;
 			console.log('[优惠券] 临时选择:', coupon?.name || '不使用优惠券');
 		},
-		
+
 		// 关闭优惠券弹窗
 		closeCouponModal() {
 			console.log('[优惠券] 关闭弹窗');
@@ -1406,12 +1400,12 @@ export default {
 			this.tempSelectedCoupon = this.selectedCoupon; // 恢复原来的选择
 			console.log('[优惠券] 弹窗状态设置为:', this.showCouponModal);
 		},
-		
+
 		// 确认优惠券选择
 		confirmCouponSelection() {
 			this.selectedCoupon = this.tempSelectedCoupon;
 			this.showCouponModal = false;
-			
+
 			if (this.selectedCoupon) {
 				uni.showToast({
 					title: `已选择${this.selectedCoupon.name}`,
@@ -1428,34 +1422,34 @@ export default {
 				console.log('[优惠券] 取消使用优惠券');
 			}
 		},
-		
+
 		// 判断是否为最佳选择的优惠券
 		isBestChoice(coupon) {
 			if (!coupon || this.availableCoupons.length === 0) return false;
-			
+
 			const currentAmount = this.totalAmount;
 			let maxDiscount = 0;
 			let bestCouponId = null;
-			
+
 			// 计算所有可用优惠券的实际优惠金额
-			this.availableCoupons.forEach(c => {
+			this.availableCoupons.forEach((c) => {
 				let discount = 0;
 				if (c.type === 'fixed') {
 					discount = c.amount;
 				} else if (c.type === 'percent') {
 					discount = currentAmount * (1 - c.amount / 10);
 				}
-				
+
 				if (discount > maxDiscount) {
 					maxDiscount = discount;
 					bestCouponId = c.id;
 				}
 			});
-			
+
 			return coupon.id === bestCouponId;
 		}
 	}
-}
+};
 </script>
 
 <style>
@@ -1762,7 +1756,6 @@ export default {
 
 /* 出行人列表 */
 .travelers-list {
-
 }
 
 .traveler-item {
@@ -1843,7 +1836,6 @@ export default {
 
 /* 联系人表单 */
 .contact-form {
-
 }
 
 .form-row {
@@ -1899,7 +1891,6 @@ export default {
 
 /* 费用明细 */
 .price-summary {
-
 }
 
 .price-row {
@@ -1945,8 +1936,6 @@ export default {
 	color: #ff6b35;
 	font-weight: 700;
 }
-
-
 
 /* 底部占位 */
 .bottom-placeholder {
@@ -2060,7 +2049,8 @@ export default {
 	letter-spacing: 0.5px;
 }
 
-.coupon-desc, .coupon-expire {
+.coupon-desc,
+.coupon-expire {
 	font-size: 12px;
 	opacity: 0.9;
 	margin-bottom: 4px;
@@ -2169,7 +2159,7 @@ export default {
 	left: 0;
 	right: 0;
 	height: 1px;
-	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .header-content {
@@ -2250,8 +2240,7 @@ export default {
 	cursor: pointer;
 	transition: all 0.2s ease;
 	border: 2px solid transparent;
-	background: linear-gradient(white, white) padding-box,
-	            linear-gradient(135deg, #ff6b35, #ff8a65) border-box;
+	background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #ff6b35, #ff8a65) border-box;
 	position: relative;
 	overflow: hidden;
 }
@@ -2345,7 +2334,8 @@ export default {
 	display: block;
 }
 
-.coupon-condition, .coupon-right .coupon-expire {
+.coupon-condition,
+.coupon-right .coupon-expire {
 	font-size: 12px;
 	color: #666;
 	margin-bottom: 2px;
@@ -2442,7 +2432,8 @@ export default {
 	gap: 12px;
 }
 
-.cancel-btn, .confirm-btn {
+.cancel-btn,
+.confirm-btn {
 	flex: 1;
 	height: 48px;
 	border-radius: 12px;
@@ -2480,4 +2471,4 @@ export default {
 	position: relative;
 	z-index: 1;
 }
-</style> 
+</style>

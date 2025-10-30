@@ -51,7 +51,7 @@ function extractDaysFromTitle(title) {
 // 生成随机数值的辅助函数
 function generateRandomValues() {
 	// rating: 4-5分之间，保留1位小数
-	const rating = (Math.random() * 2 + 4).toFixed(1);
+	const rating = (Math.random() + 4).toFixed(1);
 
 	// view_count: 1万-10万之间的整数
 	const viewCount = Math.floor(Math.random() * 90000) + 10000;
@@ -95,12 +95,18 @@ exports.main = async (event, context) => {
 
 	// 根据 action 参数路由到不同的处理函数
 	switch (action) {
+		case 'getProductRouteIds':
+			return await getProductRouteIds(event, context);
+		case 'checkExistingProducts':
+			return await checkExistingProducts(event, context);
 		case 'getProductDetail':
 			return await getProductDetail(event, context);
 		case 'getProductItinerary':
 			return await getProductItinerary(event, context);
 		case 'getBookingNote':
 			return await getBookingNote(event, context);
+		case 'getProductReviews':
+			return await getProductReviews(event, context);
 		case 'syncSnapshot':
 			return await syncSnapshot(event, context);
 		case 'syncFullProduct':
@@ -158,6 +164,164 @@ async function checkApiHealth(event, context) {
 		return {
 			errCode: 'API_HEALTH_CHECK_FAILED',
 			errMsg: `API健康检查失败: ${error.message}`
+		};
+	}
+}
+
+// 获取商品 Route IDs
+async function getProductRouteIds(event, context) {
+	const { productId } = event;
+
+	if (!productId) {
+		return {
+			errCode: 'MISSING_PRODUCT_ID',
+			errMsg: '缺少商品ID参数'
+		};
+	}
+
+	console.log(`[Route ID 同步] 开始获取 Route IDs，产品ID: ${productId}`);
+
+	try {
+		const requestUrl = `${CRAWLER_API_BASE_URL}/api/route_ids/${productId}`;
+		console.log(`[Route ID 同步] 发送API请求: ${requestUrl}`);
+
+		const response = await uniCloud.httpclient.request(requestUrl, {
+			method: 'GET',
+			timeout: 60000, // 60秒超时
+			headers: {
+				'User-Agent': 'uniCloud-httpclient/1.0',
+				Accept: 'application/json'
+			},
+			dataType: 'json' // 明确指定返回数据类型为JSON
+		});
+
+		console.log(`[Route ID 同步] API响应状态: ${response.status}`);
+		console.log(`[Route ID 同步] API响应数据类型: ${typeof response.data}`);
+
+		if (response.status !== 200) {
+			throw new Error(`API请求失败，状态码: ${response.status}, 响应内容: ${JSON.stringify(response.data)}`);
+		}
+
+		// 由于设置了 dataType: 'json'，response.data 应该已经是解析后的对象
+		const apiResult = response.data;
+
+		if (!apiResult || typeof apiResult !== 'object') {
+			throw new Error(`API返回数据格式错误，期望对象，实际收到: ${typeof apiResult}`);
+		}
+
+		if (!apiResult.success) {
+			const errorMsg = apiResult.message || apiResult.error || '获取 Route IDs 失败';
+			throw new Error(`API返回错误: ${errorMsg}`);
+		}
+
+		if (!apiResult.data) {
+			throw new Error('API返回成功但缺少数据字段');
+		}
+
+		// 清洗返回的数据，移除可能导致问题的特殊字符
+		const cleanedData = cleanDataForDatabase(apiResult.data);
+		console.log(`[Route ID 同步] Route IDs 数据清洗完成，产品ID: ${productId}`);
+		console.log(`[Route ID 同步] 清洗后的数据:`, JSON.stringify(cleanedData));
+
+		const db = uniCloud.database();
+		const routesCollection = db.collection('a-routes');
+		const dataToSave = {
+			A_route_id: cleanedData.A_route_id,
+			route_ids: cleanedData.route_ids
+		};
+
+		// 2. 查找是否已存在该 product_id 的记录
+		const existingRecord = await routesCollection
+			.where({ A_route_id: cleanedData.A_route_id })
+			.field({ _id: true }) // 只需要 _id
+			.get();
+
+		let dbResult;
+		if (existingRecord.data && existingRecord.data.length > 0) {
+			// 3a. 存在 -> 更新 (使用 set 覆盖)
+			const recordId = existingRecord.data[0]._id;
+			console.log(`[Route ID 同步] 发现已存在记录 (_id: ${recordId}), 执行更新...`);
+			dbResult = await routesCollection.doc(recordId).set(dataToSave);
+		} else {
+			// 3b. 不存在 -> 新增
+			console.log(`[Route ID 同步] 未发现记录, 执行新增...`);
+			dbResult = await routesCollection.add(dataToSave);
+		}
+
+		console.log('[Route ID 同步] a-routes 数据库操作结果:', dbResult);
+
+		return {
+			errCode: 0,
+			data: cleanedData
+		};
+	} catch (error) {
+		console.error(`[Route ID 同步] 获取 Route IDs 失败 [产品ID: ${productId}]:`, error);
+		console.error('[Route ID 同步] 错误堆栈:', error.stack);
+		return {
+			errCode: 'GET_ROUTE_IDS_FAILED',
+			errMsg: `获取 Route IDs 失败: ${error.message}`
+		};
+	}
+}
+
+/**
+ * 检查商品是否存在
+ * 接收一个 route_ids 数组，返回其中已存在于 a-products 表中的 ctrip_id
+ */
+async function checkExistingProducts(event, context) {
+	const { route_ids } = event;
+
+	if (!route_ids || !Array.isArray(route_ids)) {
+		return {
+			errCode: 'MISSING_ROUTE_IDS',
+			errMsg: '缺少 route_ids 数组参数'
+		};
+	}
+
+	if (route_ids.length === 0) {
+		return {
+			errCode: 0,
+			data: {
+				existing_ids: []
+			}
+		};
+	}
+
+	console.log(`[商品检查] 开始检查 ${route_ids.length} 个商品ID是否存在...`);
+
+	const db = uniCloud.databaseForJQL({
+		clientInfo: event.clientInfo
+	});
+	const dbCmd = db.command;
+
+	try {
+		const queryResult = await db
+			.collection('a-products')
+			.where({
+				ctrip_id: dbCmd.in(route_ids)
+			})
+			.field({ ctrip_id: true })
+			.limit(route_ids.length)
+			.get();
+
+		if (queryResult.data) {
+			const existing_ids = queryResult.data.map((item) => item.ctrip_id);
+			console.log(`[商品检查] 检查完成，找到 ${existing_ids.length} 个已存在的商品。`);
+			return {
+				errCode: 0,
+				data: {
+					existing_ids: existing_ids
+				}
+			};
+		} else {
+			throw new Error('数据库查询失败');
+		}
+	} catch (error) {
+		console.error(`[商品检查] 数据库查询失败:`, error);
+		console.error('[商品检查] 错误堆栈:', error.stack);
+		return {
+			errCode: 'CHECK_PRODUCTS_FAILED',
+			errMsg: `检查商品是否存在时失败: ${error.message}`
 		};
 	}
 }
@@ -391,6 +555,224 @@ async function getBookingNote(event, context) {
 	}
 }
 
+// 获取并存储商品评论
+async function getProductReviews(event, context) {
+	let { productId } = event;
+
+	if (!productId) {
+		return {
+			errCode: 'MISSING_PRODUCT_ID',
+			errMsg: '缺少商品ID参数'
+		};
+	}
+
+	try {
+		const db = uniCloud.database();
+		const productsCollection = db.collection('a-products');
+		const routesCollection = db.collection('a-routes');
+		const reviewsCollection = db.collection('a-reviews');
+
+		const ARouteRes = await routesCollection.where({ route_ids: productId }).get();
+		if (ARouteRes && ARouteRes.data && ARouteRes.data.length > 0) {
+			productId = ARouteRes.data[0].A_route_id;
+			console.log(`[评论同步] 成功获取该产品的A线路ID: ${productId}`);
+		} else {
+			console.warn(`[评论同步] 获取A线路ID失败`);
+		}
+
+		console.log(`[评论同步] 开始获取商品评论，产品ID: ${productId}`);
+
+		const requestUrl = `${CRAWLER_API_BASE_URL}/api/reviews/${productId}`;
+		console.log(`[评论同步] 发送API请求: ${requestUrl}`);
+
+		const response = await uniCloud.httpclient.request(requestUrl, {
+			method: 'GET',
+			// 评论页可能需要更长时间加载
+			timeout: 100000, // 增加超时时间到 100 秒
+			headers: {
+				'User-Agent': 'uniCloud-httpclient/1.0',
+				Accept: 'application/json'
+			},
+			dataType: 'json' // 明确指定返回数据类型为JSON
+		});
+
+		console.log(`[评论同步] API响应状态: ${response.status}`);
+		console.log(`[评论同步] API响应数据类型: ${typeof response.data}`);
+
+		if (response.status !== 200) {
+			throw new Error(`API请求失败，状态码: ${response.status}, 响应内容: ${JSON.stringify(response.data)}`);
+		}
+
+		const apiResult = response.data;
+
+		if (!apiResult || typeof apiResult !== 'object') {
+			throw new Error(`API返回数据格式错误，期望对象，实际收到: ${typeof apiResult}`);
+		}
+
+		if (!apiResult.success) {
+			const errorMsg = apiResult.message || apiResult.error || '获取评论失败';
+			throw new Error(`API返回错误: ${errorMsg}`);
+		}
+
+		if (!apiResult.data) {
+			throw new Error('API返回成功但缺少数据字段');
+		}
+
+		// 清洗返回的数据
+		const cleanedData = cleanDataForDatabase(apiResult.data);
+		console.log(`[评论同步] 评论数据清洗完成，产品ID: ${productId}`);
+
+		// 确保 cleanedData 中有 product_id (爬虫应该会返回)
+		if (!cleanedData.product_id) {
+			cleanedData.product_id = productId; // 备用方案
+			console.warn(`[评论同步] API返回的评论数据中缺少 product_id，已使用传入的 productId 补充。`);
+		}
+
+		// 更新 a-products 表中的评分信息
+		console.log(`[评论同步] 准备更新 a-products 表 (ctrip_id: ${cleanedData.product_id}) 的评分信息...`);
+		const productUpdateData = {
+			rating: parseFloat(cleanedData.rating) || 5,
+			good_rate: parseFloat(cleanedData.good_rate) || 100,
+			rating_spec: {
+				itinerary: parseFloat(cleanedData.rating_spec?.itinerary) || 5,
+				accommodation: parseFloat(cleanedData.rating_spec?.accommodation) || 5,
+				service: parseFloat(cleanedData.rating_spec?.service) || 5
+			}
+		};
+
+		const productUpdateResult = await productsCollection
+			.where({
+				ctrip_id: cleanedData.product_id
+			})
+			.update(productUpdateData);
+
+		console.log(`[评论同步] 更新 a-products 结果:`, productUpdateResult);
+		if (productUpdateResult.affectedDocs === 0) {
+			console.warn(`[评论同步] 未找到 ctrip_id 为 ${cleanedData.product_id} 的产品记录或评分未变化，无法更新评分。`);
+		} else {
+			console.log(`[评论同步] 成功更新 a-products 表中的评分信息。`);
+		}
+
+		// 批量插入 a-reviews 表
+		let newCount = 0;
+		let updatedCount = 0;
+		let insertErrors = [];
+		const reviewsToInsert = cleanedData.reviews || [];
+
+		console.log(`[评论同步] 准备向 a-reviews 插入 ${reviewsToInsert.length} 条评论...`);
+
+		if (reviewsToInsert.length > 0) {
+			// 为每条评论添加 ctrip_id 和 last_updated 字段
+			const recordsToInsert = reviewsToInsert.map((review) => ({
+				...review, // 展开单条评论的所有字段
+				ctrip_id: cleanedData.product_id, // 添加关联的 ctrip_id
+				is_real: true,
+				status: 'pending'
+			}));
+			console.log(recordsToInsert[0]);
+
+			const existingReviewsRes = await reviewsCollection
+				.where({
+					ctrip_id: cleanedData.product_id
+				})
+				.field({ _id: true, user_name: true, travel_date: true, content: true }) // 仅获取用于去重的字段
+				.limit(1000)
+				.get();
+
+			const existingReviewMap = new Map();
+			if (existingReviewsRes.data) {
+				existingReviewsRes.data.forEach((review) => {
+					const safe_user = (review.user_name || '').trim();
+					const safe_date = (review.travel_date || '').trim();
+					const safe_content = (review.content || '').trim();
+					const contentSnippet = safe_content.substring(0, 30);
+					const key = `${safe_user}_${safe_date}_${contentSnippet}`;
+					existingReviewMap.set(key, review._id);
+				});
+			}
+			console.log(`[评论同步] 数据库中已存在 ${existingReviewMap.size} 条相关评论。`);
+
+			const recordsToAdd = [];
+			const recordsToUpdate = [];
+
+			for (const record of recordsToInsert) {
+				const safe_user = (record.user_name || '').trim();
+				const safe_date = (record.travel_date || '').trim();
+				const safe_content = (record.content || '').trim();
+				const contentSnippet = safe_content.substring(0, 30);
+				const key = `${safe_user}_${safe_date}_${contentSnippet}`;
+
+				if (key && existingReviewMap.has(key)) {
+					// 已存在 -> 准备更新
+					recordsToUpdate.push({
+						_id: existingReviewMap.get(key),
+						data: record // 完整的、从API拉取的新数据
+					});
+				} else {
+					// 不存在 -> 准备新增
+					console.log(key);
+					recordsToAdd.push(record);
+				}
+			}
+
+			console.log(`[评论同步] ${recordsToAdd.length} 条待新增, ${recordsToUpdate.length} 条待更新。`);
+
+			// 4. 执行批量新增
+			if (recordsToAdd.length > 0) {
+				try {
+					const addResult = await reviewsCollection.add(recordsToAdd);
+					newCount = addResult.inserted || (addResult.ids ? addResult.ids.length : addResult.id ? 1 : 0);
+					console.log(`[评论同步] 成功新增 ${newCount} 条评论。`);
+				} catch (error) {
+					console.error('[评论同步] a-reviews 批量插入时发生错误:', error);
+					insertErrors.push(error.message);
+				}
+			}
+
+			// 5. 执行批量更新 (通过循环单条 .set() 完成)
+			if (recordsToUpdate.length > 0) {
+				for (const item of recordsToUpdate) {
+					try {
+						// 使用 .set() 会用 item.data 完全覆盖掉 doc(item._id) 的原有数据
+						// 这在“同步”场景下是正确的，可以确保数据和API一致
+						await reviewsCollection.doc(item._id).set(item.data);
+						updatedCount++;
+					} catch (error) {
+						console.error(`[评论同步] 更新评论 _id: ${item._id} 时失败:`, error);
+						insertErrors.push(error.message);
+					}
+				}
+				console.log(`[评论同步] 成功更新 ${updatedCount} 条评论。`);
+			}
+		} else {
+			console.log('[评论同步] 没有评论需要插入或更新 a-reviews 表。');
+		}
+
+		if (insertErrors.length === 0) {
+			// console.log(`[评论同步] 成功向 a-reviews 插入 ${insertedCount} 条评论，产品ID: ${cleanedData.product_id}`);
+			return {
+				errCode: 0,
+				data: {
+					productUpdateResult: productUpdateResult, // a-products 更新结果
+					newCount: newCount, // a-reviews 新增数量
+					updatedCount: updatedCount, // a-reviews 更新数量
+					productId: cleanedData.product_id // 返回 ctrip_id
+				}
+			};
+		} else {
+			// 如果有错误，抛出或返回错误信息
+			throw new Error(`a-reviews 数据库插入操作部分或全部失败: ${insertErrors.join('; ')}`);
+		}
+	} catch (error) {
+		console.error(`[评论同步] 获取或存储评论失败 [产品ID: ${productId}]:`, error);
+		console.error('[评论同步] 错误堆栈:', error.stack);
+		return {
+			errCode: 'GET_OR_SAVE_REVIEWS_FAILED',
+			errMsg: `获取或存储评论失败: ${error.message}`
+		};
+	}
+}
+
 // 同步订单快照
 async function syncSnapshot(event, context) {
 	let { snapshot_url, departure_date, uniIdToken } = event;
@@ -435,15 +817,23 @@ async function syncSnapshot(event, context) {
 	const db = uniCloud.databaseForJQL({ clientInfo: event.clientInfo });
 
 	try {
-		const productRecord = await db.collection('a-products').where(`ctrip_id == '${ctripId}'`).get();
+		const productRecord = await db.collection('a-products').where(`ctrip_id == '${ctripId}'`).field({ _id: true }).getOne();
 
 		if (productRecord.data.length > 0) {
 			productId = productRecord.data[0]._id;
+			console.log('[订单快照同步] 成功获取商品ID: ', productId);
 		} else {
-			return {
-				errCode: 'COULD_NOT_FETCH_PRODUCTID',
-				errMsg: '无法获取到productId'
-			};
+			console.log('[订单快照同步] 该商品未录入，现在开始同步商品：', ctripId);
+			const syncResult = await syncFullProduct({ productId: ctripId, uniIdToken }, context);
+			if (syncResult.errCode === 0 && syncResult.data) {
+				productId = syncResult.data.productId;
+				console.log('[订单快照同步] 同步商品成功，ID: ', productId);
+			} else {
+				return {
+					errCode: 'COULD_NOT_SYNC_PRODUCT',
+					errMsg: `同步商品失败：${ctripId}`
+				};
+			}
 		}
 	} catch (error) {
 		console.error(`[订单快照同步] 订单快照同步失败:`, error);
@@ -541,7 +931,6 @@ async function syncSnapshot(event, context) {
 		console.log(`[订单快照同步] 行程数据清洗完成，订单快照URL: ${snapshot_url}`);
 
 		try {
-			// 首先获取或创建订单记录以获取
 			const existingSnapshot = await db.collection('a-snapshots').where(`order_id == '${orderId}'`).get();
 
 			if (existingSnapshot.data.length > 0) {
@@ -561,6 +950,25 @@ async function syncSnapshot(event, context) {
 			sync_status: 'success',
 			end_time: Date.now()
 		});
+
+		try {
+			// 导入album-service云对象
+			const albumService = uniCloud.importObject('album-service', {
+				customUI: true // 如果你的云对象需要前端的上下文信息，请保留此项
+			});
+			// 调用创建相册的方法
+			const albumRes = await albumService.createAlbum(orderId);
+			if (albumRes.errCode !== 0) {
+				// 如果创建相册失败，在云函数日志中记录错误
+				// 注意：这里我们不中断支付成功的主流程，以防影响用户体验
+				console.error(`[订单快照同步] 订单快照 ${orderId} 创建相册失败:`, albumRes.errMsg);
+			} else {
+				console.log(`[订单快照同步] 创建相册成功，快照订单号: ${orderId}`);
+			}
+		} catch (e) {
+			// 如果调用云对象本身失败，同样记录错误
+			console.error(`调用album-service创建相册时发生异常，快照订单号: ${orderId}`, e);
+		}
 
 		return {
 			errCode: 0,
@@ -772,6 +1180,8 @@ async function syncFullProduct(event, context) {
 						ctrip_id: productId,
 						title: cleanedProductData.title || '',
 						subtitle: cleanedProductData.subtitle || cleanedProductData.sub_title || '',
+						route_title: cleanedProductData.route_title || '',
+						route_overview: cleanedProductData.route_overview || {},
 
 						// 价格字段处理
 						price: adultPrice,
@@ -1003,6 +1413,7 @@ async function syncFullProduct(event, context) {
 				violation_terms: cleanedBookingData.violation_terms || {},
 				travel_guide: cleanedBookingData.travel_guide || [],
 				safety_tips: cleanedBookingData.safety_tips || [],
+				protection_tips: cleanedBookingData.protection_tips || [],
 				payment_info: cleanedBookingData.payment_info || {},
 				status: 'active'
 			};
@@ -1074,7 +1485,8 @@ async function syncFullProduct(event, context) {
 				successCount,
 				failedCount,
 				syncResults,
-				status: finalStatus
+				status: finalStatus,
+				productId: productRecordId
 			}
 		};
 	} catch (error) {

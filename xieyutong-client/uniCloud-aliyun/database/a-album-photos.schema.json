@@ -1,0 +1,53 @@
+{
+	"bsonType": "object",
+	"required": ["album_id", "user_id"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null || 'admin' in auth.role || 'super_admin' in auth.role",
+		"update": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"album_id": {
+			"bsonType": "string",
+			"description": "所属相册ID",
+			"foreignKey": "a-group-albums._id"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "上传者用户ID",
+			"foreignKey": "uni-id-users._id"
+		},
+		"is_guide": {
+			"bsonType": "bool",
+			"description": "是否为导游/摄影师上传",
+			"defaultValue": false
+		},
+		"original_url": {
+			"bsonType": "string",
+			"description": "原图URL"
+		},
+		"compressed_url": {
+			"bsonType": "string",
+			"description": "压缩图URL"
+		},
+		"shooting_time": {
+			"bsonType": "timestamp",
+			"description": "拍摄时间"
+		},
+		"day_index": {
+			"bsonType": "int",
+			"description": "照片属于行程的第几天"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "上传时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

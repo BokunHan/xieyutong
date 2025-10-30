@@ -1,104 +1,143 @@
 {
-  "bsonType": "object",
-  "description": "用户评价表，存储用户对旅游产品的评价信息",
-  "required": ["user_id", "product_id", "content", "rating"],
-  "permission": {
-    "read": true,
-    "create": "auth.uid != null",
-    "update": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
-    "delete": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
-    "count": true
-  },
-  "properties": {
-    "_id": {
-      "description": "系统自动生成的唯一标识"
-    },
-    "user_id": {
-      "bsonType": "string",
-      "description": "评价用户ID",
-      "title": "用户ID",
-      "required": true,
-      "maxLength": 50
-    },
-    "product_id": {
-      "bsonType": "string",
-      "description": "被评价的商品ID（携程商品ID）",
-      "title": "商品ID",
-      "required": true,
-      "maxLength": 50,
-      "foreignKey": "a-products._id"
-    },
-    "ctrip_id": {
-      "bsonType": "string",
-      "description": "携程评价ID，用于标识对应的携程评价数据",
-      "title": "携程ID",
-      "maxLength": 100
-    },
-    "rating": {
-      "bsonType": "int",
-      "description": "评分，1-5星",
-      "title": "评分",
-      "required": true,
-      "minimum": 1,
-      "maximum": 5
-    },
-    "content": {
-      "bsonType": "string",
-      "description": "评价文本内容",
-      "title": "评价内容",
-      "required": true,
-      "maxLength": 2000,
-      "trim": "both"
-    },
-    "images": {
-      "bsonType": "array",
-      "description": "评价图片数组",
-      "title": "评价图片",
-      "items": {
-        "bsonType": "string",
-        "description": "图片URL",
-        "maxLength": 500
-      },
-      "maxItems": 9
-    },
-    "travel_date": {
-      "bsonType": "string",
-      "description": "出行日期，格式：YYYY-MM-DD",
-      "title": "出行日期",
-      "maxLength": 10
-    },
-    "is_real": {
-      "bsonType": "bool",
-      "description": "是否真实用户评价（false表示AI生成的虚拟评价）",
-      "title": "真实评价",
-      "default": true
-    },
-    "helpful_count": {
-      "bsonType": "int",
-      "description": "有用点赞数",
-      "title": "有用数",
-      "default": 0,
-      "minimum": 0
-    },
-    "status": {
-      "bsonType": "string",
-      "description": "评价状态",
-      "enum": ["pending", "approved", "rejected", "hidden"],
-      "default": "pending"
-    },
-    "created_at": {
-      "bsonType": "timestamp",
-      "description": "创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updated_at": {
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    }
-  }
-} 
+	"bsonType": "object",
+	"description": "用户评价表，存储用户对旅游产品的评价信息",
+	"required": ["ctrip_id", "content", "rating"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
+		"count": true
+	},
+	"properties": {
+		"_id": {
+			"description": "系统自动生成的唯一标识"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "评价用户ID",
+			"title": "用户ID",
+			"maxLength": 50
+		},
+		"ctrip_id": {
+			"bsonType": "string",
+			"description": "携程评价ID，用于标识对应的携程评价数据",
+			"title": "携程ID",
+			"required": true,
+			"maxLength": 100
+		},
+		"user_avatar": {
+			"bsonType": "string",
+			"description": "评价用户头像URL",
+			"title": "用户头像URL",
+			"maxLength": 500
+		},
+		"user_name": {
+			"bsonType": "string",
+			"description": "评价用户名字",
+			"title": "用户名字",
+			"maxLength": 50
+		},
+		"rating": {
+			"bsonType": "number",
+			"description": "评分，1-5星",
+			"title": "评分",
+			"required": true,
+			"minimum": 0,
+			"maximum": 5
+		},
+		"content": {
+			"bsonType": "string",
+			"description": "评价文本内容",
+			"title": "评价内容",
+			"required": true,
+			"maxLength": 2000,
+			"trim": "both"
+		},
+		"images": {
+			"bsonType": "array",
+			"description": "评价图片数组",
+			"title": "评价图片",
+			"items": {
+				"bsonType": "string",
+				"description": "图片URL",
+				"maxLength": 500
+			},
+			"maxItems": 9
+		},
+		"travel_date": {
+			"bsonType": "string",
+			"description": "出行日期，格式：YYYY-MM-DD",
+			"title": "出行日期",
+			"maxLength": 10
+		},
+		"location": {
+			"bsonType": "string",
+			"description": "发表地点",
+			"title": "发表地点",
+			"maxLength": 100
+		},
+		"group_type": {
+			"bsonType": "string",
+			"description": "团体类型，如朋友出游、情侣夫妻等",
+			"title": "团体类型",
+			"maxLength": 100
+		},
+		"route": {
+			"bsonType": "string",
+			"description": "选择路线",
+			"title": "选择路线",
+			"maxLength": 100
+		},
+		"guide_name": {
+			"bsonType": "string",
+			"description": "司导名字",
+			"title": "司导名字",
+			"maxLength": 100
+		},
+		"guide_photo": {
+			"bsonType": "string",
+			"description": "司导照片URL",
+			"title": "司导照片URL",
+			"maxLength": 500
+		},
+		"is_real": {
+			"bsonType": "bool",
+			"description": "是否真实用户评价（false表示AI生成的虚拟评价）",
+			"title": "真实评价",
+			"default": true
+		},
+		"helpful_count": {
+			"bsonType": "int",
+			"description": "有用点赞数",
+			"title": "有用数",
+			"default": 0,
+			"minimum": 0
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "评价状态",
+			"enum": ["pending", "approved", "rejected", "hidden"],
+			"default": "pending"
+		},
+		"created_at": {
+			"bsonType": "string",
+			"description": "发表时间",
+			"title": "发表时间",
+			"maxLength": 20
+		},
+		"location": {
+			"bsonType": "string",
+			"description": "发表地点",
+			"title": "发表地点",
+			"maxLength": 50
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

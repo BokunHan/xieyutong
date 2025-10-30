@@ -1,7 +1,7 @@
 <template>
 	<view class="page-container">
 		<!-- 状态栏占位 -->
-		<view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
+		<view class="status-bar-placeholder" :style="{ height: statusBarHeight + 100 + 'rpx' }"></view>
 
 		<!-- 加载状态 -->
 		<view class="loading-container" v-if="loading">
@@ -18,7 +18,7 @@
 				</view>
 				<view class="text-sm text-gray-500 mt-1 flex items-center justify-between w-full">
 					{{ itineraryData.dateRange }}
-					<view v-if="orderType === 'snapshot'" class="exit-btn" @click="exitItinerary">退出行程</view>
+					<view class="exit-btn" @click="exitItinerary">退出行程</view>
 				</view>
 
 				<!-- 天气信息区域 -->
@@ -123,7 +123,16 @@
 								<text class="type-text">{{ getActivityTypeName(item.elementType) }}</text>
 							</view>
 						</view>
-						<view class="timeline-title">{{ item.title }}</view>
+						<view v-if="item.elementType === 'hotel' && item.hotelOptions && item.hotelOptions.length > 0" class="timeline-hotel-list">
+							<view class="hotel-option-item" v-for="(hotelName, hIndex) in item.hotelOptions" :key="hIndex">
+								<text v-if="hIndex > 0" class="hotel-prefix">或</text>
+								<text class="hotel-name">{{ hotelName }}</text>
+								<text class="hotel-rating-icons">💎💎💎💎💎</text>
+							</view>
+						</view>
+						<view class="timeline-title" v-else>
+							{{ item.title }}
+						</view>
 						<view class="timeline-desc">{{ item.description }}</view>
 						<!-- <image v-if="item.image" :src="item.image" :alt="item.title" class="timeline-image" mode="aspectFill" /> -->
 						<swiper v-if="item.images && item.images.length > 0" class="timeline-swiper" indicator-dots circular>
@@ -162,7 +171,7 @@
 				<view class="nav-search-bar">
 					<input v-model="orderId" placeholder="输入订单号..." focus="focus" placeholder-class="text-gray-400 text-sm" class="flex-1 bg-transparent text-sm text-gray-800" />
 				</view>
-				<view class="action-button" @click="fetchSnapshotItinerary">
+				<view class="action-button" @click="fetchItineraryAndJoinAlbum">
 					<text class="fa fa-search mr-2"></text>
 					<text>导入行程</text>
 				</view>
@@ -179,6 +188,7 @@ export default {
 			orderType: 'mp',
 			statusBarHeight: 0, // 状态栏高度
 			hasItinerary: false, // 控制显示状态
+			isPreview: false,
 			loading: true, // 加载状态
 			selectedDay: 1,
 			currentDay: 1,
@@ -232,6 +242,7 @@ export default {
 			currentDaySchedule: []
 		};
 	},
+
 	async onLoad(options) {
 		console.log('[行程页面] 页面开始加载，参数:', options);
 
@@ -242,39 +253,54 @@ export default {
 
 		// 检查用户是否有进行中的行程
 		await this.checkUserItinerary();
+	},
 
-		// 如果有行程，实现智能滚动
-		if (this.hasItinerary) {
+	async onShow() {
+		// 如果有行程且不是从图片预览中退回，实现智能滚动
+		if (this.hasItinerary && !this.isPreview) {
 			await this.$nextTick();
 			this.scrollToCurrentPosition();
 		}
 
+		this.isPreview = false;
 		console.log('[行程页面] 页面加载完成');
 	},
+
 	methods: {
 		// 检查用户是否有进行中的行程
 		async checkUserItinerary() {
 			console.log('[检查行程] 开始检查用户行程');
 			try {
-				this.loading = true;
 				console.log('[检查行程] 设置加载状态为true');
+
+				// 检查登录状态
+				const token = uni.getStorageSync('uni_id_token');
+				if (!token) {
+					console.error('[相册列表] 用户未登录');
+					uni.navigateTo({
+						url: '/pages/login/login'
+					});
+					return;
+				}
 
 				// 先检查本地缓存的行程信息
 				const cachedItinerary = uni.getStorageSync('current_itinerary');
 				if (cachedItinerary) {
+					if (cachedItinerary.orderType) this.orderType = cachedItinerary.orderType;
 					console.log('[检查行程] 使用缓存的行程信息');
 					await this.loadItineraryFromCache(cachedItinerary);
 					return;
 				}
 
 				// 调用行程服务获取当前行程
+				this.loading = true;
 				console.log('[检查行程] 调用行程服务获取当前行程');
 				const itineraryService = uniCloud.importObject('a-itinerary-service');
 				const result = await itineraryService.getCurrentItinerary();
 
 				console.log('[检查行程] 行程服务返回结果:', result);
 
-				if (result.errCode === 0 && result.data) {
+				if (result && result.errCode === 0 && result.data) {
 					console.log('[检查行程] 找到进行中的行程，开始加载');
 					if (result.orderType) this.orderType = result.orderType;
 					// 缓存行程信息
@@ -297,8 +323,8 @@ export default {
 			}
 		},
 
-		// 提取用户指定的订单快照行程
-		async fetchSnapshotItinerary() {
+		// 通过用户输入的订单号获取订单行程及加入相册
+		async fetchItineraryAndJoinAlbum() {
 			console.log('[检查行程] 开始检查用户行程');
 			try {
 				this.loading = true;
@@ -315,23 +341,52 @@ export default {
 				// 调用行程服务获取当前行程
 				console.log('[检查行程] 调用行程服务获取快照行程');
 				const itineraryService = uniCloud.importObject('a-itinerary-service');
-				const result = await itineraryService.getSnapshotItinerary(this.orderId);
+				const result = await itineraryService.getItineraryByOrderId(this.orderId);
 
 				console.log('[检查行程] 行程服务返回结果:', result);
 
 				if (result.errCode === 0 && result.data) {
-					console.log('[检查行程] 找到指定快照行程，开始加载');
+					console.log('[检查行程] 找到指定行程，开始加载');
 					// 缓存行程信息
 					uni.setStorageSync('current_itinerary', result.data);
 					await this.loadItineraryFromCache(result.data);
+
+					console.log('[检查行程] 调用相册服务加入该行程的群相册');
+					const albumService = uniCloud.importObject('album-service', { customUI: true });
+					let albumResult;
+
+					try {
+						albumResult = await albumService.joinAlbumByOrderId(this.orderId);
+						console.log('[检查行程] 相册服务返回结果:', albumResult);
+
+						if (albumResult.errCode === 0 && albumResult.data) {
+							console.log('[检查行程] 成功加入群相册');
+						} else {
+							console.log('[检查行程] 加入群相册失败，可能是未找到相册');
+						}
+					} catch (e) {
+						try {
+							console.log(`[检查行程] 开始为订单 ${this.orderId} 创建相册`);
+							albumResult = await albumService.createAlbum(this.orderId);
+							console.log('[检查行程] 相册服务返回结果:', albumResult);
+							if (albumResult.errCode === 0 && albumResult.album_id) {
+								console.log('[检查行程] 创建成功并加入该相册，相册ID: ', albumResult.album_id);
+							} else {
+								console.log('[检查行程] 相册创建失败');
+							}
+						} catch (createError) {
+							console.error('[检查行程] 尝试创建相册时也失败了:', createError);
+							uni.showToast({ title: '创建相册失败', icon: 'none' });
+						}
+					}
 				} else {
-					console.log('[检查行程] 没有找到指定的快照行程');
+					console.log('[检查行程] 没有找到指定的行程');
 					this.hasItinerary = false;
 					// 清除可能存在的旧缓存
 					uni.removeStorageSync('current_itinerary');
 				}
 			} catch (error) {
-				console.error('[检查行程] 检查快照失败:', error);
+				console.error('[检查行程] 检查行程失败:', error);
 				this.hasItinerary = false;
 				// 清除可能存在的旧缓存
 				uni.removeStorageSync('current_itinerary');
@@ -437,6 +492,8 @@ export default {
 						remark: activity.remark
 					});
 
+					let hotelOptions = null;
+
 					// 获取活动图片
 					let activityImages = [];
 					if (activity.elementData) {
@@ -479,10 +536,35 @@ export default {
 						}
 						// 酒店类型：使用酒店的具体名称
 						else if (activity.elementType === 'hotel') {
-							if (activity.elementData.hotelName) {
-								activityTitle = activity.elementData.hotelName;
-							} else if (activity.elementData.name) {
-								activityTitle = activity.elementData.name;
+							const hotelData = activity.elementData;
+							let hotelNames = [];
+
+							// 1. 获取主酒店名称
+							const primaryName = hotelData.hotelName || hotelData.name;
+							if (primaryName) {
+								hotelNames.push(primaryName);
+							}
+
+							// 2. 获取备选酒店名称
+							if (hotelData.alternativeHotels && Array.isArray(hotelData.alternativeHotels)) {
+								hotelData.alternativeHotels.forEach((altHotel) => {
+									let altHotelName = '';
+									// 兼容备选酒店是对象数组或字符串数组
+									if (typeof altHotel === 'object' && altHotel.name) {
+										altHotelName = altHotel.name;
+									} else if (typeof altHotel === 'string') {
+										altHotelName = altHotel;
+									}
+
+									if (altHotelName) {
+										hotelNames.push(altHotelName);
+									}
+								});
+							}
+
+							if (hotelNames.length > 0) {
+								hotelOptions = hotelNames;
+								activityTitle = hotelNames[0];
 							}
 						}
 						// 餐厅类型：使用餐厅的具体名称
@@ -521,7 +603,8 @@ export default {
 						description: this.buildActivityDescription(activity),
 						images: activityImages,
 						remark: this.formatContent(activity.remark, { emojiBreakStyle: 'newline' }),
-						elementData: activity.elementData || null // 传递完整的elementData
+						elementData: activity.elementData || null, // 传递完整的elementData
+						hotelOptions: hotelOptions
 					};
 				});
 				console.log('[加载日程] 转换完成，活动数量:', this.currentDaySchedule.length);
@@ -532,6 +615,7 @@ export default {
 		},
 
 		previewImage(urls, current) {
+			this.isPreview = true;
 			uni.previewImage({
 				urls: urls, // 图片地址列表
 				current: current, // 当前显示的图片索引
@@ -603,12 +687,11 @@ export default {
 		 * // const emojiRegexPart = '(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])';
 		 */
 		formatContent(rawText, options = {}) {
-			// 修改点1: 增加 options 参数
 			if (!rawText || typeof rawText !== 'string') {
 				return '';
 			}
 
-			// --- 新增：根据选项决定换行符 ---
+			// --- 根据选项决定换行符 ---
 			const { emojiBreakStyle = 'blankline' } = options;
 			const breakChar = emojiBreakStyle === 'newline' ? '\n' : '\n\n';
 
@@ -639,9 +722,17 @@ export default {
 			const emojiHeaderRegex = new RegExp(`(\\s*)(${emojiRegexPart})(?!\\s*${emojiRegexPart})(?=\s*\\S)`, 'gu');
 			content = content.replace(emojiHeaderRegex, `${breakChar}$2`);
 
-			// 修改点4: 使用动态的 breakChar 变量
 			const textHeaderRegex = /([。；！？])\s*([^，。；\n\r]{1,10}：)/gu;
 			content = content.replace(textHeaderRegex, `$1${breakChar}$2`);
+
+			// 在 "▪️" 列表符前另起一行 ---
+			content = content.replace(/\s*(▪️)/g, `\n$1`);
+
+			// 在 "(1)" 或 "（1）" 这样的序号前另起一行
+			content = content.replace(/\s*([\(\（]\d+[\)\）])/g, `\n$1`);
+
+			// 在 "PS" 开头的句子前空行
+			content = content.replace(/\s*(PS)/g, `${breakChar}$1`);
 
 			// 问句前后固定为空行，作为强分隔，不受选项影响
 			content = content.replace(/[^.!?。！？\n\r]+[?？]/g, (match) => {
@@ -730,9 +821,9 @@ export default {
 			// 处理酒店类型
 			else if (activity.elementType === 'hotel' && activity.elementData) {
 				const hotel = activity.elementData;
-				if (hotel.rating) {
-					description += `酒店等级：${hotel.rating}`;
-				}
+				// if (hotel.rating) {
+				// 	description += `酒店等级：${hotel.rating}`;
+				// }
 				if (hotel.address) {
 					if (description) description += '\n';
 					description += `地址：${hotel.address}`;
@@ -745,9 +836,9 @@ export default {
 			// 处理餐厅类型
 			else if (activity.elementType === 'restaurant' && activity.elementData) {
 				const restaurant = activity.elementData;
-				if (restaurant.meal_type) {
-					description += `用餐类型：${restaurant.meal_type}`;
-				}
+				// if (restaurant.meal_type) {
+				// 	description += `用餐类型：${restaurant.meal_type}`;
+				// }
 				if (restaurant.cuisine) {
 					if (description) description += ' | ';
 					description += `菜系：${restaurant.cuisine}`;
@@ -756,6 +847,17 @@ export default {
 					if (description) description += '\n';
 					description += `费用：${restaurant.adult_fee_type}`;
 				}
+				if (restaurant.standard) {
+					if (description) description += '\n';
+					description += `餐标：${restaurant.standard}`;
+				}
+
+				// const durationString = this.formatDuration(activity.time_duration_hours, activity.time_duration_minutes);
+				// if (durationString) {
+				// 	if (description) description += '\n';
+				// 	// formatDuration 默认返回 "时长："，我们替换为 "用餐时间："
+				// 	description += durationString.replace('时长：', '用餐时间：');
+				// }
 				if (restaurant.remark) {
 					if (description) description += '\n';
 					description += this.formatContent(restaurant.remark);
@@ -974,6 +1076,7 @@ export default {
 				// 获取行程开始日期
 				const departureTimestamp = this.currentOrder.departure_date;
 				const startDate = new Date(typeof departureTimestamp === 'number' ? departureTimestamp : parseInt(departureTimestamp));
+				startDate.setHours(0, 0, 0, 0);
 				const startDateStr = this.formatDateString(startDate);
 
 				console.log('[获取今天位置] 行程开始日期:', startDateStr);
@@ -985,21 +1088,48 @@ export default {
 				console.log('[获取今天位置] 今天是行程第', daysDiff, '天');
 
 				// 如果今天在行程范围内，使用对应天数的位置
+				// if (daysDiff >= 1 && daysDiff <= this.totalDays) {
+				// 	const dayData = this.fullItinerary.itinerary.find((item) => item.day === daysDiff);
+				// 	if (dayData && dayData.day_title) {
+				// 		console.log('[获取今天位置] 找到今天的行程:', dayData.day_title);
+				// 		return this.extractLocationFromRoute(dayData.day_title);
+				// 	}
+				// }
+
+				// // 如果今天不在行程范围内，使用第一天的位置
+				// const firstDayData = this.fullItinerary.itinerary.find((item) => item.day === 1);
+				// if (firstDayData && firstDayData.day_title) {
+				// 	console.log('[获取今天位置] 使用第一天的位置:', firstDayData.day_title);
+				// 	return this.extractLocationFromRoute(firstDayData.day_title);
+				// }
+
+				let targetDayToQuery = 0; // 我们要查询的目标天数
+
+				// (Case 1) 如果今天在行程范围内
 				if (daysDiff >= 1 && daysDiff <= this.totalDays) {
-					const dayData = this.fullItinerary.itinerary.find((item) => item.day === daysDiff);
-					if (dayData && dayData.day_title) {
-						console.log('[获取今天位置] 找到今天的行程:', dayData.day_title);
-						return this.extractLocationFromRoute(dayData.day_title);
+					targetDayToQuery = daysDiff;
+				}
+				// (Case 2) 如果今天在行程开始前
+				else if (daysDiff < 1) {
+					targetDayToQuery = 1; // 始终查询第1天
+				}
+				// (Case 3) 如果今天在行程结束后 (修复你源码中的BUG)
+				else {
+					// (daysDiff > this.totalDays)
+					targetDayToQuery = this.totalDays; // 始终查询最后1天
+				}
+
+				// (新) 统一调用 getLocationForDay
+				if (targetDayToQuery > 0) {
+					console.log('[获取今天位置] 开始智能查找，目标天数:', targetDayToQuery);
+					const location = this.getLocationForDay(targetDayToQuery); // <-- 调用你添加的新函数
+					if (location) {
+						return location; // 找到了！
 					}
 				}
 
-				// 如果今天不在行程范围内，使用第一天的位置
-				const firstDayData = this.fullItinerary.itinerary.find((item) => item.day === 1);
-				if (firstDayData && firstDayData.day_title) {
-					console.log('[获取今天位置] 使用第一天的位置:', firstDayData.day_title);
-					return this.extractLocationFromRoute(firstDayData.day_title);
-				}
-
+				// (Fallback) 如果智能查找都失败了
+				console.log('[获取今天位置] 智能查找失败，使用默认位置');
 				return this.getDefaultLocation();
 			} catch (error) {
 				console.error('[获取今天位置] 获取今天位置失败:', error);
@@ -1020,6 +1150,7 @@ export default {
 				// 获取行程开始日期
 				const departureTimestamp = this.currentOrder.departure_date;
 				const startDate = new Date(typeof departureTimestamp === 'number' ? departureTimestamp : parseInt(departureTimestamp));
+				startDate.setHours(0, 0, 0, 0);
 				const startDateStr = this.formatDateString(startDate);
 
 				console.log('[获取明天位置] 行程开始日期:', startDateStr);
@@ -1031,21 +1162,48 @@ export default {
 				console.log('[获取明天位置] 明天是行程第', daysDiff, '天');
 
 				// 如果明天在行程范围内，使用对应天数的位置
+				// if (daysDiff >= 1 && daysDiff <= this.totalDays) {
+				// 	const dayData = this.fullItinerary.itinerary.find((item) => item.day === daysDiff);
+				// 	if (dayData && dayData.day_title) {
+				// 		console.log('[获取明天位置] 找到明天的行程:', dayData.day_title);
+				// 		return this.extractLocationFromRoute(dayData.day_title);
+				// 	}
+				// }
+
+				// // 如果明天超出行程范围，使用最后一天的位置
+				// const lastDayData = this.fullItinerary.itinerary.find((item) => item.day === this.totalDays);
+				// if (lastDayData && lastDayData.day_title) {
+				// 	console.log('[获取明天位置] 使用最后一天的位置:', lastDayData.day_title);
+				// 	return this.extractLocationFromRoute(lastDayData.day_title);
+				// }
+
+				let targetDayToQuery = 0; // 我们要查询的目标天数
+
+				// (Case 1) 如果明天在行程范围内
 				if (daysDiff >= 1 && daysDiff <= this.totalDays) {
-					const dayData = this.fullItinerary.itinerary.find((item) => item.day === daysDiff);
-					if (dayData && dayData.day_title) {
-						console.log('[获取明天位置] 找到明天的行程:', dayData.day_title);
-						return this.extractLocationFromRoute(dayData.day_title);
+					targetDayToQuery = daysDiff;
+				}
+				// (Case 2) 如果明天在行程开始前
+				else if (daysDiff < 1) {
+					targetDayToQuery = 1; // 始终查询第1天
+				}
+				// (Case 3) 如果明天在行程结束后 (这部分你原代码是正确的)
+				else {
+					// (daysDiff > this.totalDays)
+					targetDayToQuery = this.totalDays; // 始终查询最后1天
+				}
+
+				// (新) 统一调用 getLocationForDay
+				if (targetDayToQuery > 0) {
+					console.log('[获取明天位置] 开始智能查找，目标天数:', targetDayToQuery);
+					const location = this.getLocationForDay(targetDayToQuery); // <-- 调用你添加的新函数
+					if (location) {
+						return location; // 找到了！
 					}
 				}
 
-				// 如果明天超出行程范围，使用最后一天的位置
-				const lastDayData = this.fullItinerary.itinerary.find((item) => item.day === this.totalDays);
-				if (lastDayData && lastDayData.day_title) {
-					console.log('[获取明天位置] 使用最后一天的位置:', lastDayData.day_title);
-					return this.extractLocationFromRoute(lastDayData.day_title);
-				}
-
+				// (Fallback) 如果智能查找都失败了
+				console.log('[获取明天位置] 智能查找失败，使用默认位置');
 				return this.getDefaultLocation();
 			} catch (error) {
 				console.error('[获取明天位置] 获取明天位置失败:', error);
@@ -1238,65 +1396,138 @@ export default {
 			try {
 				if (!routeTitle) return null;
 
+				const routeParts = routeTitle.split('【');
+				if (routeParts.length > 1) {
+					// 获取行程句子
+					let itin_phrase = routeParts[1].trim().slice(0, -2);
+					console.log('[路线位置提取] 路线拆分行程句子:', itin_phrase);
+
+					const phraseParts = itin_phrase.split('-');
+					const destination = phraseParts[phraseParts.length - 1].trim();
+
+					// 清理括号内容，例如 "桃花的酒店(索松店)" -> "索松店"
+					// 这有助于提取括号内的真实落脚点
+					// const bracketMatch = destination.match(/[\(（]([^)]+)[\)）]/);
+					// if (bracketMatch && bracketMatch[1]) {
+					// 	destination = bracketMatch[1];
+					// 	console.log('[路线位置提取] 提取落脚地点:', destination);
+					// }
+
+					// 如果目的地是明确的地名，返回
+					const symbolsRegex = /[()\[\]\\/.-]/;
+					if (destination && destination.length > 0 && destination.length <= 15 && !symbolsRegex.test(destination)) {
+						console.log('[路线位置提取] 拆分法提取目的地:', destination);
+
+						// (新) 特殊处理，如果提取到的是 "索松村" 或 "南迦巴瓦", 返回 "林芝"
+						// 因为 "索松村" 本身天气 API 可能不支持，但 "林芝" 肯定支持。
+						if (
+							destination.includes('索松') ||
+							destination.includes('南迦巴瓦') ||
+							destination.includes('鲁朗') ||
+							destination.includes('巴松措') ||
+							destination.includes('雅鲁藏布')
+						) {
+							console.log('[路线位置提取] 目的地含索松村等地名，返回 "林芝"');
+							return '林芝';
+						}
+
+						return destination;
+					}
+				}
+
+				const tibetKeywords = ['索松村', '南迦巴瓦', '鲁朗', '巴松措', '羊湖', '纳木措', '阿里', '那曲', '山南', '日喀则', '林芝', '拉萨', '昌都', '雅鲁藏布'];
+
+				for (const keyword of tibetKeywords) {
+					// 遍历顺序很重要
+					if (routeTitle.includes(keyword)) {
+						console.log('[路线位置提取] 检测到西藏地名:', keyword);
+
+						// (新) 统一返回城市，而不是村
+						if (keyword === '索松村' || keyword === '南迦巴瓦' || keyword === '鲁朗' || keyword === '巴松措' || keyword === '雅鲁藏布') {
+							return '林芝';
+						}
+						// (新) 检查是否能确定具体城市 (倒序检查)
+						if (keyword === '阿里') return '阿里';
+						if (keyword === '那曲') return '那曲';
+						if (keyword === '山南') return '山南';
+						if (keyword === '日喀则') return '日喀则';
+						if (keyword === '林芝') return '林芝';
+						if (keyword === '昌都') return '昌都';
+						if (keyword === '拉萨') return '拉萨';
+
+						// 如果匹配了 羊湖、纳木措 但没匹配城市，会继续循环直到匹配到 拉萨/山南 等
+					}
+				}
+
+				const cityRegex =
+					/(北京|上海|广州|深圳|杭州|南京|苏州|成都|重庆|西安|武汉|长沙|郑州|济南|青岛|大连|沈阳|哈尔滨|长春|石家庄|太原|呼和浩特|银川|西宁|乌鲁木齐|拉萨|昆明|贵阳|南宁|海口|三亚|福州|厦门|南昌|合肥|兰州|林芝|日喀则|山南|那曲|阿里|昌都)/g;
+				const matches = routeTitle.match(cityRegex);
+
+				if (matches && matches.length > 0) {
+					const lastMatch = matches[matches.length - 1]; // (新) 获取最后一个匹配
+					console.log('[路线位置提取] 提取到最后一个城市名称:', lastMatch);
+					return lastMatch;
+				}
+
 				// 针对西藏地区的特殊处理
 				// 示例：独立包车丨拉萨-江河汇流-雅鲁藏布大峡谷-南迦巴瓦峰-索松村
 
 				// 1. 检查是否包含西藏特色地名
-				const tibetKeywords = ['拉萨', '林芝', '日喀则', '山南', '那曲', '阿里', '昌都', '雅鲁藏布', '南迦巴瓦', '索松村', '鲁朗', '巴松措', '羊湖', '纳木措'];
-				for (const keyword of tibetKeywords) {
-					if (routeTitle.includes(keyword)) {
-						console.log('[路线位置提取] 检测到西藏地名:', keyword);
+				// const tibetKeywords = ['拉萨', '林芝', '日喀则', '山南', '那曲', '阿里', '昌都', '雅鲁藏布', '南迦巴瓦', '索松村', '鲁朗', '巴松措', '羊湖', '纳木措'];
+				// for (const keyword of tibetKeywords) {
+				// 	if (routeTitle.includes(keyword)) {
+				// 		console.log('[路线位置提取] 检测到西藏地名:', keyword);
 
-						// 如果包含索松村或南迦巴瓦峰，使用完整路线信息进行搜索
-						if (routeTitle.includes('索松村') || routeTitle.includes('南迦巴瓦')) {
-							// 提取路线的关键部分
-							const routeMatch = routeTitle.match(/拉萨[-\s]*江河汇流[-\s]*雅鲁藏布大峡谷[-\s]*南迦巴瓦峰[-\s]*索松村/);
-							if (routeMatch) {
-								console.log('[路线位置提取] 提取到完整路线:', routeMatch[0]);
-								return '拉萨-雅鲁藏布大峡谷-南迦巴瓦峰-索松村';
-							}
+				// 		// 如果包含索松村或南迦巴瓦峰，使用完整路线信息进行搜索
+				// 		if (routeTitle.includes('索松村') || routeTitle.includes('南迦巴瓦')) {
+				// 			// 提取路线的关键部分
+				// 			const routeMatch = routeTitle.match(/拉萨[-\s]*江河汇流[-\s]*雅鲁藏布大峡谷[-\s]*南迦巴瓦峰[-\s]*索松村/);
+				// 			if (routeMatch) {
+				// 				console.log('[路线位置提取] 提取到完整路线:', routeMatch[0]);
+				// 				return '拉萨-雅鲁藏布大峡谷-南迦巴瓦峰-索松村';
+				// 			}
 
-							// 如果没有完整匹配，使用索松村+林芝的组合
-							if (routeTitle.includes('索松村')) {
-								console.log('[路线位置提取] 使用索松村林芝组合');
-								return '西藏林芝索松村';
-							}
-						}
+				// 			// 如果没有完整匹配，使用索松村+林芝的组合
+				// 			if (routeTitle.includes('索松村')) {
+				// 				console.log('[路线位置提取] 使用索松村林芝组合');
+				// 				return '西藏林芝索松村';
+				// 			}
+				// 		}
 
-						// 检查是否能确定具体城市
-						if (keyword === '拉萨') return '拉萨';
-						if (keyword === '林芝' || routeTitle.includes('雅鲁藏布') || routeTitle.includes('南迦巴瓦') || routeTitle.includes('索松村')) {
-							return '林芝';
-						}
-						if (keyword === '日喀则') return '日喀则';
-						if (keyword === '山南') return '山南';
-						if (keyword === '那曲') return '那曲';
-						if (keyword === '阿里') return '阿里';
-						if (keyword === '昌都') return '昌都';
-					}
-				}
+				// 		// 检查是否能确定具体城市
+				// 		if (keyword === '拉萨') return '拉萨';
+				// 		if (keyword === '林芝' || routeTitle.includes('雅鲁藏布') || routeTitle.includes('南迦巴瓦') || routeTitle.includes('索松村')) {
+				// 			return '林芝';
+				// 		}
+				// 		if (keyword === '日喀则') return '日喀则';
+				// 		if (keyword === '山南') return '山南';
+				// 		if (keyword === '那曲') return '那曲';
+				// 		if (keyword === '阿里') return '阿里';
+				// 		if (keyword === '昌都') return '昌都';
+				// 	}
+				// }
 
-				// 2. 通用城市名称提取
-				const cityMatch = routeTitle.match(
-					/(北京|上海|广州|深圳|杭州|南京|苏州|成都|重庆|西安|武汉|长沙|郑州|济南|青岛|大连|沈阳|哈尔滨|长春|石家庄|太原|呼和浩特|银川|西宁|乌鲁木齐|拉萨|昆明|贵阳|南宁|海口|三亚|福州|厦门|南昌|合肥|兰州|林芝|日喀则|山南|那曲|阿里|昌都)/
-				);
-				if (cityMatch) {
-					console.log('[路线位置提取] 提取到城市名称:', cityMatch[1]);
-					return cityMatch[1];
-				}
+				// // 2. 通用城市名称提取
+				// const cityMatch = routeTitle.match(
+				// 	/(北京|上海|广州|深圳|杭州|南京|苏州|成都|重庆|西安|武汉|长沙|郑州|济南|青岛|大连|沈阳|哈尔滨|长春|石家庄|太原|呼和浩特|银川|西宁|乌鲁木齐|拉萨|昆明|贵阳|南宁|海口|三亚|福州|厦门|南昌|合肥|兰州|林芝|日喀则|山南|那曲|阿里|昌都)/
+				// );
+				// if (cityMatch) {
+				// 	console.log('[路线位置提取] 提取到城市名称:', cityMatch[1]);
+				// 	return cityMatch[1];
+				// }
 
-				// 3. 如果是路线格式，提取目的地
-				const routeParts = routeTitle.split(/[-－丨|]/);
-				if (routeParts.length > 1) {
-					// 获取最后一个地点作为目的地
-					const destination = routeParts[routeParts.length - 1].trim();
-					console.log('[路线位置提取] 路线目的地:', destination);
+				// // 3. 如果是路线格式，提取目的地
+				// const routeParts = routeTitle.split(/[-－丨|]/);
+				// if (routeParts.length > 1) {
+				// 	// 获取最后一个地点作为目的地
+				// 	const destination = routeParts[routeParts.length - 1].trim();
+				// 	console.log('[路线位置提取] 路线目的地:', destination);
 
-					// 如果目的地是明确的地名，返回
-					if (destination && destination.length <= 10) {
-						return destination;
-					}
-				}
+				// 	// 如果目的地是明确的地名，返回
+				// 	if (destination && destination.length <= 10) {
+				// 		return destination;
+				// 	}
+				// }
 
 				console.log('[路线位置提取] 未能从路线中提取有效位置');
 				return null;
@@ -1304,6 +1535,40 @@ export default {
 				console.error('[路线位置提取] 路线位置提取失败:', error);
 				return null;
 			}
+		},
+
+		// 智能获取指定天数的位置，如果当天没有，则向前回溯
+		getLocationForDay(targetDay) {
+			console.log('[智能查找] 开始查找第', targetDay, '天或之前的位置');
+
+			if (!this.fullItinerary || !this.fullItinerary.itinerary) {
+				console.log('[智能查找] 没有行程数据');
+				return null;
+			}
+
+			// 从目标天数开始，向前循环 (e.g. targetDay=5, 循环 5, 4, 3, 2, 1)
+			for (let i = targetDay; i >= 1; i--) {
+				const dayData = this.fullItinerary.itinerary.find((item) => item.day === i);
+
+				// 检查当天的数据和标题是否存在
+				if (dayData && dayData.day_title) {
+					// 尝试解析这一天的位置
+					const location = this.extractLocationFromRoute(dayData.day_title);
+
+					// 如果解析成功 (location 不是 null, undefined, 或 "")
+					if (location) {
+						console.log('[智能查找] 成功！在第', i, '天找到位置:', location, '(目标天数:', targetDay, ')');
+						return location; // 立即返回找到的位置
+					}
+
+					// 如果 location 为空 (解析失败)，循环会继续 (i--)，尝试前一天
+					console.log('[智能查找] 第', i, '天标题解析失败 (', dayData.day_title, ')，尝试前一天...');
+				}
+			}
+
+			// 如果循环结束 (i=0) 还没找到任何位置
+			console.log('[智能查找] 无法在第', targetDay, '天或之前找到任何有效位置');
+			return null;
 		},
 
 		// 更新天气显示数据 - 统一处理今天和明天的天气
@@ -1638,28 +1903,70 @@ export default {
 
 				// 使用 uni.createSelectorQuery 获取元素位置
 				const query = uni.createSelectorQuery().in(this);
-				query
-					.select(`#${elementId}`)
-					.boundingClientRect((data) => {
-						if (data) {
-							console.log('[滚动定位] 元素位置信息:', data);
 
-							// 计算滚动位置：元素顶部位置 - 留出的缓冲空间
-							const scrollTop = Math.max(0, data.top - 120); // 留出120px的缓冲空间
+				// 1. 获取目标元素的位置信息（相对于视窗）
+				query.select(`#${elementId}`).boundingClientRect();
 
-							console.log('[滚动定位] 执行滚动到位置:', scrollTop);
+				// 2. 获取当前视窗的滚动信息
+				query.selectViewport().scrollOffset();
 
-							// 执行滚动
-							uni.pageScrollTo({
-								scrollTop: scrollTop,
-								duration: 800
-							});
-						} else {
-							console.log('[滚动定位] 未找到目标元素，使用估算方法');
-							this.scrollToTimelineItemByEstimate(itemIndex);
-						}
-					})
-					.exec();
+				// query
+				// 	.select(`#${elementId}`)
+				// 	.boundingClientRect((data) => {
+				// 		if (data) {
+				// 			console.log('[滚动定位] 元素位置信息:', data);
+
+				// 			// 计算滚动位置：元素顶部位置 - 留出的缓冲空间
+				// 			const scrollTop = Math.max(0, data.top - 120); // 留出120px的缓冲空间
+
+				// 			console.log('[滚动定位] 执行滚动到位置:', scrollTop);
+
+				// 			// 执行滚动
+				// 			uni.pageScrollTo({
+				// 				scrollTop: scrollTop,
+				// 				duration: 800
+				// 			});
+				// 		} else {
+				// 			console.log('[滚动定位] 未找到目标元素，使用估算方法');
+				// 			this.scrollToTimelineItemByEstimate(itemIndex);
+				// 		}
+				// 	})
+				// 	.exec();
+
+				query.exec((res) => {
+					// res[0] 是 elementId.boundingClientRect 的结果
+					// res[1] 是 selectViewport.scrollOffset 的结果
+
+					if (!res[0]) {
+						console.log('[滚动定位] 未找到目标元素，使用估算方法');
+						this.scrollToTimelineItemByEstimate(itemIndex);
+						return;
+					}
+
+					if (!res[1]) {
+						console.log('[滚动定位] 未能获取到视窗信息，使用估算方法');
+						this.scrollToTimelineItemByEstimate(itemIndex);
+						return;
+					}
+
+					const elementInfo = res[0];
+					const viewportInfo = res[1];
+
+					console.log('[滚动定位] 元素位置信息:', elementInfo);
+					console.log('[滚动定位] 视窗滚动信息:', viewportInfo);
+
+					// 核心计算：
+					// 目标滚动位置 = 当前视窗的 scrollTop + 元素相对于视窗的 top - 缓冲空间
+					const targetScrollTop = viewportInfo.scrollTop + elementInfo.top - 120; // 120px的缓冲空间
+
+					console.log(`[滚动定位] 计算目标: ${viewportInfo.scrollTop} (current) + ${elementInfo.top} (element) - 120 (offset) = ${targetScrollTop}`);
+
+					// 执行滚动
+					uni.pageScrollTo({
+						scrollTop: Math.max(0, targetScrollTop), // 确保不为负数
+						duration: 800
+					});
+				});
 			} catch (error) {
 				console.error('[滚动定位] 滚动定位失败:', error);
 				this.scrollToTimelineItemByEstimate(itemIndex);
@@ -1954,6 +2261,39 @@ export default {
 	color: #333;
 	margin-bottom: 8px;
 	line-height: 1.3;
+}
+
+.timeline-hotel-list {
+	margin-bottom: 8px;
+}
+
+.hotel-option-item {
+	line-height: 1.4;
+	margin-bottom: 4px;
+}
+.hotel-option-item:last-child {
+	margin-bottom: 0;
+}
+
+.hotel-prefix {
+	font-weight: 600;
+	color: #333;
+	font-size: 16px;
+	margin-right: 4px;
+}
+
+.hotel-name {
+	font-weight: 600;
+	color: #333;
+	font-size: 16px;
+	word-break: break-word;
+}
+
+.hotel-rating-icons {
+	margin-left: 2px;
+	font-size: 10px;
+	color: #ff9500;
+	vertical-align: middle;
 }
 
 .timeline-desc {

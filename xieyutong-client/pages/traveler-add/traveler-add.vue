@@ -5,51 +5,29 @@
 			<!-- 基本信息表单 -->
 			<view class="form-section">
 				<view class="section-title">基本信息</view>
-				
+
 				<view class="form-item">
 					<view class="form-label">
 						姓名
 						<text class="required-mark">*</text>
 					</view>
-					<input 
-						type="text" 
-						class="form-input" 
-						placeholder="请输入出行人姓名"
-						v-model="formData.name"
-					/>
+					<input type="text" class="form-input" placeholder="请输入出行人姓名" v-model="formData.name" />
 				</view>
-				
+
 				<view class="form-item">
 					<view class="form-label">
 						身份证号
 						<text class="required-mark">*</text>
 					</view>
-					<input 
-						type="text" 
-						class="form-input" 
-						placeholder="请输入身份证号码"
-						v-model="formData.idCard"
-						@input="onIdCardInput"
-						maxlength="18"
-					/>
+					<input type="text" class="form-input" placeholder="请输入身份证号码" v-model="formData.idCard" @input="onIdCardInput" maxlength="18" />
 					<view class="form-right">
-						<text 
-							class="info-tag" 
-							v-if="ageType"
-							:style="ageTypeStyle"
-						>{{ ageType }}</text>
+						<text class="info-tag" v-if="ageType" :style="ageTypeStyle">{{ ageType }}</text>
 					</view>
 				</view>
-				
+
 				<view class="form-item">
 					<view class="form-label">手机号</view>
-					<input 
-						type="tel" 
-						class="form-input" 
-						placeholder="请输入手机号码"
-						v-model="formData.phone"
-						maxlength="11"
-					/>
+					<input type="tel" class="form-input" placeholder="请输入手机号码" v-model="formData.phone" maxlength="11" />
 					<view class="form-right">
 						<text class="optional-tag">选填</text>
 					</view>
@@ -87,7 +65,7 @@ export default {
 			loading: false,
 			isEditMode: false,
 			editId: null
-		}
+		};
 	},
 	onLoad(options) {
 		// 检查是否为编辑模式
@@ -96,7 +74,7 @@ export default {
 			this.editId = options.id;
 			this.loadTravelerData(options.id);
 		}
-		
+
 		// 设置导航栏标题
 		uni.setNavigationBarTitle({
 			title: this.isEditMode ? '编辑出行人' : '添加出行人'
@@ -112,35 +90,31 @@ export default {
 		// #endif
 	},
 	methods: {
-		
 		// 加载出行人数据（编辑模式）
 		async loadTravelerData(id) {
 			try {
 				this.loading = true;
-				
+
 				// 使用 ClientDB 查询出行人数据
 				const db = uniCloud.database();
-				const result = await db.collection('a-travelers')
-					.where(`_id == "${id}"`)
-					.field('_id,name,id_card,phone,type,gender,birthday')
-					.get();
-				
+				const result = await db.collection('a-travelers').where(`_id == "${id}"`).field('_id,name,id_card,phone,type,gender,birthday').get();
+
 				console.log('[ClientDB] 查询出行人数据结果:', result);
-				
+
 				if (result.result && result.result.data && result.result.data.length > 0) {
 					const travelerData = result.result.data[0];
-					
+
 					// 填充表单数据
 					this.formData = {
 						name: travelerData.name || '',
 						idCard: travelerData.id_card || '',
 						phone: travelerData.phone || ''
 					};
-					
+
 					// 设置年龄类型和样式
 					this.ageType = travelerData.type || '';
 					this.updateAgeTypeStyle();
-					
+
 					console.log('[ClientDB] 加载出行人数据成功:', travelerData);
 				} else {
 					console.error('[ClientDB] 未找到出行人信息');
@@ -156,23 +130,23 @@ export default {
 					title: '加载失败，请重试',
 					icon: 'none'
 				});
-			uni.navigateBack();
+				uni.navigateBack();
 			} finally {
 				this.loading = false;
 			}
 		},
-		
+
 		// 保存出行人
 		async saveTraveler() {
 			if (this.loading) return;
-			
+
 			if (!this.validateForm()) {
 				return;
 			}
-			
+
 			try {
 				this.loading = true;
-				
+
 				// 检查用户登录状态
 				const token = uni.getStorageSync('uni_id_token');
 				if (!token) {
@@ -209,7 +183,7 @@ export default {
 					const day = this.formData.idCard.substring(12, 14);
 					travelerData.birthday = `${year}-${month}-${day}`;
 
-				// 从身份证判断性别
+					// 从身份证判断性别
 					const genderCode = parseInt(this.formData.idCard.substring(16, 17));
 					travelerData.gender = genderCode % 2 === 0 ? '女' : '男';
 				}
@@ -219,12 +193,10 @@ export default {
 				// 使用 ClientDB 保存到数据库
 				const db = uniCloud.database();
 				let result;
-				
+
 				if (this.isEditMode && this.editId) {
 					// 编辑模式：使用 ClientDB 更新数据
-					result = await db.collection('a-travelers')
-						.where(`_id == "${this.editId}"`)
-						.update(travelerData);
+					result = await db.collection('a-travelers').where(`_id == "${this.editId}"`).update(travelerData);
 					console.log('[ClientDB] 更新结果:', result);
 				} else {
 					// 添加模式：使用 ClientDB 新增数据
@@ -235,19 +207,18 @@ export default {
 
 				// 检查操作结果
 				if (result.result && (result.result.id || result.result.updated)) {
-				uni.showToast({
+					uni.showToast({
 						title: this.isEditMode ? '更新成功' : '保存成功',
-					icon: 'success',
-					duration: 1500
-				});
-				
-				setTimeout(() => {
-					uni.navigateBack();
-				}, 1500);
+						icon: 'success',
+						duration: 1500
+					});
+
+					setTimeout(() => {
+						uni.navigateBack();
+					}, 1500);
 				} else {
 					throw new Error('数据库操作失败');
 				}
-
 			} catch (error) {
 				console.error('保存出行人失败:', error);
 				uni.showToast({
@@ -258,7 +229,7 @@ export default {
 				this.loading = false;
 			}
 		},
-		
+
 		// 表单验证
 		validateForm() {
 			if (!this.formData.name.trim()) {
@@ -268,7 +239,7 @@ export default {
 				});
 				return false;
 			}
-			
+
 			if (!this.formData.idCard.trim()) {
 				uni.showToast({
 					title: '请输入身份证号',
@@ -276,7 +247,7 @@ export default {
 				});
 				return false;
 			}
-			
+
 			if (this.formData.idCard.length !== 18) {
 				uni.showToast({
 					title: '身份证号格式不正确',
@@ -306,10 +277,10 @@ export default {
 					return false;
 				}
 			}
-			
+
 			return true;
 		},
-		
+
 		// 更新年龄类型样式
 		updateAgeTypeStyle() {
 			if (this.ageType === '儿童') {
@@ -326,11 +297,11 @@ export default {
 				this.ageTypeStyle = {};
 			}
 		},
-		
+
 		// 身份证输入事件，自动判断成人/儿童
 		onIdCardInput(e) {
 			const idCard = e.detail.value.trim();
-			
+
 			// 当身份证号达到18位时，进行判断
 			if (idCard.length === 18) {
 				try {
@@ -338,25 +309,25 @@ export default {
 					const year = parseInt(idCard.substring(6, 10));
 					const month = parseInt(idCard.substring(10, 12));
 					const day = parseInt(idCard.substring(12, 14));
-					
+
 					// 计算年龄
 					const birthDate = new Date(year, month - 1, day);
 					const today = new Date();
 					let age = today.getFullYear() - birthDate.getFullYear();
-					
+
 					// 调整年龄（如果今年的生日还没到）
 					const monthDiff = today.getMonth() - birthDate.getMonth();
 					if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
 						age--;
 					}
-					
+
 					// 显示年龄类型
 					if (age < 12) {
 						this.ageType = '儿童';
 					} else {
 						this.ageType = '成人';
 					}
-					
+
 					// 更新样式
 					this.updateAgeTypeStyle();
 				} catch (e) {
@@ -367,16 +338,13 @@ export default {
 			}
 		}
 	}
-}
+};
 </script>
 
 <style>
-@import url('/static/css/awesome-font.css');
-@import url('/static/css/tailwind.css');
-
 .page-container {
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-	background-color: #F5F7FA;
+	background-color: #f5f7fa;
 	color: #333333;
 	min-height: 100vh;
 }
@@ -462,7 +430,7 @@ export default {
 }
 
 .submit-button {
-	background-color: #0086F6;
+	background-color: #0086f6;
 	color: white;
 	border-radius: 12px;
 	padding: 14px;
@@ -481,8 +449,8 @@ export default {
 }
 
 .required-mark {
-	color: #FF3B30;
+	color: #ff3b30;
 	font-size: 14px;
 	margin-left: 2px;
 }
-</style> 
+</style>

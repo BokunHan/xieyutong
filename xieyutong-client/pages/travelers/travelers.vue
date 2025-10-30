@@ -1,7 +1,7 @@
 <template>
 	<view class="bg-gray-50 min-h-screen">
 		<!-- 内容区域 -->
-		<view class=" pb-safe overflow-y-auto">
+		<view class="pb-safe overflow-y-auto">
 			<view class="p-4 pb-25">
 				<!-- 加载状态 -->
 				<view v-if="loading" class="flex justify-center items-center py-10">
@@ -9,11 +9,7 @@
 				</view>
 
 				<!-- 出行人卡片列表 -->
-				<view 
-					v-for="(traveler, index) in travelers" 
-					:key="traveler._id" 
-					class="bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
-				>
+				<view v-for="(traveler, index) in travelers" :key="traveler._id" class="bg-white rounded-xl mb-4 shadow-sm overflow-hidden">
 					<!-- 出行人头部 -->
 					<view class="flex justify-between items-center px-4 py-4 border-b border-gray-100">
 						<view class="flex items-center">
@@ -26,11 +22,7 @@
 							<view class="text-gray-400 text-lg" @click="editTraveler(traveler)">
 								<text class="fa fa-edit"></text>
 							</view>
-							<view 
-								v-if="!traveler.is_main" 
-								class="text-red-500 text-lg" 
-								@click="deleteTraveler(traveler, index)"
-							>
+							<view v-if="!traveler.is_main" class="text-red-500 text-lg" @click="deleteTraveler(traveler, index)">
 								<text class="fa fa-trash-alt"></text>
 							</view>
 						</view>
@@ -52,7 +44,6 @@
 						</view>
 					</view>
 				</view>
-
 
 				<!-- 空状态 -->
 				<view v-if="!loading && travelers.length === 0" class="flex flex-col items-center justify-center h-75 text-gray-400 text-center px-10">
@@ -76,7 +67,7 @@ export default {
 		return {
 			travelers: [],
 			loading: true
-		}
+		};
 	},
 	async onLoad() {
 		await this.loadTravelers();
@@ -89,7 +80,7 @@ export default {
 		async loadTravelers() {
 			try {
 				this.loading = true;
-				
+
 				// 检查用户登录状态
 				const token = uni.getStorageSync('uni_id_token');
 				if (!token) {
@@ -106,14 +97,15 @@ export default {
 
 				// 使用 ClientDB 查询出行人列表
 				const db = uniCloud.database();
-				const result = await db.collection('a-travelers')
+				const result = await db
+					.collection('a-travelers')
 					.where('status == "active" && user_id == $env.uid')
 					.field('_id,name,id_card,phone,type,gender,birthday,is_main,created_at')
 					.orderBy('is_main desc, created_at desc')
 					.get();
 
 				console.log('[ClientDB] 查询出行人列表结果:', result);
-				
+
 				if (result.result && result.result.data) {
 					this.travelers = result.result.data;
 					console.log('[ClientDB] 加载出行人列表成功，共', this.travelers.length, '条数据');
@@ -132,21 +124,21 @@ export default {
 				this.loading = false;
 			}
 		},
-		
+
 		addTraveler() {
 			// 跳转到添加出行人页面
 			uni.navigateTo({
 				url: '/pages/traveler-add/traveler-add'
 			});
 		},
-		
+
 		editTraveler(traveler) {
 			// 跳转到编辑出行人页面（复用添加页面）
 			uni.navigateTo({
 				url: `/pages/traveler-add/traveler-add?id=${traveler._id}`
 			});
 		},
-		
+
 		async deleteTraveler(traveler, index) {
 			const that = this;
 			uni.showModal({
@@ -157,24 +149,22 @@ export default {
 						try {
 							// 使用 ClientDB 软删除出行人
 							const db = uniCloud.database();
-							const result = await db.collection('a-travelers')
-								.where(`_id == "${traveler._id}"`)
-								.update({
-									status: 'inactive'
-								});
+							const result = await db.collection('a-travelers').where(`_id == "${traveler._id}"`).update({
+								status: 'inactive'
+							});
 
 							console.log('[ClientDB] 删除出行人结果:', result);
-							
+
 							// 检查操作结果
 							if (result.result && result.result.updated) {
 								// 从列表中移除
 								that.travelers.splice(index, 1);
-								
+
 								uni.showToast({
 									title: '删除成功',
 									icon: 'success'
 								});
-								
+
 								console.log('[ClientDB] 删除出行人成功');
 							} else {
 								throw new Error('删除操作失败');
@@ -203,21 +193,17 @@ export default {
 			return phone.replace(/^(.{3})(.*)(.{4})$/, '$1****$3');
 		}
 	}
-}
+};
 </script>
 
 <style>
-/* 引入FontAwesome和Tailwind样式 */
-@import url('/static/css/awesome-font.css');
-@import url('/static/css/tailwind.css');
-
 /* 补充样式 */
 .pb-safe {
 	padding-bottom: env(safe-area-inset-bottom);
 }
 
 .shadow-sm {
-	box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-lg {
@@ -239,7 +225,7 @@ export default {
 	right: 20px;
 	width: 56px;
 	height: 56px;
-	background: linear-gradient(135deg, #0086F6 0%, #0066CC 100%);
+	background: linear-gradient(135deg, #0086f6 0%, #0066cc 100%);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
@@ -260,4 +246,4 @@ export default {
 .fab-button:active {
 	transform: scale(0.95);
 }
-</style> 
+</style>

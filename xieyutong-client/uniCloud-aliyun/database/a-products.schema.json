@@ -1,240 +1,323 @@
 {
-  "bsonType": "object",
-  "description": "商品详情表，存储从携程爬取的旅游产品完整信息",
-  "required": ["ctrip_id", "title", "price", "status"],
-  "permission": {
-    "read": true,
-    "create": true,
-    "update": true, 
-    "delete": "'admin' in auth.role || 'super_admin' in auth.role",
-    "count": true
-  },
-  "properties": {
-    "_id": {
-      "description": "系统自动生成的唯一标识"
-    },
-    "ctrip_id": {
-      "bsonType": "string",
-      "description": "携程商品ID，用于标识具体商品",
-      "title": "携程商品ID",
-      "required": true,
-      "maxLength": 50,
-      "unique": true
-    },
-    "title": {
-      "bsonType": "string", 
-      "description": "商品标题",
-      "title": "商品标题",
-      "required": true,
-      "maxLength": 200,
-      "trim": "both"
-    },
-    "subtitle": {
-      "bsonType": "string",
-      "description": "商品副标题，详细描述商品亮点",
-      "title": "商品副标题", 
-      "maxLength": 500,
-      "trim": "both"
-    },
-    "price": {
-      "bsonType": "number",
-      "description": "成人价格数值（单位：元），用于计算和显示",
-      "title": "成人价格",
-      "required": true,
-      "minimum": 0
-    },
-    "child_price": {
-      "bsonType": "number",
-      "description": "儿童价格数值（单位：元），一般为成人价格的80%",
-      "title": "儿童价格",
-      "minimum": 0
-    },
-    "duration_days": {
-      "bsonType": "number",
-      "description": "行程天数，表示旅游产品的总游玩天数",
-      "title": "行程天数",
-      "minimum": 1,
-      "defaultValue": 1
-    },
-    "rating": {
-      "bsonType": "number",
-      "description": "产品评分，5分制，精确到小数点后一位",
-      "title": "产品评分",
-      "minimum": 0,
-      "maximum": 5,
-      "defaultValue": 5.0
-    },
-    "product_images": {
-      "bsonType": "array",
-      "description": "商品主要展示图片数组",
-      "title": "商品图片",
-      "arrayType": "string",
-      "maxItems": 20
-    },
-    "detail_images": {
-      "bsonType": "array", 
-      "description": "商品详情页图片数组",
-      "title": "详情图片",
-      "arrayType": "string",
-      "maxItems": 50
-    },
-    "overview": {
-      "bsonType": "object",
-      "description": "商品概览信息，包含导游、交通、活动、住宿、餐食等",
-      "title": "商品概览",
-      "properties": {
-        "guide": {
-          "bsonType": "string",
-          "description": "导游信息",
-          "title": "导游",
-          "maxLength": 500
-        },
-        "transport": {
-          "bsonType": "string", 
-          "description": "交通信息",
-          "title": "交通",
-          "maxLength": 500
-        },
-        "activities": {
-          "bsonType": "string",
-          "description": "活动信息", 
-          "title": "活动",
-          "maxLength": 500
-        },
-        "accommodation": {
-          "bsonType": "string",
-          "description": "住宿信息",
-          "title": "住宿",
-          "maxLength": 500
-        },
-        "meals": {
-          "bsonType": "string",
-          "description": "餐食信息",
-          "title": "餐食", 
-          "maxLength": 500
-        }
-      }
-    },
-    "features": {
-      "bsonType": "array",
-      "description": "商品特色亮点数组",
-      "title": "商品特色",
-      "arrayType": "string",
-      "maxItems": 10
-    },
-    "cost_info": {
-      "bsonType": "object",
-      "description": "费用说明详情",
-      "title": "费用说明",
-      "properties": {
-        "transport": {
-          "bsonType": "string",
-          "description": "交通费用说明",
-          "title": "交通费用",
-          "maxLength": 1000
-        },
-        "accommodation": {
-          "bsonType": "string", 
-          "description": "住宿费用说明",
-          "title": "住宿费用",
-          "maxLength": 1000
-        },
-        "meals": {
-          "bsonType": "string",
-          "description": "餐食费用说明", 
-          "title": "餐食费用",
-          "maxLength": 1000
-        },
-        "tickets": {
-          "bsonType": "string",
-          "description": "门票费用说明",
-          "title": "门票费用",
-          "maxLength": 1000
-        },
-        "service": {
-          "bsonType": "string",
-          "description": "服务费用说明",
-          "title": "服务费用",
-          "maxLength": 1000
-        }
-      }
-    },
-    "status": {
-      "bsonType": "number",
-      "description": "商品状态：0-下架，1-上架",
-      "title": "商品状态",
-      "enum": [0, 1],
-      "defaultValue": 1,
-      "required": true
-    },
-    "sort_order": {
-      "bsonType": "number", 
-      "description": "排序权重，数值越大排序越靠前",
-      "title": "排序权重",
-      "defaultValue": 0
-    },
-    "view_count": {
-      "bsonType": "number",
-      "description": "浏览次数统计",
-      "title": "浏览次数", 
-      "defaultValue": 0,
-      "minimum": 0
-    },
-    "sales_count": {
-      "bsonType": "number",
-      "description": "销售数量统计",
-      "title": "销售数量",
-      "defaultValue": 0, 
-      "minimum": 0
-    },
-    "review_count": {
-      "bsonType": "number",
-      "description": "评价数量统计",
-      "title": "评价数量",
-      "defaultValue": 0,
-      "minimum": 0
-    },
-    "category": {
-      "bsonType": "string",
-      "description": "产品分类：精品推荐、国内游、出境游、周边游、自由行、跟团游等",
-      "title": "产品分类",
-      "defaultValue": "国内游",
-      "maxLength": 50
-    },
-    "destination": {
-      "bsonType": "string", 
-      "description": "目的地信息，如：西藏、新疆、云南、四川等",
-      "title": "目的地",
-      "maxLength": 100
-    },
-    "tags": {
-      "bsonType": "array",
-      "description": "产品标签数组，如：热门、新品、特价等",
-      "title": "产品标签", 
-      "arrayType": "string",
-      "maxItems": 10
-    },
-    "created_at": {
-      "bsonType": "timestamp",
-      "description": "创建时间",
-      "title": "创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updated_at": {
-      "bsonType": "timestamp", 
-      "description": "更新时间",
-      "title": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "crawl_timestamp": {
-      "bsonType": "string",
-      "description": "爬虫抓取时间戳，记录数据来源时间",
-      "title": "爬取时间",
-      "maxLength": 50
-    }
-  }
-} 
+	"bsonType": "object",
+	"description": "商品详情表，存储从携程爬取的旅游产品完整信息",
+	"required": ["ctrip_id", "title", "price", "status"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": "'admin' in auth.role || 'super_admin' in auth.role",
+		"count": true
+	},
+	"properties": {
+		"_id": {
+			"description": "系统自动生成的唯一标识"
+		},
+		"ctrip_id": {
+			"bsonType": "string",
+			"description": "携程商品ID，用于标识具体商品",
+			"title": "携程商品ID",
+			"required": true,
+			"maxLength": 50,
+			"unique": true
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "商品标题",
+			"title": "商品标题",
+			"required": true,
+			"maxLength": 200,
+			"trim": "both"
+		},
+		"subtitle": {
+			"bsonType": "string",
+			"description": "商品副标题，详细描述商品亮点",
+			"title": "商品副标题",
+			"maxLength": 500,
+			"trim": "both"
+		},
+		"route_title": {
+			"bsonType": "string",
+			"description": "线路标题",
+			"title": "线路标题",
+			"maxLength": 200,
+			"trim": "both"
+		},
+		"route_overview": {
+			"bsonType": "object",
+			"description": "路线概览信息，包含飞机、住宿、游玩、餐食",
+			"title": "路线概览",
+			"properties": {
+				"flight": {
+					"bsonType": "string",
+					"description": "飞行信息",
+					"title": "行",
+					"maxLength": 500
+				},
+				"accommodation": {
+					"bsonType": "string",
+					"description": "住宿信息",
+					"title": "住",
+					"maxLength": 500
+				},
+				"spots": {
+					"bsonType": "string",
+					"description": "游玩景点信息",
+					"title": "游",
+					"maxLength": 500
+				},
+				"meals": {
+					"bsonType": "string",
+					"description": "餐食信息",
+					"title": "餐",
+					"maxLength": 500
+				},
+				"activities": {
+					"bsonType": "string",
+					"description": "活动信息",
+					"title": "活",
+					"maxLength": 500
+				}
+			}
+		},
+		"price": {
+			"bsonType": "number",
+			"description": "成人价格数值（单位：元），用于计算和显示",
+			"title": "成人价格",
+			"required": true,
+			"minimum": 0
+		},
+		"child_price": {
+			"bsonType": "number",
+			"description": "儿童价格数值（单位：元），一般为成人价格的80%",
+			"title": "儿童价格",
+			"minimum": 0
+		},
+		"duration_days": {
+			"bsonType": "number",
+			"description": "行程天数，表示旅游产品的总游玩天数",
+			"title": "行程天数",
+			"minimum": 1,
+			"defaultValue": 1
+		},
+		"rating": {
+			"bsonType": "number",
+			"description": "产品评分，5分制，精确到小数点后一位",
+			"title": "产品评分",
+			"minimum": 0,
+			"maximum": 5,
+			"defaultValue": 5.0
+		},
+		"rating_spec": {
+			"bsonType": "object",
+			"description": "商品评分明细，包含行程安排、酒店体验、司导服务",
+			"title": "商品评分明细",
+			"properties": {
+				"itinerary": {
+					"bsonType": "number",
+					"description": "行程安排分",
+					"title": "行程安排分",
+					"minimum": 0,
+					"maximum": 5,
+					"defaultValue": 5.0
+				},
+				"accommodation": {
+					"bsonType": "number",
+					"description": "酒店体验分",
+					"title": "酒店体验分",
+					"minimum": 0,
+					"maximum": 5,
+					"defaultValue": 5.0
+				},
+				"service": {
+					"bsonType": "number",
+					"description": "司导服务分",
+					"title": "司导服务分",
+					"minimum": 0,
+					"maximum": 5,
+					"defaultValue": 5.0
+				}
+			}
+		},
+		"good_rate": {
+			"bsonType": "number",
+			"description": "好评率，百分制，精确到小数点后一位",
+			"title": "好评率",
+			"minimum": 0,
+			"maximum": 100,
+			"defaultValue": 98.8
+		},
+		"product_images": {
+			"bsonType": "array",
+			"description": "商品主要展示图片数组",
+			"title": "商品图片",
+			"arrayType": "string",
+			"maxItems": 20
+		},
+		"detail_images": {
+			"bsonType": "array",
+			"description": "商品详情页图片数组",
+			"title": "详情图片",
+			"arrayType": "string",
+			"maxItems": 50
+		},
+		"overview": {
+			"bsonType": "object",
+			"description": "商品概览信息，包含导游、交通、活动、住宿、餐食等",
+			"title": "商品概览",
+			"properties": {
+				"guide": {
+					"bsonType": "string",
+					"description": "导游信息",
+					"title": "导游",
+					"maxLength": 500
+				},
+				"transport": {
+					"bsonType": "string",
+					"description": "交通信息",
+					"title": "交通",
+					"maxLength": 500
+				},
+				"activities": {
+					"bsonType": "string",
+					"description": "活动信息",
+					"title": "活动",
+					"maxLength": 500
+				},
+				"accommodation": {
+					"bsonType": "string",
+					"description": "住宿信息",
+					"title": "住宿",
+					"maxLength": 500
+				},
+				"meals": {
+					"bsonType": "string",
+					"description": "餐食信息",
+					"title": "餐食",
+					"maxLength": 500
+				}
+			}
+		},
+		"features": {
+			"bsonType": "array",
+			"description": "商品特色亮点数组",
+			"title": "商品特色",
+			"arrayType": "string",
+			"maxItems": 10
+		},
+		"cost_info": {
+			"bsonType": "object",
+			"description": "费用说明详情",
+			"title": "费用说明",
+			"properties": {
+				"transport": {
+					"bsonType": "string",
+					"description": "交通费用说明",
+					"title": "交通费用",
+					"maxLength": 1000
+				},
+				"accommodation": {
+					"bsonType": "string",
+					"description": "住宿费用说明",
+					"title": "住宿费用",
+					"maxLength": 1000
+				},
+				"meals": {
+					"bsonType": "string",
+					"description": "餐食费用说明",
+					"title": "餐食费用",
+					"maxLength": 1000
+				},
+				"tickets": {
+					"bsonType": "string",
+					"description": "门票费用说明",
+					"title": "门票费用",
+					"maxLength": 1000
+				},
+				"service": {
+					"bsonType": "string",
+					"description": "服务费用说明",
+					"title": "服务费用",
+					"maxLength": 1000
+				}
+			}
+		},
+		"status": {
+			"bsonType": "number",
+			"description": "商品状态：0-下架，1-上架",
+			"title": "商品状态",
+			"enum": [0, 1],
+			"defaultValue": 1,
+			"required": true
+		},
+		"sort_order": {
+			"bsonType": "number",
+			"description": "排序权重，数值越大排序越靠前",
+			"title": "排序权重",
+			"defaultValue": 0
+		},
+		"view_count": {
+			"bsonType": "number",
+			"description": "浏览次数统计",
+			"title": "浏览次数",
+			"defaultValue": 0,
+			"minimum": 0
+		},
+		"sales_count": {
+			"bsonType": "number",
+			"description": "销售数量统计",
+			"title": "销售数量",
+			"defaultValue": 0,
+			"minimum": 0
+		},
+		"review_count": {
+			"bsonType": "number",
+			"description": "评价数量统计",
+			"title": "评价数量",
+			"defaultValue": 0,
+			"minimum": 0
+		},
+		"category": {
+			"bsonType": "string",
+			"description": "产品分类：精品推荐、国内游、出境游、周边游、自由行、跟团游等",
+			"title": "产品分类",
+			"defaultValue": "国内游",
+			"maxLength": 50
+		},
+		"destination": {
+			"bsonType": "string",
+			"description": "目的地信息，如：西藏、新疆、云南、四川等",
+			"title": "目的地",
+			"maxLength": 100
+		},
+		"tags": {
+			"bsonType": "array",
+			"description": "产品标签数组，如：热门、新品、特价等",
+			"title": "产品标签",
+			"arrayType": "string",
+			"maxItems": 10
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"title": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"title": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"crawl_timestamp": {
+			"bsonType": "string",
+			"description": "爬虫抓取时间戳，记录数据来源时间",
+			"title": "爬取时间",
+			"maxLength": 50
+		}
+	}
+}
