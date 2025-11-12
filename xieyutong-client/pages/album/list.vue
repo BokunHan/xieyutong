@@ -5,8 +5,19 @@
 				<view class="loading-tip">正在加载...</view>
 			</block>
 			<block v-else-if="albumList.length === 0">
-				<view class="empty-container">
-					<text class="empty-text">您还没有加入任何相册</text>
+				<view class="empty-state">
+					<view class="empty-state-icon">
+						<!-- <text class="fa fa-images"></text> -->
+						<image src="/static/icons/images.svg" class="images-icon" mode="aspectFit" />
+					</view>
+					<text class="text-xl font-semibold text-gray-800 mb-2">暂无相册</text>
+					<text class="text-gray-600">您还没有加入任何旅行相册，</text>
+					<text class="text-gray-600">快去开启一段新的旅程吧！</text>
+					<view class="action-button" @click="browseProducts">
+						<!-- <text class="fa fa-search mr-2"></text> -->
+						<image src="/static/icons/search-white.svg" class="search-icon" mode="aspectFit" />
+						<text>浏览旅行产品</text>
+					</view>
 				</view>
 			</block>
 			<block v-else>
@@ -34,7 +45,7 @@ export default {
 		return {
 			statusBarHeight: 0,
 			albumList: [],
-			loading: true,
+			loading: false,
 			isNavigating: false,
 			product_image: '' // 当前行程的商品图片作为所有相册的备用封面
 		};
@@ -54,10 +65,40 @@ export default {
 
 		this.checkAndRedirectToCurrentItinerary();
 	},
+	async onPullDownRefresh() {
+		console.log('[相册列表] 用户触发下拉刷新');
+		// 调用检查，并传入 true 强制刷新
+		await this.checkAndRedirectToCurrentItinerary();
+	},
 	methods: {
+		browseProducts() {
+			// 跳转到首页或产品列表页 (假设是tabBar页面)
+			uni.switchTab({
+				url: '/pages/index/index', // 假设您的首页Tab是这个路径
+				fail: (err) => {
+					console.warn('跳转Tab失败，尝试非Tab页面:', err);
+					// 如果首页不是Tab，或者路径不对，尝试跳转到其他页面
+					uni.navigateTo({
+						url: '/pages/product/list' // 换成您的产品列表页
+					});
+				}
+			});
+		},
+
 		// 检查用户是否有进行中的行程
 		async checkAndRedirectToCurrentItinerary() {
 			console.log('[相册列表] 开始检查当前行程...');
+
+			// 检查登录状态
+			const token = uni.getStorageSync('uni_id_token');
+			if (!token) {
+				console.log('[相册列表] 用户未登录');
+				// uni.navigateTo({
+				// 	url: '/pages/login/login'
+				// });
+				return;
+			}
+
 			this.loading = true;
 			try {
 				// 1. 调用轻量化接口获取当前行程的 order_id
@@ -95,10 +136,10 @@ export default {
 			// 检查登录状态
 			const token = uni.getStorageSync('uni_id_token');
 			if (!token) {
-				console.error('[相册列表] 用户未登录');
-				uni.navigateTo({
-					url: '/pages/login/login'
-				});
+				console.log('[相册列表] 用户未登录');
+				// uni.navigateTo({
+				// 	url: '/pages/login/login'
+				// });
 				return;
 			}
 
@@ -163,17 +204,63 @@ export default {
 	padding: 0 30rpx 30rpx;
 }
 
-.loading-tip,
-.empty-container {
+.loading-tip {
 	text-align: center;
 	margin-top: 200rpx;
 	color: #999;
 }
 
-.empty-image {
-	width: 300rpx;
-	height: 300rpx;
-	margin-bottom: 20rpx;
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding-top: 150rpx;
+	text-align: center;
+}
+
+.empty-state-icon {
+	font-size: 120rpx; /* 图标大小 */
+	color: #eb6d20;
+	width: 240rpx;
+	height: 240rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	background-color: #f0f9ff;
+	border-radius: 50%;
+	margin-bottom: 60rpx;
+}
+
+.images-icon {
+	width: 140rpx;
+	height: 124rpx;
+}
+
+.search-icon {
+	width: 24px;
+	height: 24px;
+	margin-right: 6px;
+}
+
+.action-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #eb6d20;
+	color: #ffffff;
+	padding: 20rpx 48rpx;
+	border-radius: 9999px; /* 胶囊按钮 */
+	font-size: 32rpx;
+	font-weight: 500;
+	margin-top: 60rpx;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.action-button:hover {
+	background-color: #f44336; /* 蓝色 (Tailwind blue-800) */
 }
 
 .album-list {

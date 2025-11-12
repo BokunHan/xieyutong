@@ -9,15 +9,20 @@
 // 详细JQL语法，请参考：https://uniapp.dcloud.net.cn/uniCloud/jql.html
 
 // 下面示例查询uni-id-users表的所有数据
-db.collection('a-snapshots')
-	.aggregate()
-	.match({
-		order_id: "1128141964251476"
-	})
-	.lookup({
-		from: 'a-products',
-		localField: 'product_id',
-		foreignField: '_id',
-		as: 'productInfo'
-	})
-	.end();
+// db.collection('a-orders')
+// 	.where('staves.id == "68fe23eb466d4119e64596c5"')
+// 	.where(db.command.or([{
+// 		status: 'paid',
+// 		departure_date: db.command.lt(1762445657682),
+// 		$expr: db.command.gte([(db.command.aggregate.add([db.command.aggregate.ifNull(['$departure_date', 0]), db
+// 			.command
+// 			.aggregate.multiply([
+// 				db.command.aggregate.ifNull(['$duration_days', 0]), 86400000
+// 			])
+// 		])), 1662445657682])
+// 	}, {
+// 		status: 'processing'
+// 	}]))
+// 	.get()
+
+db.collection('a-region-content').doc('6910019e213929eabfee98de').get()

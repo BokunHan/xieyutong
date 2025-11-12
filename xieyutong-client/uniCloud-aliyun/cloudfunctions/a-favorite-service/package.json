@@ -1,0 +1,7 @@
+{
+  "name": "a-favorite-service",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

@@ -1,397 +1,581 @@
 <template>
-	<view class="min-h-screen bg-gray-50">
-		<!-- 状态栏占位 -->
-		<view :style="{height: statusBarHeight + 'px'}"></view>
-		
-		<!-- 导航栏 -->
-		<view class="bg-white" :style="{height: navBarHeight + 'px'}">
-			<view class="flex items-center h-full px-3">
-				<!-- 返回按钮 -->
-				<view class="w-10 h-10 flex items-center justify-center" @click="cancel">
-					<text class="fa fa-arrow-left text-gray-800 text-lg"></text>
-				</view>
-				
-				<!-- 搜索框 -->
-				<view class="flex-1 mx-2">
-					<view class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
-						<text class="fa fa-search text-gray-400 text-sm mr-2"></text>
-						<input 
-							v-model="searchText" 
-							:placeholder="hotWorld"
-							:focus="focus"
-							placeholder-class="text-gray-400 text-sm"
-							class="flex-1 bg-transparent text-sm text-gray-800"
-							@input="onInput"
-							@confirm="confirm"
-						/>
-						<view v-if="searchText" class="ml-2" @click="clearInput">
-							<text class="fa fa-times-circle text-gray-400 text-sm"></text>
-						</view>
-					</view>
-				</view>
-				
-				<!-- 更多按钮（三个点）-->
-				<view class="w-10 h-10 flex items-center justify-center">
-					<text class="fa fa-ellipsis-h text-gray-600 text-lg"></text>
-				</view>
-				
-				<!-- 右侧圆形按钮 -->
-				<view class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center ml-2">
-					<text class="fa fa-question text-gray-600 text-sm"></text>
-				</view>
+	<view class="min-h-screen bg-gray-50 search-page-container">
+		<view class="status-bar-placeholder" :style="{ height: statusBarHeight + 100 + 'rpx' }">
+			<view class="back-button" @click="goBack">
+				<uni-icons type="left" size="22" color="#333"></uni-icons>
 			</view>
 		</view>
-		
-		<!-- 分隔线 -->
-		<view class="h-px bg-gray-200"></view>
 
-		<!-- 搜索内容区域 -->
-		<view class="bg-white mt-1 mx-2 rounded-lg shadow-sm">
-			<!-- 搜索历史 -->
-			<view v-if="localSearchList.length" class="p-4 border-b border-gray-100">
-				<view class="flex items-center justify-between mb-3">
-					<text class="text-gray-800 text-base font-medium">搜索历史</text>
-					<view v-if="!localSearchListDel" @click="localSearchListDel = true" class="p-1">
-						<text class="fa fa-trash text-gray-500 text-sm"></text>
-					</view>
-					<view v-else class="flex items-center space-x-4">
-						<view @click="LocalSearchListClear" class="px-2 py-1">
-							<text class="text-gray-600 text-xs">全部删除</text>
-						</view>
-						<view @click="localSearchListDel = false" class="px-2 py-1">
-							<text class="text-red-500 text-xs">完成</text>
-						</view>
-					</view>
-				</view>
+		<view class="search-input-container">
+			<view class="search-input-wrapper">
+				<!-- <text class="fa fa-search search-icon"></text> -->
+				<image src="/static/icons/search.svg" class="w-5 h-5 mr-3" mode="aspectFit" />
+				<input class="search-input" type="text" placeholder="搜索目的地、产品" v-model="searchText" confirm-type="search" @input="onSearchInput" @confirm="onSearchConfirm" />
+				<uni-icons v-if="searchText" class="search-clear-icon" type="clear" size="20" color="#999" @click="clearSearch" />
+			</view>
+		</view>
 
-				<view class="flex flex-wrap">
-					<view 
-						v-for="(word,index) in localSearchList" 
+		<view class="category-bar">
+			<scroll-view scroll-x="true" class="category-scroll">
+				<view class="category-list">
+					<view
+						v-for="(category, index) in categoryList"
 						:key="index"
-						class="flex items-center bg-gray-100 rounded-full px-3 py-1 mr-2 mb-2"
-						@click="LocalSearchlistItemClick(word,index)"
-					>
-						<text class="text-gray-600 text-xs">{{word}}</text>
-						<text v-if="localSearchListDel" class="fa fa-times text-gray-400 text-xs ml-1"></text>
-					</view>
-				</view>
-			</view>
-
-			<!-- 搜索发现/热搜 -->
-			<view class="p-4">
-				<view class="flex items-center justify-between mb-3">
-					<view class="flex items-center">
-						<text class="text-gray-800 text-base font-medium">搜索发现</text>
-						<view v-if="!netHotListIsHide" class="ml-2 p-1" @click="searchHotRefresh">
-							<text class="fa fa-sync-alt text-gray-500 text-sm"></text>
-						</view>
-					</view>
-					<view @click="netHotListIsHide = !netHotListIsHide" class="p-1">
-						<text :class="'fa ' + (netHotListIsHide ? 'fa-eye-slash' : 'fa-eye') + ' text-gray-500 text-sm'"></text>
-					</view>
-				</view>
-
-				<!-- 热搜数据加载 -->
-				<unicloud-db 
-					ref="udb" 
-					#default="{data, loading, error, options}" 
-					field="content" 
-					collection="a-search-hot"
-					orderby="rank asc,count desc" 
-					page-data="replace" 
-					:page-size="10"
-				>
-					<view v-if="loading && !netHotListIsHide" class="text-center py-4">
-						<text class="text-gray-500 text-sm">正在加载...</text>
-					</view>
-					<view v-else-if="!netHotListIsHide">
-						<view v-if="error" class="text-center py-4">
-							<text class="text-gray-500 text-sm">{{error.message}}</text>
-						</view>
-						<view v-else class="flex flex-wrap">
-							<view 
-								v-for="(word,index) in data" 
-								:key="index"
-								class="bg-gray-100 rounded-full px-3 py-1 mr-2 mb-2"
-								@click="search(word.content)"
-							>
-								<text class="text-gray-600 text-xs">{{word.content}}</text>
-							</view>
-						</view>
-					</view>
-					<view v-else class="text-center py-4">
-						<text class="text-gray-500 text-sm">当前搜索发现已隐藏</text>
-					</view>
-				</unicloud-db>
-			</view>
-		</view>
-
-		<!-- 搜索联想列表 -->
-		<view v-if="associativeShow" class="absolute left-0 right-0 bottom-0 bg-white mx-2 mt-1 rounded-lg shadow-lg overflow-hidden z-50" :style="{top: (statusBarHeight + navBarHeight + 8) + 'px'}">
-			<scroll-view scroll-y class="h-full">
-				<view 
-					v-for="(item,index) in associativeList" 
-					:key="item._id"
-					class="flex items-center px-4 py-3 border-b border-gray-100 hover:bg-gray-50"
-					@click="associativeClick(item)"
-				>
-					<view class="mr-3">
-						<text class="fa fa-search text-gray-400 text-sm"></text>
-					</view>
-					<view class="flex-1">
-						<text class="text-gray-800 text-sm">{{truncateText(item.title, 30)}}</text>
-					</view>
-					<view v-if="item.price">
-						<text class="text-orange-500 text-sm font-medium">{{item.price}}</text>
+						class="category-item"
+						:class="{ 'category-active': selectedCategory === category.value }"
+						@click="selectCategory(category.value)">
+						{{ category.label }}
 					</view>
 				</view>
 			</scroll-view>
 		</view>
+
+		<view class="sort-bar">
+			<view class="sort-tabs">
+				<view class="sort-tab" :class="{ 'sort-active': sortType === 'sales' }" @click="changeSortType('sales')">
+					<text>销量</text>
+					<!-- <text v-if="sortType === 'sales'" class="fa fa-arrow-down sort-arrow"></text> -->
+					<image v-if="sortType === 'sales'" src="/static/icons/arrow-down.svg" class="w-4 h-4 ml-1" mode="aspectFit" />
+				</view>
+				<view class="sort-tab" :class="{ 'sort-active': sortType === 'price' }" @click="changeSortType('price')">
+					<text>价格</text>
+					<!-- <text v-if="sortType === 'price'" class="fa fa-arrow-down sort-arrow"></text> -->
+					<image v-if="sortType === 'price'" src="/static/icons/arrow-down.svg" class="w-4 h-4 ml-1" mode="aspectFit" />
+				</view>
+				<view class="sort-tab" :class="{ 'sort-active': sortType === 'newest' }" @click="changeSortType('newest')">
+					<text>新品</text>
+					<!-- <text v-if="sortType === 'newest'" class="fa fa-arrow-down sort-arrow"></text> -->
+					<image v-if="sortType === 'newest'" src="/static/icons/arrow-down.svg" class="w-4 h-4 ml-1" mode="aspectFit" />
+				</view>
+			</view>
+		</view>
+
+		<scroll-view scroll-y class="product-scroll-area" :style="{ height: screenHeight + 'px', paddingTop: headerHeight + 'px' }">
+			<view class="content-area" id="content-area">
+				<view v-if="productLoading" class="product-loading">
+					<view class="loading-spinner"></view>
+					<text class="loading-text">正在加载产品数据...</text>
+				</view>
+
+				<view v-else-if="productError" class="product-error">
+					<view class="error-icon">⚠️</view>
+					<text class="error-text">{{ productErrorMsg }}</text>
+					<button class="retry-btn" @click="loadProductData">重新加载</button>
+				</view>
+
+				<template v-else-if="displayProductList.length > 0">
+					<view v-for="(product, index) in displayProductList" :key="product.id || index" class="product-card" @click="goToProductDetail(product.id)">
+						<image :src="product.image" class="product-img" mode="aspectFill"></image>
+						<view class="product-info">
+							<view class="product-title">{{ product.title }}</view>
+							<view class="product-meta">
+								<view class="product-rating">
+									<!-- <text class="fa fa-star rating-star"></text> -->
+									<image src="/static/icons/star.svg" class="w-4 h-4 mr-1" mode="aspectFit" />
+									<text>{{ product.rating }}分</text>
+								</view>
+								<view>已售{{ product.soldCount }}人</view>
+							</view>
+							<view class="product-price">
+								<view>
+									<text class="price">{{ product.price }}</text>
+									<text class="price-label">/人起</text>
+								</view>
+								<view class="promotion-tag">{{ product.tag }}</view>
+							</view>
+						</view>
+					</view>
+				</template>
+
+				<view v-else class="product-empty">
+					<view class="empty-icon">📦</view>
+					<text class="empty-text">
+						{{ searchText ? '未找到相关产品' : '暂无产品数据' }}
+					</text>
+					<button v-if="searchText" class="retry-btn" @click="clearSearch">清除搜索</button>
+				</view>
+			</view>
+		</scroll-view>
 	</view>
 </template>
 
 <script>
-	/**
-	 * 携程私域搜索页面
-	 * @description 基于uniCloud云端一体搜索模板适配的旅游产品搜索页面
-	 */
-	const searchLogDbName = 'a-search-log'; // 搜索记录数据库
-	const productsDbName = 'a-products'; // 旅游产品数据库
-	const associativeSearchField = 'title'; // 联想时，搜索框值检索数据库字段名
-	const associativeField = 'title,price'; // 联想列表每一项携带的字段
-	const localSearchListKey = '__travel_search_history'; //	本地历史存储字段名
+// 这是 search.vue
+export default {
+	data() {
+		return {
+			statusBarHeight: 0,
+			screenHeight: 0,
+			headerHeight: 0, // 头部总高度
 
-	// 数组去重
-	const arrUnique = arr => {
-		for (let i = arr.length - 1; i >= 0; i--) {
-			const curIndex = arr.indexOf(arr[i]);
-			const lastIndex = arr.lastIndexOf(arr[i])
-			curIndex != lastIndex && arr.splice(lastIndex, 1)
-		}
-		return arr
-	}
-	
-	// 防抖
-	function debounce(fn, interval, isFirstAutoRun) {
-		var _self = fn;
-		var timer = null;
-		var first = true;
+			searchText: '', // 搜索关键词
 
-		if (isFirstAutoRun) {
-			_self();
-		}
+			productList: [],
+			productLoading: false,
+			productError: false,
+			productErrorMsg: '',
 
-		return function() {
-			var args = arguments;
-			var _me = this;
-			if (first) {
-				first = false;
-				_self.apply(_me, args);
+			// 从 home.vue 迁移过来的数据
+			selectedCategory: 'all',
+			sortType: 'default', // default, sales, price
+			categoryList: [
+				{ label: '全部', value: 'all' },
+				{ label: '精品推荐', value: '精品推荐' },
+				{ label: '国内游', value: '国内游' },
+				{ label: '出境游', value: '出境游' },
+				{ label: '周边游', value: '周边游' },
+				{ label: '自由行', value: '自由行' },
+				{ label: '跟团游', value: '跟团游' }
+			]
+		};
+	},
+	computed: {
+		// 包含搜索、分类、排序的完整列表
+		displayProductList() {
+			let filteredList = [...this.productList];
+			const keyword = this.searchText.trim().toLowerCase();
+
+			// 1. 搜索过滤
+			if (keyword) {
+				filteredList = filteredList.filter(
+					(product) => (product.title && product.title.toLowerCase().includes(keyword)) || (product.subtitle && product.subtitle.toLowerCase().includes(keyword))
+				);
 			}
 
-			if (timer) {
-				clearTimeout(timer)
+			// 2. 分类过滤
+			if (this.selectedCategory !== 'all') {
+				filteredList = filteredList.filter((product) => product.category === this.selectedCategory);
 			}
 
-			timer = setTimeout(function() {
-				clearTimeout(timer);
-				timer = null;
-				_self.apply(_me, args);
-			}, interval || 200);
+			// 3. 排序
+			if (this.sortType === 'sales') {
+				filteredList.sort((a, b) => b.soldCount - a.soldCount);
+			} else if (this.sortType === 'price') {
+				filteredList.sort((a, b) => {
+					const priceA = typeof a.price === 'string' ? parseFloat(a.price.replace(/[^0-9.]/g, '')) : a.price;
+					const priceB = typeof b.price === 'string' ? parseFloat(b.price.replace(/[^0-9.]/g, '')) : b.price;
+					return priceA - priceB;
+				});
+			} else if (this.sortType === 'newest') {
+				filteredList.sort((a, b) => b.sort_order - a.sort_order);
+			} else {
+				filteredList.sort((a, b) => (b.sort_order || 0) - (a.sort_order || 0));
+			}
+
+			return filteredList;
 		}
-	}
+	},
+	onLoad() {
+		// 获取系统信息
+		const systemInfo = uni.getSystemInfoSync();
+		this.screenHeight = systemInfo.windowHeight;
+		this.statusBarHeight = systemInfo.statusBarHeight || 0;
 
-	export default {
-		data() {
-			return {
-				productsDbName,
-				searchLogDbName,
+		// 加载所有产品数据
+		this.loadProductData();
+	},
+	methods: {
+		goBack() {
+			uni.navigateBack();
+		},
+		onSearchInput(e) {
+			// 实时搜索（可选），目前在 computed 中实现
+		},
+		onSearchConfirm(e) {
+			console.log('搜索:', this.searchText);
+		},
+		clearSearch() {
+			this.searchText = '';
+		},
 
-				localSearchList: uni.getStorageSync(localSearchListKey) || [],
-				localSearchListDel: false,
-				netHotListIsHide: false,
-				searchText: '',
-				iconColor: '#999999',
-				associativeList: [],
-				keyBoardPopup: false,
+		// --- 从 home.vue 迁移的方法 ---
 
-				hotWorld: '拉萨', //	搜索热词，如果没有输入即回车，则搜索热词，但是不会加入搜索记录
-				focus: true, //	是否自动聚焦
-				speechEngine: 'iFly', //	语音识别引擎 iFly 讯飞 baidu 百度
-				
-				// 系统信息
-				statusBarHeight: 0,
-				navBarHeight: 44
+		selectCategory(category) {
+			console.log('🏷️ 选择分类:', category);
+			this.selectedCategory = category;
+		},
+
+		changeSortType(sortType) {
+			console.log('🔄 切换排序:', sortType);
+
+			if (this.sortType === sortType) {
+				this.sortType = 'default';
+			} else {
+				this.sortType = sortType;
 			}
 		},
-		created() {
-			this.db = uniCloud.database();
-			this.searchLogDb = this.db.collection(this.searchLogDbName);
-			this.productsDb = this.db.collection(this.productsDbName);
-			
-			// 获取系统信息
-			const systemInfo = uni.getSystemInfoSync();
-			this.statusBarHeight = systemInfo.statusBarHeight || 20;
-			
-			// #ifdef MP-WEIXIN
-			// 微信小程序胶囊按钮信息
-			const menuButtonInfo = uni.getMenuButtonBoundingClientRect();
-			this.navBarHeight = (menuButtonInfo.top - this.statusBarHeight) * 2 + menuButtonInfo.height;
-			// #endif
-			
-			// #ifdef APP-PLUS
-			this.navBarHeight = 44; // APP默认导航栏高度
-			uni.onKeyboardHeightChange((res) => {
-				this.keyBoardPopup = res.height !== 0;
-			})
-			// #endif
 
-			this.searchText = getApp().globalData.searchText || '';
+		goToProductDetail(productId) {
+			if (!productId) {
+				console.error('❌ 产品ID为空，无法跳转');
+				return;
+			}
+			const url = `/pages/product-detail/product-detail?id=${productId}`;
+			uni.navigateTo({
+				url: url
+			});
 		},
-		methods: {
-			// 文字截断方法
-			truncateText(text, maxLength) {
-				if (!text) return '';
-				if (text.length <= maxLength) return text;
-				return text.substring(0, maxLength) + '...';
-			},
-			onInput(e) {
-				this.searchText = e.detail.value;
-			},
-			clearInput() {
-				this.searchText = '';
-				this.associativeList = [];
-			},
-			confirm(res) {
-				// 键盘确认
-				this.search(res.detail.value || this.searchText);
-			},
-			cancel(res) {
-				uni.hideKeyboard();
-				this.searchText = '';
-				uni.navigateBack();
-			},
-			search(value) {
-				if (!value && !this.hotWorld) {
+
+		// 加载产品数据 (与 home.vue 相同)
+		async loadProductData() {
+			console.log('=== [SearchPage] loadProductData 开始 ===');
+			this.productLoading = true;
+			this.productError = false;
+			this.productErrorMsg = '';
+			this.productList = [];
+
+			try {
+				const db = uniCloud.databaseForJQL();
+				const routesRes = await db.collection('a-routes').field({ A_route_id: true }).get();
+
+				if (!routesRes.data || routesRes.data.length === 0) {
+					console.warn('[加载产品] a-routes 中没有数据。');
+					this.productLoading = false;
 					return;
 				}
-				if (value) {
-					if (this.searchText !== value) {
-						this.searchText = value
-					}
 
-					this.localSearchListManage(value);
-					this.searchLogDbAdd(value)
-				} else if (this.hotWorld) {
-					this.searchText = this.hotWorld
+				const productIdsToFetch = routesRes.data.map((item) => item.A_route_id).filter((id) => id);
+				if (productIdsToFetch.length === 0) {
+					console.warn('[加载产品] 没有有效的 A_route_id 可供查询。');
+					this.productLoading = false;
+					return;
 				}
 
-				uni.hideKeyboard();
-				this.loadList(this.searchText);
-			},
-			localSearchListManage(word) {
-				let list = uni.getStorageSync(localSearchListKey) || [];
-				if (list.length) {
-					this.localSearchList.unshift(word);
-					arrUnique(this.localSearchList);
-					if (this.localSearchList.length > 10) {
-						this.localSearchList.pop();
-					}
-				} else {
-					this.localSearchList = [word];
+				const result = await db
+					.collection('a-products')
+					.where({
+						ctrip_id: db.command.in(productIdsToFetch),
+						status: 1
+					})
+					.field('_id, product_id, title, subtitle, price, child_price, rating, product_images, sales_count, review_count, view_count, sort_order, category, route_title')
+					.get();
+
+				if (result.data && result.data.length > 0) {
+					const processedData = result.data.map((item) => ({
+						id: item._id,
+						title: item.title || '未知商品',
+						route_title: item.route_title || '',
+						subtitle: item.subtitle || '',
+						rating: Number(item.rating) || 5.0,
+						soldCount: Number(item.sales_count) || 0,
+						reviewCount: Number(item.review_count) || 0,
+						viewCount: Number(item.view_count) || 0,
+						price: this.formatPrice(item.price),
+						child_price: this.formatPrice(item.child_price),
+						image: item.product_images && item.product_images.length > 0 ? item.product_images[0] : 'https://images.unsplash.com/photo-1635582681213-450e9b127343?w=400',
+						tag: this.generateTag(item),
+						sort_order: Number(item.sort_order) || 0,
+						category: item.category || '国内游'
+					}));
+					this.productList = processedData;
 				}
-				uni.setStorageSync(localSearchListKey, this.localSearchList);
-			},
-			LocalSearchListClear() {
-				this.localSearchList = [];
-				uni.removeStorageSync(localSearchListKey);
-			},
-			LocalSearchlistItemClick(word, index) {
-				if (this.localSearchListDel) {
-					this.localSearchList.splice(index, 1);
-					uni.setStorageSync(localSearchListKey, this.localSearchList);
-				} else {
-					this.search(word);
-				}
-			},
-			searchLogDbAdd(value) {
-				// 添加搜索记录到云数据库
-				let deviceId = uni.getStorageSync('uni_id_device') || '';
-				this.searchLogDb.add({
-					content: value,
-					device_id: deviceId,
-					search_type: 'product',
-					result_count: 0
-				}).then(res => {
-					console.log('搜索记录已保存', res);
-				}).catch(err => {
-					console.error('保存搜索记录失败', err);
-				});
-			},
-			searchHotRefresh() {
-				this.$refs.udb.loadData({
-					clear: true
-				});
-			},
-			associativeClick(item) {
-				getApp().globalData.searchText = item.title;
-				this.search(item.title);
-			},
-			loadList(searchText = '') {
-				// 跳转到搜索结果页面并传递搜索关键词
-				if (searchText) {
-					uni.navigateTo({
-						url: `/pages/search/search-result?keyword=${encodeURIComponent(searchText)}`
-					});
-				} else {
-					// 如果没有搜索内容，不跳转
-					uni.showToast({
-						title: '请输入搜索内容',
-						icon: 'none'
-					});
-				}
-			},
-			// 语音搜索功能
-			// #ifdef APP-PLUS
-			speech() {
-				// TODO: 实现语音搜索功能
-				uni.showToast({
-					title: '语音搜索功能开发中',
-					icon: 'none'
-				});
-			}
-			// #endif
-		},
-		computed: {
-			associativeShow() {
-				return this.searchText && this.associativeList.length;
+			} catch (error) {
+				console.error('[加载产品] 加载产品数据失败:', error);
+				this.productError = true;
+				this.productErrorMsg = error.message || '加载数据失败';
+			} finally {
+				this.productLoading = false;
+				console.log('=== [SearchPage] loadProductData 结束 ===');
 			}
 		},
-		watch: {
-			searchText: debounce(function(value) {
-				if (value) {
-					// 根据a-products表结构进行搜索联想
-					this.productsDb.where({
-						[associativeSearchField]: new RegExp(value, 'gi'),
-						status: 1 // 只搜索上架的产品
-					}).field(associativeField).limit(10).get().then(res => {
-						this.associativeList = res.result.data;
-					}).catch(err => {
-						console.error('搜索联想失败', err);
-						this.associativeList = [];
-					});
-				} else {
-					this.associativeList.length = 0;
-					getApp().globalData.searchText = '';
-				}
-			}, 300)
+
+		// generateTag (与 home.vue 相同)
+		generateTag(item) {
+			let tag = '热门推荐';
+			if (item.sales_count > 100) tag = '爆款热销';
+			else if (item.sales_count > 50) tag = '人气精选';
+			else if (item.rating >= 4.8) tag = '高分好评';
+			else if (item.view_count > 1000) tag = '热门关注';
+			return tag;
+		},
+
+		// formatPrice (与 home.vue 相同)
+		formatPrice(price) {
+			if (price === null || price === undefined || price === '') {
+				return '价格待定';
+			}
+			let numPrice;
+			if (typeof price === 'string') {
+				const cleanPrice = price.replace(/[^0-9.]/g, '');
+				numPrice = parseFloat(cleanPrice);
+			} else if (typeof price === 'number') {
+				numPrice = price;
+			} else {
+				return '价格待定';
+			}
+			if (isNaN(numPrice) || numPrice < 0) {
+				return '价格待定';
+			}
+			return numPrice.toLocaleString('zh-CN');
 		}
 	}
+};
 </script>
 
 <style>
-/* 覆盖默认样式 */
-page {
-	background-color: #f9fafb;
+/* 搜索页面样式 */
+.status-bar-placeholder {
+	width: 100%;
 }
-</style> 
+
+.back-button {
+	position: absolute;
+	left: 24rpx;
+	top: calc(var(--status-bar-height) + 50rpx);
+	width: 70rpx;
+	height: 70rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 99;
+	background-color: rgba(255, 255, 255, 0.7);
+	border-radius: 50%;
+}
+
+.search-page-container {
+	background-color: #f9f9f9;
+}
+
+/* 搜索框样式 */
+.search-input-container {
+	margin-top: 15px;
+	display: flex;
+	align-items: center;
+	padding: 8px 16px;
+	height: 44px;
+}
+.search-input-wrapper {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	background-color: #f5f5f5;
+	border-radius: 20px;
+	padding: 0 16px;
+}
+.search-icon {
+	color: #999;
+	margin-right: 10px;
+	font-size: 16px;
+}
+.search-input {
+	flex: 1;
+	height: 40px;
+	line-height: 40px;
+	font-size: 14px;
+	color: #333;
+}
+.search-clear-icon {
+	margin-left: 10px;
+}
+
+/* 2. 可滚动的产品列表区域 */
+.product-scroll-area {
+	width: 100%;
+}
+
+/* 3. 内容区域 */
+.content-area {
+	padding: 16px 12px;
+	background-color: #f9f9f9;
+}
+
+/* --- 迁移过来的样式 --- */
+
+/* 分类栏样式 (与 home.vue 相同) */
+.category-bar {
+	background-color: white;
+	padding: 8px 0;
+	border-top: 1px solid #f5f5f5;
+}
+.category-scroll {
+	white-space: nowrap;
+}
+.category-list {
+	display: inline-flex;
+	padding: 0 16px;
+}
+.category-item {
+	flex-shrink: 0;
+	padding: 8px 16px;
+	margin-right: 12px;
+	border-radius: 20px;
+	font-size: 14px;
+	background-color: #fff8f3;
+	color: #ff6b35;
+	white-space: nowrap;
+	transition: all 0.2s ease;
+	border: 1px solid #fceae1;
+	font-weight: 500;
+}
+.category-active {
+	background-color: #ff6b35;
+	color: white;
+	border-color: #ff6b35;
+	box-shadow: 0 2px 6px rgba(255, 107, 53, 0.3);
+}
+
+/* 排序栏样式 (与 home.vue 相同) */
+.sort-bar {
+	background-color: white;
+	padding: 0;
+	border-top: 1px solid #f0f0f0;
+}
+.sort-tabs {
+	display: flex;
+	width: 100%;
+}
+.sort-tab {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 0;
+	font-size: 14px;
+	color: #666;
+	position: relative;
+	transition: all 0.2s ease;
+	font-weight: 500;
+	border-right: 1px solid #f0f0f0;
+}
+.sort-tab:last-child {
+	border-right: none;
+}
+.sort-tab.sort-active {
+	color: #e53e3e;
+	background-color: #fef2f2;
+}
+.sort-arrow {
+	margin-left: 4px;
+	font-size: 10px;
+}
+.category-item:active {
+	transform: scale(0.95);
+}
+.sort-tab:active {
+	transform: scale(0.95);
+	background-color: #f5f5f5;
+}
+
+/* 产品卡片样式 (与 home.vue 相同) */
+.product-card {
+	background-color: white;
+	border-radius: 12px;
+	overflow: hidden;
+	margin-bottom: 16px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	transition: all 0.2s ease;
+	border: 1px solid #f0f0f0;
+}
+.product-card:active {
+	transform: scale(0.98);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.product-img {
+	width: 100%;
+	height: 180px;
+	object-fit: cover;
+}
+.product-info {
+	padding: 12px 16px 16px;
+}
+.product-title {
+	font-weight: 600;
+	margin-bottom: 8px;
+	font-size: 15px;
+	line-height: 1.4;
+	color: #333333;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.product-meta {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+	font-size: 13px;
+	color: #666666;
+}
+.product-rating {
+	display: flex;
+	align-items: center;
+}
+.rating-star {
+	color: #ffb400;
+	margin-right: 4px;
+}
+.product-price {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.price {
+	color: #e53e3e;
+	font-weight: 700;
+	font-size: 18px;
+}
+.price-label {
+	font-size: 12px;
+	color: #999999;
+	margin-left: 4px;
+	font-weight: 400;
+}
+.promotion-tag {
+	background-color: #fff8f3;
+	color: #ff6b35;
+	padding: 4px 8px;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+	border: 1px solid #fceae1;
+}
+
+/* 加载、错误、空状态样式 (与 home.vue 相同) */
+.product-loading,
+.product-error,
+.product-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 300px;
+	background-color: #f9f9f9;
+	color: #666;
+	text-align: center;
+	padding: 40px 20px;
+}
+.product-loading .loading-spinner {
+	width: 50px;
+	height: 50px;
+	border: 4px solid rgba(0, 0, 0, 0.1);
+	border-top: 4px solid #ff6b35;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin-bottom: 20px;
+}
+.product-loading .loading-text,
+.product-error .error-text,
+.product-empty .empty-text {
+	color: #666;
+	margin-bottom: 20px;
+}
+.product-error .retry-btn,
+.product-empty .retry-btn {
+	background-color: #ff6b35;
+	color: white;
+	border: none;
+	border-radius: 25px;
+	padding: 12px 24px;
+	font-size: 16px;
+	font-weight: 500;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+</style>

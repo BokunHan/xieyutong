@@ -4,9 +4,9 @@
 	"required": ["order_id", "departure_date", "total_days", "itinerary"],
 	"permission": {
 		"read": true,
-		"create": true,
-		"update": true,
-		"delete": "'admin' in auth.role || 'super_admin' in auth.role",
+		"create": "auth.uid != null && ('MANAGE_ORDERS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"update": "auth.uid != null && ('MANAGE_ORDERS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"delete": "auth.uid != null && ('MANAGE_ORDERS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
 		"count": true
 	},
 	"properties": {
@@ -47,6 +47,40 @@
 			"description": "出发日期",
 			"title": "出发日期",
 			"required": true
+		},
+		"travel_users": {
+			"bsonType": "array",
+			"description": "出行用户",
+			"title": "出行用户",
+			"items": {
+				"id": {
+					"bsonType": "string",
+					"description": "用户ID，与uni-id-users表中_id对应"
+				},
+				"mobile": {
+					"bsonType": "string",
+					"description": "用户电话号码"
+				}
+			}
+		},
+		"staves": {
+			"bsonType": "array",
+			"description": "服务人员",
+			"title": "服务人员",
+			"items": {
+				"id": {
+					"bsonType": "string",
+					"description": "服务人员ID，与uni-id-users表中_id对应"
+				},
+				"mobile": {
+					"bsonType": "string",
+					"description": "服务人员电话号码"
+				},
+				"role": {
+					"bsonType": "string",
+					"description": "服务人员角色"
+				}
+			}
 		},
 		"title": {
 			"bsonType": "string",

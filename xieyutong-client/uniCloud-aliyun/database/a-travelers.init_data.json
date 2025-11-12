@@ -1,32 +1,32 @@
-[
-	{
-		"user_id": "6860cd8509664cca9817872c",
-		"name": "张先生",
-		"type": "成人",
-		"id_card": "310112199001011234",
-		"phone": "13812341234",
-		"is_main": true,
-		"gender": "男",
-		"status": "active"
-	},
-	{
-		"user_id": "6860cd8509664cca9817872c",
-		"name": "李女士",
-		"type": "成人",
-		"id_card": "310112199001025678",
-		"phone": "13987654321",
-		"is_main": false,
-		"gender": "女",
-		"status": "active"
-	},
-	{
-		"user_id": "6860cd8509664cca9817872c",
-		"name": "张小朋友",
-		"type": "儿童",
-		"id_card": "310112201805209012",
-		"birthday": "2018-05-20",
-		"is_main": false,
-		"gender": "男",
-		"status": "active"
-	}
-] 
+// [
+// 	{
+// 		"user_id": "6860cd8509664cca9817872c",
+// 		"name": "张先生",
+// 		"type": "成人",
+// 		"id_card": "310112199001011234",
+// 		"phone": "13812341234",
+// 		"is_main": true,
+// 		"gender": "男",
+// 		"status": "active"
+// 	},
+// 	{
+// 		"user_id": "6860cd8509664cca9817872c",
+// 		"name": "李女士",
+// 		"type": "成人",
+// 		"id_card": "310112199001025678",
+// 		"phone": "13987654321",
+// 		"is_main": false,
+// 		"gender": "女",
+// 		"status": "active"
+// 	},
+// 	{
+// 		"user_id": "6860cd8509664cca9817872c",
+// 		"name": "张小朋友",
+// 		"type": "儿童",
+// 		"id_card": "310112201805209012",
+// 		"birthday": "2018-05-20",
+// 		"is_main": false,
+// 		"gender": "男",
+// 		"status": "active"
+// 	}
+// ] 

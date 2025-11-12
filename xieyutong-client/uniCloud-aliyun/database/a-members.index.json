@@ -1,70 +1,61 @@
-[
-  {
-    "IndexName": "user_id_unique",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "user_id",
-          "Direction": "1"
-        }
-      ],
-      "MgoIsUnique": true
-    }
-  },
-  {
-    "IndexName": "level_points",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "level",
-          "Direction": "1"
-        },
-        {
-          "Name": "points",
-          "Direction": "-1"
-        }
-      ],
-      "MgoIsUnique": false
-    }
-  },
-  {
-    "IndexName": "status_level",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "status",
-          "Direction": "1"
-        },
-        {
-          "Name": "level",
-          "Direction": "1"
-        }
-      ],
-      "MgoIsUnique": false
-    }
-  },
-  {
-    "IndexName": "total_consumption_desc",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "total_consumption",
-          "Direction": "-1"
-        }
-      ],
-      "MgoIsUnique": false
-    }
-  },
-  {
-    "IndexName": "join_date_desc",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "join_date",
-          "Direction": "-1"
-        }
-      ],
-      "MgoIsUnique": false
-    }
-  }
-] 
+[{
+		"IndexName": "user_id_unique",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+				"Name": "user_id",
+				"Direction": "1"
+			}],
+			"MgoIsUnique": true
+		}
+	},
+	{
+		"IndexName": "level_points",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+					"Name": "level",
+					"Direction": "1"
+				},
+				{
+					"Name": "points",
+					"Direction": "-1"
+				}
+			],
+			"MgoIsUnique": false
+		}
+	},
+	{
+		"IndexName": "status_level",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+					"Name": "status",
+					"Direction": "1"
+				},
+				{
+					"Name": "level",
+					"Direction": "1"
+				}
+			],
+			"MgoIsUnique": false
+		}
+	},
+	{
+		"IndexName": "total_consumption_desc",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+				"Name": "total_consumption",
+				"Direction": "-1"
+			}],
+			"MgoIsUnique": false
+		}
+	},
+	{
+		"IndexName": "join_date_desc",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+				"Name": "join_date",
+				"Direction": "-1"
+			}],
+			"MgoIsUnique": false
+		}
+	}
+]

@@ -5,40 +5,39 @@
 			<view class="date-picker-header">
 				<text class="title">{{ title }}</text>
 				<view class="close-btn" @click="onCancel">
-					<text class="fa fa-times"></text>
+					<image src="/static/icons/times.png" class="close-icon" mode="aspectFit" />
 				</view>
 			</view>
-			
+
 			<!-- 星期标题 -->
 			<view class="week-header">
 				<text class="week-item" v-for="(week, index) in weekDays" :key="week" :class="index === 5 || index === 6 ? 'weekend-text' : ''">{{ week }}</text>
 			</view>
-			
+
 			<!-- 提示信息 -->
 			<view class="tip-text">
 				<text class="tip-content">* 价格为当天成人票最低价，价格变动频繁以支付为准</text>
 			</view>
-			
+
 			<!-- 日期网格容器 -->
 			<view class="calendar-months">
 				<!-- 当前月份 -->
 				<view class="month-section">
 					<text class="month-title">{{ currentYear }}年{{ currentMonth }}月</text>
 					<view class="date-grid">
-						<view 
-							v-for="date in currentMonthDates" 
+						<view
+							v-for="date in currentMonthDates"
 							:key="date.key"
 							class="date-item"
 							:class="{
 								'other-month': !date.isCurrentMonth,
-								'today': date.isToday,
-								'selected': date.isSelected,
-								'disabled': date.isDisabled,
-								'weekend': date.isWeekend,
+								today: date.isToday,
+								selected: date.isSelected,
+								disabled: date.isDisabled,
+								weekend: date.isWeekend,
 								'has-festival': date.festival
 							}"
-							@click="selectDate(date)"
-						>
+							@click="selectDate(date)">
 							<view class="date-content">
 								<text v-if="date.festival" class="festival-text">{{ date.festival }}</text>
 								<view class="day-container" :class="{ 'selected-day': date.isSelected, 'today-day': date.isToday }">
@@ -49,25 +48,24 @@
 						</view>
 					</view>
 				</view>
-				
+
 				<!-- 下一个月份 -->
 				<view class="month-section">
 					<text class="month-title">{{ nextMonthYear }}年{{ nextMonthMonth }}月</text>
 					<view class="date-grid">
-						<view 
-							v-for="date in nextMonthDates" 
+						<view
+							v-for="date in nextMonthDates"
 							:key="date.key"
 							class="date-item"
 							:class="{
 								'other-month': !date.isCurrentMonth,
-								'today': date.isToday,
-								'selected': date.isSelected,
-								'disabled': date.isDisabled,
-								'weekend': date.isWeekend,
+								today: date.isToday,
+								selected: date.isSelected,
+								disabled: date.isDisabled,
+								weekend: date.isWeekend,
 								'has-festival': date.festival
 							}"
-							@click="selectDate(date)"
-						>
+							@click="selectDate(date)">
 							<view class="date-content">
 								<text v-if="date.festival" class="festival-text">{{ date.festival }}</text>
 								<view class="day-container" :class="{ 'selected-day': date.isSelected, 'today-day': date.isToday }">
@@ -108,47 +106,47 @@ export default {
 			default: ''
 		}
 	},
-	
-			data() {
+
+	data() {
 		return {
 			currentDate: new Date(),
 			selectedDate: '',
 			weekDays: ['一', '二', '三', '四', '五', '六', '日']
-		}
+		};
 	},
-	
+
 	computed: {
 		currentYear() {
 			return this.currentDate.getFullYear();
 		},
-		
+
 		currentMonth() {
 			return this.currentDate.getMonth() + 1;
 		},
-		
+
 		nextMonthYear() {
 			const nextMonth = new Date(this.currentDate);
 			nextMonth.setMonth(nextMonth.getMonth() + 1);
 			return nextMonth.getFullYear();
 		},
-		
+
 		nextMonthMonth() {
 			const nextMonth = new Date(this.currentDate);
 			nextMonth.setMonth(nextMonth.getMonth() + 1);
 			return nextMonth.getMonth() + 1;
 		},
-		
+
 		// 生成当月的日期列表
 		currentMonthDates() {
 			return this.generateMonthDates(this.currentYear, this.currentMonth);
 		},
-		
+
 		// 生成下一个月的日期列表
 		nextMonthDates() {
 			return this.generateMonthDates(this.nextMonthYear, this.nextMonthMonth);
 		}
 	},
-	
+
 	watch: {
 		value: {
 			immediate: true,
@@ -156,7 +154,7 @@ export default {
 				this.selectedDate = newVal;
 			}
 		},
-		
+
 		show(newVal) {
 			if (newVal) {
 				// 如果有选中的日期，跳转到对应月份
@@ -166,14 +164,14 @@ export default {
 			}
 		}
 	},
-	
+
 	methods: {
 		// 生成指定月份的日期数据
 		generateMonthDates(year, month) {
 			const today = new Date();
 			// 设置为当天0点，用于日期比较
 			today.setHours(0, 0, 0, 0);
-			
+
 			// 处理最小日期
 			let minDate;
 			if (this.minDate) {
@@ -184,7 +182,7 @@ export default {
 				minDate.setDate(minDate.getDate() + 1);
 			}
 			minDate.setHours(0, 0, 0, 0);
-			
+
 			// 处理最大日期
 			let maxDate;
 			if (this.maxDate) {
@@ -194,19 +192,19 @@ export default {
 				maxDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
 			}
 			maxDate.setHours(0, 0, 0, 0);
-			
+
 			// 当月第一天是星期几 (调整为周一开始: 0=周日变为6, 1=周一变为0)
 			const firstDay = new Date(year, month - 1, 1);
 			const firstDayWeek = (firstDay.getDay() + 6) % 7;
-			
+
 			// 当月有多少天
 			const daysInMonth = new Date(year, month, 0).getDate();
-			
+
 			// 上月有多少天
 			const prevMonthDays = new Date(year, month - 1, 0).getDate();
-			
+
 			const dateList = [];
-			
+
 			// 填充上月的日期
 			for (let i = firstDayWeek - 1; i >= 0; i--) {
 				const day = prevMonthDays - i;
@@ -224,7 +222,7 @@ export default {
 					festival: null
 				});
 			}
-			
+
 			// 填充当月的日期
 			for (let day = 1; day <= daysInMonth; day++) {
 				const date = new Date(year, month - 1, day);
@@ -233,7 +231,7 @@ export default {
 				const isToday = this.isSameDay(date, today);
 				const isDisabled = date < minDate || date > maxDate;
 				const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-				
+
 				dateList.push({
 					key: `${year}-${month}-current-${day}`,
 					day: day,
@@ -247,7 +245,7 @@ export default {
 					festival: this.getFestival(date)
 				});
 			}
-			
+
 			// 填充下月的日期，确保总共42个格子（6行7列）
 			const remainingCells = 42 - dateList.length;
 			for (let day = 1; day <= remainingCells; day++) {
@@ -265,15 +263,15 @@ export default {
 					festival: null
 				});
 			}
-			
+
 			return dateList;
 		},
-		
+
 		// 获取节日信息
 		getFestival(date) {
 			const month = date.getMonth() + 1;
 			const day = date.getDate();
-			
+
 			// 一些常见节日，可以根据需要扩展
 			const festivals = {
 				'1-1': '元旦',
@@ -285,27 +283,27 @@ export default {
 				'10-1': '国庆节',
 				'12-25': '圣诞节'
 			};
-			
+
 			return festivals[`${month}-${day}`] || null;
 		},
-		
+
 		// 选择日期
 		selectDate(dateItem) {
 			if (dateItem.isDisabled || !dateItem.isCurrentMonth) {
 				return;
 			}
-			
+
 			this.selectedDate = dateItem.dateString;
-			
+
 			// 直接确认选择
 			this.$emit('confirm', this.selectedDate);
 		},
-		
+
 		// 取消
 		onCancel() {
 			this.$emit('cancel');
 		},
-		
+
 		// 格式化日期为 YYYY-MM-DD
 		formatDate(date) {
 			const year = date.getFullYear();
@@ -313,7 +311,7 @@ export default {
 			const day = date.getDate().toString().padStart(2, '0');
 			return `${year}-${month}-${day}`;
 		},
-		
+
 		// 判断是否为同一天
 		isSameDay(date1, date2) {
 			// 创建副本避免修改原始日期
@@ -324,10 +322,15 @@ export default {
 			return d1.getTime() === d2.getTime();
 		}
 	}
-}
+};
 </script>
 
 <style scoped>
+.close-icon {
+	width: 24px;
+	height: 24px;
+}
+
 .date-picker-overlay {
 	position: fixed;
 	top: 0;
@@ -411,7 +414,7 @@ export default {
 }
 
 .weekend-text {
-	color: #ff6b35;
+	color: #191970;
 }
 
 .tip-text {
@@ -449,7 +452,7 @@ export default {
 }
 
 .date-item {
-	height: 44px;
+	height: 60px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -471,34 +474,43 @@ export default {
 }
 
 .date-content {
+	width: 100%;
+	height: 100%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	width: 100%;
 	position: relative;
+	border-radius: 8px;
+	border: 1px solid transparent;
+	padding: 4px 0;
+	box-sizing: border-box;
 }
 
 .festival-text {
 	font-size: 10px;
-	color: #0086f6;
+	color: #ef4444;
 	margin-bottom: 2px;
 	line-height: 1;
 }
 
 .day-container {
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
+	width: 36px;
+	height: 36px;
+	border-radius: 50% !important;
+	background: transparent !important;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
+	flex-shrink: 0;
+	flex-grow: 0;
 }
 
 .day-number {
 	font-size: 16px;
 	font-weight: 500;
 	color: #333;
+	line-height: 1.2;
 }
 
 .date-item.today .day-container {
@@ -511,9 +523,9 @@ export default {
 
 .date-item.selected .day-container {
 	background-color: #ff6b35;
-	border-radius: 12px;
-	width: 40px;
-	height: 40px;
+	border-radius: 50% !important;
+	width: 36px;
+	height: 36px;
 }
 
 .date-item.selected .day-number {
@@ -521,7 +533,7 @@ export default {
 }
 
 .date-item.weekend:not(.disabled):not(.selected):not(.today) .day-number {
-	color: #ff6b35;
+	color: #4169e1;
 }
 
 .date-item.disabled .day-number {
@@ -529,6 +541,7 @@ export default {
 }
 
 .selected-label {
+	position: static;
 	position: absolute;
 	bottom: -20px;
 	font-size: 10px;
@@ -542,6 +555,9 @@ export default {
 /* 今天的特殊样式 */
 .today-day {
 	background-color: #0086f6 !important;
+	border-radius: 50% !important;
+	width: 36px !important;
+	height: 36px !important;
 }
 
 .today-day .day-number {
@@ -551,12 +567,12 @@ export default {
 /* 选中日期的特殊样式 */
 .selected-day {
 	background-color: #ff6b35 !important;
-	border-radius: 12px !important;
-	width: 40px !important;
-	height: 40px !important;
+	border-radius: 50% !important;
+	width: 36px !important;
+	height: 36px !important;
 }
 
 .selected-day .day-number {
 	color: white !important;
 }
-</style> 
+</style>

@@ -102,7 +102,7 @@ module.exports = {
 
 			if (result && result.data.length > 0) {
 				members = result.data.map((u) => ({
-					user_id: u._id,
+					id: u._id,
 					mobile: u.mobile || ''
 				}));
 				console.log('[相册服务] 已初始化团员列表:', members);
@@ -276,7 +276,7 @@ module.exports = {
 		if (albumRes && albumRes.length > 0) {
 			const members = albumRes[0].members;
 			const userExists = members.some((m) => {
-				return m.user_id === userId;
+				return m.id === userId;
 			});
 
 			if (!userExists) {
@@ -294,7 +294,7 @@ module.exports = {
 					mobile = userResult.data[0].mobile;
 				}
 
-				members.push({ user_id: userId, mobile });
+				members.push({ id: userId, mobile });
 
 				const result = await albumDb
 					.where({
@@ -337,7 +337,7 @@ module.exports = {
 		const albumDb = db.collection('a-group-albums');
 		const { data: albumList } = await albumDb
 			.where({
-				'members.user_id': userId
+				'members.id': userId
 			})
 			.orderBy('departure_date', 'desc')
 			.get();
@@ -388,6 +388,7 @@ module.exports = {
 				try {
 					const productRes = await productDb.where({ _id: album.product_id }).field({ product_images: true }).get();
 
+					console.log('[相册服务] 查找商品图片结果：', productRes);
 					if (productRes.data && productRes.data.length > 0 && productRes.data[0].product_images && productRes.data[0].product_images.length > 0) {
 						album.cover_image = productRes.data[0].product_images[0];
 					} else {
@@ -443,7 +444,7 @@ module.exports = {
 		const albumInfo = albumList[0];
 
 		// 3. 验证用户是否为相册成员
-		const isMember = albumInfo.members.some((member) => member.user_id === userId);
+		const isMember = albumInfo.members.some((member) => member.id === userId);
 		if (!isMember) {
 			console.warn(`[相册服务] 用户 ${userId} 无权访问相册 ${albumId}`);
 			return {
@@ -472,7 +473,8 @@ module.exports = {
 			shootingDate.setHours(0, 0, 0, 0);
 
 			const dayDiff = Math.ceil((shootingDate - albumStartDate) / (1000 * 60 * 60 * 24));
-			const dayIndex = dayDiff >= 0 ? dayDiff + 1 : 1;
+			let dayIndex = dayDiff >= 0 ? dayDiff + 1 : 1;
+			dayIndex = Math.min(dayIndex, albumInfo.total_days);
 
 			const dayKey = `Day ${dayIndex}`;
 			if (!photosGroupedByDay[dayKey]) {
@@ -608,7 +610,7 @@ module.exports = {
 	 * @returns {object} - 返回上传结果
 	 */
 	async uploadPhotos(params) {
-		const { albumId, file, shootingTime, is_guide } = params;
+		let { albumId, file, shootingTime, is_guide } = params;
 
 		// 1. 验证用户身份
 		const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
@@ -618,9 +620,10 @@ module.exports = {
 		}
 		const userId = checkResult.uid;
 		const userRole = checkResult.role;
+		const userPermission = checkResult.permission;
 		console.log(`[相册服务] 用户 ${userId} 尝试上传照片到相册 ${albumId}`);
 
-		if (!is_guide && userRole.includes('guide')) {
+		if (userRole.includes('guide')) {
 			is_guide = true;
 		}
 
@@ -635,6 +638,11 @@ module.exports = {
 		if (albumInfo.status !== 1) {
 			console.warn(`[相册服务] 上传失败，相册 ${albumId} 不是进行中状态`);
 			return { errCode: 'ALBUM_NOT_ACTIVE', errMsg: '相册当前不可上传' };
+		}
+
+		const isMember = albumInfo.members.some((member) => member.user_id === userId);
+		if (!is_guide && !userPermission.includes('MANAGE_ALBUMS') && !isMember) {
+			return { errCode: 'NOT_A_MEMBER', errMsg: '不是该相册的成员' };
 		}
 
 		// 服务器端文件大小校验

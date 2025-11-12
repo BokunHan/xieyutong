@@ -20,10 +20,12 @@
 						</view>
 						<view class="flex items-center space-x-4">
 							<view class="text-gray-400 text-lg" @click="editTraveler(traveler)">
-								<text class="fa fa-edit"></text>
+								<!-- <text class="fa fa-edit"></text> -->
+								<image src="/static/icons/edit.svg" class="w-5 h-4" mode="aspectFit" />
 							</view>
 							<view v-if="!traveler.is_main" class="text-red-500 text-lg" @click="deleteTraveler(traveler, index)">
-								<text class="fa fa-trash-alt"></text>
+								<!-- <text class="fa fa-trash-alt"></text> -->
+								<image src="/static/icons/trash-alt.svg" class="w-4 h-4" mode="aspectFit" />
 							</view>
 						</view>
 					</view>
@@ -47,7 +49,8 @@
 
 				<!-- 空状态 -->
 				<view v-if="!loading && travelers.length === 0" class="flex flex-col items-center justify-center h-75 text-gray-400 text-center px-10">
-					<text class="fa fa-user-friends text-5xl text-gray-300 mb-4"></text>
+					<!-- <text class="fa fa-user-friends text-5xl text-gray-300 mb-4"></text> -->
+					<image src="/static/icons/user-plus.svg" class="w-15 h-15 mb-4" mode="aspectFit" />
 					<view class="text-lg font-medium mb-2 text-gray-600">暂无常用出行人</view>
 					<view class="text-sm leading-relaxed">添加常用出行人信息，下次预订时可快速选择，无需重复填写</view>
 				</view>
@@ -56,7 +59,8 @@
 
 		<!-- 右下角悬浮添加按钮 -->
 		<view class="fab-button" @click="addTraveler">
-			<text class="fa fa-plus"></text>
+			<!-- <text class="fa fa-plus"></text> -->
+			<image src="/static/icons/plus-white.svg" class="w-6 h-6" mode="aspectFit" />
 		</view>
 	</view>
 </template>
@@ -207,7 +211,7 @@ export default {
 }
 
 .shadow-lg {
-	box-shadow: 0 4px 12px rgba(0, 134, 246, 0.3);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .space-x-4 {
@@ -225,14 +229,14 @@ export default {
 	right: 20px;
 	width: 56px;
 	height: 56px;
-	background: linear-gradient(135deg, #0086f6 0%, #0066cc 100%);
+	background: linear-gradient(135deg, #ff9a56 0%, #eb6d20 100%);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: white;
 	font-size: 24px;
-	box-shadow: 0 4px 12px rgba(0, 134, 246, 0.4);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 	cursor: pointer;
 	z-index: 1000;
 	transition: all 0.3s ease;
@@ -240,7 +244,7 @@ export default {
 
 .fab-button:hover {
 	transform: scale(1.1);
-	box-shadow: 0 6px 16px rgba(0, 134, 246, 0.5);
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 .fab-button:active {

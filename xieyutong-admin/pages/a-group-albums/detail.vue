@@ -565,8 +565,7 @@ export default {
 							await albumService.uploadPhotos({
 								albumId: this.id,
 								file: uploadResult,
-								shootingTime: shootingTime,
-								is_guide: true // 标记为导游上传
+								shootingTime: shootingTime
 							});
 
 							successCount++;

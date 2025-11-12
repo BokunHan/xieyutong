@@ -1,172 +1,222 @@
 <template>
 	<view class="bg-gray-50 min-h-screen">
-		<!-- 头部用户信息区域（包含状态栏） -->
-		<view class="header-gradient text-white px-4 pb-6 rounded-b-2xl" :style="{ paddingTop: statusBarHeight + 120 + 'rpx' }">
-			<!-- 已登录状态 -->
-			<view v-if="isLoggedIn" class="flex items-center relative user-info-container" @click="goToProfileEdit">
-				<view class="avatar">
-					<image :src="userInfo.avatar" alt="用户头像" class="w-full h-full object-cover" mode="aspectFill"></image>
-				</view>
-				<view class="ml-4 flex-1">
-					<view class="user-name">{{ userInfo.name }}</view>
-					<view class="user-level">{{ userInfo.level }}</view>
-					<view class="user-privilege mt-1">
+		<template v-if="!isCheckingLogin">
+			<!-- 头部用户信息区域（包含状态栏） -->
+			<view class="header-gradient text-white px-4 pb-6 rounded-b-2xl" :style="{ paddingTop: statusBarHeight + 120 + 'rpx' }">
+				<!-- 已登录状态 -->
+				<view v-if="isLoggedIn" class="flex items-center relative user-info-container" @click="goToProfileEdit">
+					<view class="avatar">
+						<image :src="userInfo.avatar" alt="用户头像" class="w-full h-full object-cover" mode="aspectFill"></image>
+					</view>
+					<view class="ml-4 flex-1">
+						<view class="user-name">{{ userInfo.name }}</view>
+						<view class="user-level">{{ userInfo.level }}</view>
+						<view v-if="isGuide" class="user-tag mt-1" :style="{ backgroundColor: userRoleLabelBgColor }">
+							<!-- <text class="fa fa-gem mr-1"></text> -->
+							<image src="/static/icons/gem.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
+							<text>{{ userRoleLabel }}</text>
+						</view>
+						<!-- <view class="user-privilege mt-1">
 						<text class="fa fa-tag mr-1"></text>
 						<text>{{ userInfo.privilege }}</text>
+					</view> -->
+					</view>
+					<view class="profile-edit-hint">
+						<!-- <text class="fa fa-chevron-right"></text> -->
+						<image src="/static/icons/chevron-right-white.svg" class="w-6 h-6" mode="aspectFit" />
 					</view>
 				</view>
-				<view class="profile-edit-hint">
-					<text class="fa fa-chevron-right"></text>
+
+				<!-- 未登录状态 -->
+				<view v-else class="flex items-center relative user-info-container" @click="goToLogin">
+					<view class="avatar">
+						<view class="default-avatar">
+							<!-- <text class="fa fa-user"></text> -->
+							<image src="/static/icons/user.svg" class="w-8 h-8" mode="aspectFit" />
+						</view>
+					</view>
+					<view class="ml-4 flex-1">
+						<view class="user-name">点击登录</view>
+						<view class="user-level">登录后享受会员权益</view>
+					</view>
+					<view class="profile-edit-hint">
+						<!-- <text class="fa fa-chevron-right"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
+					</view>
+				</view>
+
+				<!-- 会员信息卡片 -->
+				<view class="member-info-card mt-4 p-3 bg-white bg-opacity-20 rounded-xl">
+					<!-- 已登录状态的会员信息 -->
+					<view v-if="isLoggedIn">
+						<view class="flex justify-between items-center mb-2">
+							<view class="text-sm">累计消费</view>
+							<view class="text-sm">距离{{ userInfo.nextLevelName || '下一等级' }}</view>
+						</view>
+						<view class="flex justify-between items-center mb-3">
+							<view class="font-bold">¥{{ userInfo.totalSpent }}</view>
+							<view class="font-bold">还需¥{{ userInfo.nextLevelAmount }}</view>
+						</view>
+						<!-- 进度条容器 -->
+						<view class="relative h-2 bg-white bg-opacity-30 rounded-full mb-1">
+							<view class="absolute left-0 top-0 h-2 bg-orange-500 rounded-full progress-bar" :style="{ width: userInfo.progressPercent + '%' }"></view>
+						</view>
+						<!-- 调试信息 -->
+						<view class="text-xs text-white opacity-80">进度: {{ userInfo.progressPercent }}%</view>
+					</view>
+
+					<!-- 未登录状态的空数据 -->
+					<view v-else class="text-center py-4">
+						<view class="text-sm opacity-80 mb-2">登录后查看会员权益</view>
+						<view class="flex justify-between items-center mb-3">
+							<view class="font-bold">¥--</view>
+							<view class="font-bold">--</view>
+						</view>
+						<view class="relative h-2 bg-white bg-opacity-30 rounded-full">
+							<view class="absolute left-0 top-0 h-2 bg-white bg-opacity-50 rounded-full" style="width: 0%"></view>
+						</view>
+					</view>
 				</view>
 			</view>
 
-			<!-- 未登录状态 -->
-			<view v-else class="flex items-center relative user-info-container" @click="goToLogin">
-				<view class="avatar">
-					<view class="default-avatar">
-						<text class="fa fa-user"></text>
+			<view class="section guide-order-section" v-if="isGuide">
+				<view class="section-title">向导订单</view>
+				<view class="order-types">
+					<view class="order-type" @click="goToGuideOrderList('pending')">
+						<view class="order-icon" style="position: relative">
+							<!-- <text class="fa fa-suitcase-rolling"></text> -->
+							<image src="/static/icons/suitcase-rolling-orange.svg" class="w-5 h-5" mode="aspectFit" />
+						</view>
+						<view class="order-label">待出行</view>
 					</view>
-				</view>
-				<view class="ml-4 flex-1">
-					<view class="user-name">点击登录</view>
-					<view class="user-level">登录后享受会员权益</view>
-				</view>
-				<view class="profile-edit-hint">
-					<text class="fa fa-chevron-right"></text>
-				</view>
-			</view>
-
-			<!-- 会员信息卡片 -->
-			<view class="member-info-card mt-4 p-3 bg-white bg-opacity-20 rounded-xl">
-				<!-- 已登录状态的会员信息 -->
-				<view v-if="isLoggedIn">
-					<view class="flex justify-between items-center mb-2">
-						<view class="text-sm">累计消费</view>
-						<view class="text-sm">距离{{ userInfo.nextLevelName || '下一等级' }}</view>
+					<view class="order-type" @click="goToGuideOrderList('ongoing')">
+						<view class="order-icon" style="position: relative">
+							<!-- <text class="fa fa-route"></text> -->
+							<image src="/static/icons/route.svg" class="w-5 h-5" mode="aspectFit" />
+						</view>
+						<view class="order-label">进行中</view>
 					</view>
-					<view class="flex justify-between items-center mb-3">
-						<view class="font-bold">¥{{ userInfo.totalSpent }}</view>
-						<view class="font-bold">还需¥{{ userInfo.nextLevelAmount }}</view>
-					</view>
-					<!-- 进度条容器 -->
-					<view class="relative h-2 bg-white bg-opacity-30 rounded-full mb-1">
-						<view class="absolute left-0 top-0 h-2 bg-orange-500 rounded-full progress-bar" :style="{ width: userInfo.progressPercent + '%' }"></view>
-					</view>
-					<!-- 调试信息 -->
-					<view class="text-xs text-white opacity-80">进度: {{ userInfo.progressPercent }}%</view>
-				</view>
-
-				<!-- 未登录状态的空数据 -->
-				<view v-else class="text-center py-4">
-					<view class="text-sm opacity-80 mb-2">登录后查看会员权益</view>
-					<view class="flex justify-between items-center mb-3">
-						<view class="font-bold">¥--</view>
-						<view class="font-bold">--</view>
-					</view>
-					<view class="relative h-2 bg-white bg-opacity-30 rounded-full">
-						<view class="absolute left-0 top-0 h-2 bg-white bg-opacity-50 rounded-full" style="width: 0%"></view>
+					<view class="order-type" @click="goToGuideOrderList('completed')">
+						<view class="order-icon" style="position: relative">
+							<!-- <text class="fa fa-check-circle"></text> -->
+							<image src="/static/icons/check-circle-orange.svg" class="w-5 h-5" mode="aspectFit" />
+						</view>
+						<view class="order-label">已完成</view>
 					</view>
 				</view>
 			</view>
-		</view>
 
-		<!-- 我的订单 -->
-		<view class="section">
-			<view class="section-title">我的订单</view>
-			<view class="order-types">
-				<view class="order-type" @click="goToOrderList('pending')">
-					<view class="order-icon" style="position: relative">
-						<text class="fa fa-credit-card"></text>
-						<view v-if="orderCounts.pending > 0" class="badge">{{ orderCounts.pending }}</view>
+			<!-- 我的订单 -->
+			<view class="section">
+				<view class="section-title">我的订单</view>
+				<view class="order-types">
+					<view class="order-type" @click="goToOrderList('pending')">
+						<view class="order-icon" style="position: relative">
+							<!-- <text class="fa fa-credit-card"></text> -->
+							<image src="/static/icons/credit-card.svg" class="w-5 h-5" mode="aspectFit" />
+							<view v-if="orderCounts.pending > 0" class="badge">{{ orderCounts.pending }}</view>
+						</view>
+						<view class="order-label">待支付</view>
 					</view>
-					<view class="order-label">待支付</view>
-				</view>
-				<view class="order-type" @click="goToOrderList('ongoing')">
-					<view class="order-icon" style="position: relative">
-						<text class="fa fa-route"></text>
-						<view v-if="orderCounts.ongoing > 0" class="badge">{{ orderCounts.ongoing }}</view>
+					<view class="order-type" @click="goToOrderList('ongoing')">
+						<view class="order-icon" style="position: relative">
+							<!-- <text class="fa fa-route"></text> -->
+							<image src="/static/icons/route.svg" class="w-5 h-5" mode="aspectFit" />
+							<view v-if="orderCounts.ongoing > 0" class="badge">{{ orderCounts.ongoing }}</view>
+						</view>
+						<view class="order-label">进行中</view>
 					</view>
-					<view class="order-label">进行中</view>
-				</view>
-				<view class="order-type" @click="goToOrderList('completed')">
-					<view class="order-icon" style="position: relative">
-						<text class="fa fa-check-circle"></text>
-						<view v-if="orderCounts.completed > 0" class="badge">{{ orderCounts.completed }}</view>
+					<view class="order-type" @click="goToOrderList('completed')">
+						<view class="order-icon" style="position: relative">
+							<!-- <text class="fa fa-check-circle"></text> -->
+							<image src="/static/icons/check-circle-orange.svg" class="w-5 h-5" mode="aspectFit" />
+							<view v-if="orderCounts.completed > 0" class="badge">{{ orderCounts.completed }}</view>
+						</view>
+						<view class="order-label">已完成</view>
 					</view>
-					<view class="order-label">已完成</view>
-				</view>
-			</view>
-		</view>
-
-		<!-- 功能菜单 -->
-		<view class="section">
-			<view class="menu-item" @click="goToCoupons">
-				<view class="menu-left">
-					<view class="menu-icon">
-						<text class="fa fa-ticket-alt"></text>
-					</view>
-					<view class="menu-label">我的优惠券</view>
-				</view>
-				<view class="menu-right">
-					<text>{{ couponCount }}张可用</text>
-					<text class="fa fa-chevron-right ml-1"></text>
 				</view>
 			</view>
 
-			<view class="menu-item" @click="goToFavorites">
-				<view class="menu-left">
-					<view class="menu-icon">
-						<text class="fa fa-heart"></text>
+			<!-- 功能菜单 -->
+			<view class="section">
+				<view class="menu-item" @click="goToCoupons">
+					<view class="menu-left">
+						<view class="menu-icon">
+							<!-- <text class="fa fa-ticket-alt"></text> -->
+							<image src="/static/icons/ticket-alt-orange.svg" class="w-4 h-4" mode="aspectFit" />
+						</view>
+						<view class="menu-label">我的优惠券</view>
 					</view>
-					<view class="menu-label">我的收藏</view>
+					<view class="menu-right">
+						<text>{{ couponCount }}张可用</text>
+						<!-- <text class="fa fa-chevron-right ml-1"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5 ml-1" mode="aspectFit" />
+					</view>
 				</view>
-				<view class="menu-right">
-					<text class="fa fa-chevron-right"></text>
+
+				<view class="menu-item" @click="goToFavorites">
+					<view class="menu-left">
+						<view class="menu-icon">
+							<!-- <text class="fa fa-heart"></text> -->
+							<image src="/static/icons/heart-orange.svg" class="w-4 h-4" mode="aspectFit" />
+						</view>
+						<view class="menu-label">我的收藏</view>
+					</view>
+					<view class="menu-right">
+						<!-- <text class="fa fa-chevron-right"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
+					</view>
+				</view>
+
+				<view class="menu-item" @click="goToTravelers">
+					<view class="menu-left">
+						<view class="menu-icon">
+							<!-- <text class="fa fa-map-marker-alt"></text> -->
+							<image src="/static/icons/map-marker-alt.svg" class="w-4 h-4" mode="aspectFit" />
+						</view>
+						<view class="menu-label">常用出行人</view>
+					</view>
+					<view class="menu-right">
+						<!-- <text class="fa fa-chevron-right"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
+					</view>
 				</view>
 			</view>
 
-			<view class="menu-item" @click="goToTravelers">
-				<view class="menu-left">
-					<view class="menu-icon">
-						<text class="fa fa-map-marker-alt"></text>
+			<!-- 设置菜单 -->
+			<view class="section">
+				<view class="menu-item" @click="goToCustomerService">
+					<view class="menu-left">
+						<view class="menu-icon">
+							<!-- <text class="fa fa-headset"></text> -->
+							<image src="/static/icons/headset.svg" class="w-4 h-4" mode="aspectFit" />
+						</view>
+						<view class="menu-label">客服中心</view>
 					</view>
-					<view class="menu-label">常用出行人</view>
+					<view class="menu-right">
+						<!-- <text class="fa fa-chevron-right"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
+					</view>
 				</view>
-				<view class="menu-right">
-					<text class="fa fa-chevron-right"></text>
+
+				<view class="menu-item" @click="logout">
+					<view class="menu-left">
+						<view class="menu-icon">
+							<!-- <text class="fa fa-cog"></text> -->
+							<image src="/static/icons/cog.svg" class="w-4 h-4" mode="aspectFit" />
+						</view>
+						<view class="menu-label">登出</view>
+					</view>
+					<view class="menu-right">
+						<!-- <text class="fa fa-chevron-right"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
+					</view>
 				</view>
 			</view>
-		</view>
 
-		<!-- 设置菜单 -->
-		<view class="section">
-			<view class="menu-item" @click="goToCustomerService">
-				<view class="menu-left">
-					<view class="menu-icon">
-						<text class="fa fa-headset"></text>
-					</view>
-					<view class="menu-label">客服中心</view>
-				</view>
-				<view class="menu-right">
-					<text class="fa fa-chevron-right"></text>
-				</view>
-			</view>
-
-			<view class="menu-item" @click="logout">
-				<view class="menu-left">
-					<view class="menu-icon">
-						<text class="fa fa-cog"></text>
-					</view>
-					<view class="menu-label">登出</view>
-				</view>
-				<view class="menu-right">
-					<text class="fa fa-chevron-right"></text>
-				</view>
-			</view>
-		</view>
-
-		<!-- 底部间距 -->
-		<view style="height: 70px"></view>
+			<!-- 底部间距 -->
+			<view style="height: 70px"></view>
+		</template>
 	</view>
 </template>
 
@@ -174,8 +224,10 @@
 export default {
 	data() {
 		return {
+			isCheckingLogin: true,
 			statusBarHeight: 0,
 			isLoggedIn: false, // 登录状态
+			isGuide: false,
 			userInfo: {
 				avatar:
 					'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80'
@@ -201,6 +253,22 @@ export default {
 			showSkeleton: true
 		};
 	},
+	computed: {
+		userRoleLabel() {
+			if (this.isLoggedIn) {
+				if (this.isGuide) {
+					return '认证向导';
+				} else {
+					return '';
+				}
+			}
+			return '';
+		},
+
+		userRoleLabelBgColor() {
+			return this.isGuide ? '#EB6D20' : 'rgba(255, 255, 255, 0.2)';
+		}
+	},
 	onLoad() {
 		// 获取系统信息中的状态栏高度
 		const systemInfo = uni.getSystemInfoSync();
@@ -225,6 +293,12 @@ export default {
 		this.smartPreloadData();
 	},
 	methods: {
+		goToOrderDetail() {
+			uni.navigateTo({
+				url: '/pages/order/order-detail'
+			});
+		},
+
 		// 从本地缓存快速恢复数据（页面加载时立即执行）
 		loadFromLocalCache() {
 			try {
@@ -528,9 +602,9 @@ export default {
 		updateUserInfoWithMemberData(userData, memberData) {
 			this.userInfo = {
 				avatar:
-					userData.avatar ||
+					userData.avatar_file?.url ||
 					'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80',
-				name: userData.username || userData.nickname || '用户',
+				name: userData.nickname || userData.username || '用户',
 				level: memberData.memberInfo.levelName,
 				privilege: memberData.memberInfo.privilege,
 				totalSpent: memberData.consumptionData.totalSpent,
@@ -546,9 +620,9 @@ export default {
 		updateUserInfoWithDefaultData(userData) {
 			this.userInfo = {
 				avatar:
-					userData.avatar ||
+					userData.avatar_file?.url ||
 					'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80',
-				name: userData.username || userData.nickname || '用户',
+				name: userData.nickname || userData.username || '用户',
 				level: '普通会员',
 				privilege: '暂无特权',
 				totalSpent: '0',
@@ -562,6 +636,8 @@ export default {
 
 		// 检查登录状态
 		async checkLoginStatus() {
+			this.isCheckingLogin = true;
+
 			try {
 				// 根据 uni-id 规范检查 token
 				const token = uni.getStorageSync('uni_id_token');
@@ -575,6 +651,7 @@ export default {
 						this.isLoggedIn = true;
 						// 加载用户数据
 						await this.loadUserData();
+						this.isCheckingLogin = false;
 						console.log('用户已登录，token 有效');
 					} else {
 						// token 已过期，清除本地存储
@@ -583,23 +660,30 @@ export default {
 						uni.removeStorageSync('uni_id_token_expired');
 						uni.removeStorageSync('uni_id_uid');
 						this.isLoggedIn = false;
+						this.isGuide = false;
 						this.setEmptyData();
+						this.goToLogin();
 					}
 				} else {
 					// 没有 token，未登录状态
 					console.log('未找到 token，用户未登录');
 					this.isLoggedIn = false;
+					this.isGuide = false;
 					this.setEmptyData();
+					this.goToLogin();
 				}
 			} catch (error) {
 				console.error('检查登录状态失败:', error);
 				this.isLoggedIn = false;
+				this.isGuide = false;
 				this.setEmptyData();
+				this.goToLogin();
 			}
 		},
 
 		// 设置空数据状态
 		setEmptyData() {
+			this.isGuide = false;
 			this.orderCounts = {
 				pending: 0,
 				ongoing: 0,
@@ -632,12 +716,15 @@ export default {
 				}
 
 				// 使用 clientDB 查询当前用户信息
-				const userRes = await usersCollection.where('_id == $cloudEnv_uid').field('_id,username,nickname,avatar,mobile,email,register_date').get();
+				const userRes = await usersCollection.where('_id == $cloudEnv_uid').field('_id,username,nickname,avatar_file,mobile,email,register_date,role').get();
 
 				console.log('用户查询结果:', userRes);
 
 				if (userRes.result && userRes.result.data && userRes.result.data.length > 0) {
 					const userData = userRes.result.data[0];
+
+					this.isGuide = userData.role && userData.role.includes('guide');
+					console.log('[角色检查] 是否为向导:', this.isGuide);
 
 					// 2. 优先使用缓存数据快速渲染
 					const currentTime = Date.now();
@@ -839,6 +926,16 @@ export default {
 				url: `/pages/order/order-list?type=${type}`
 			});
 		},
+		goToGuideOrderList(type) {
+			if (!this.isLoggedIn) {
+				this.goToLogin();
+				return;
+			}
+			// 传递 isGuide=true 参数以作区分
+			uni.navigateTo({
+				url: `/pages/order/order-list?type=${type}&isGuide=true`
+			});
+		},
 		goToCoupons() {
 			if (!this.isLoggedIn) {
 				this.goToLogin();
@@ -908,12 +1005,13 @@ export default {
 						uni.removeStorageSync('uni_id_token_expired');
 						uni.removeStorageSync('uni_id_uid');
 
+						this.isGuide = false;
 						// 清除所有数据缓存
 						this.clearAllDataCache();
 
 						// 跳转到登录页
 						uni.reLaunch({
-							url: '/pages/login/login'
+							url: '/pages/home/home'
 						});
 					}
 				}
@@ -926,7 +1024,7 @@ export default {
 <style>
 /* 头部渐变背景 */
 .header-gradient {
-	background: linear-gradient(135deg, #0086f6 0%, #0066cc 100%);
+	background: linear-gradient(135deg, #eb6d20 0%, #d85c18 100%);
 }
 
 /* 用户头像 */
@@ -980,6 +1078,17 @@ export default {
 	color: white;
 }
 
+.user-tag {
+	font-size: 14px;
+	opacity: 0.9;
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 10px;
+	border-radius: 12px;
+	color: white;
+	transition: background-color 0.3s ease;
+}
+
 .profile-edit-hint {
 	color: rgba(255, 255, 255, 0.8);
 	font-size: 20px;
@@ -1004,6 +1113,11 @@ export default {
 	margin-bottom: 16px;
 }
 
+.guide-order-section {
+	border: 1px solid #eb6d20;
+	padding: 15px;
+}
+
 /* 订单类型样式 */
 .order-types {
 	display: flex;
@@ -1022,8 +1136,8 @@ export default {
 	width: 48px;
 	height: 48px;
 	border-radius: 50%;
-	background-color: rgba(0, 134, 246, 0.1);
-	color: #0086f6;
+	background-color: rgba(235, 109, 32, 0.1);
+	color: #eb6d20;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1062,8 +1176,8 @@ export default {
 	width: 36px;
 	height: 36px;
 	border-radius: 50%;
-	background-color: rgba(0, 134, 246, 0.1);
-	color: #0086f6;
+	background-color: rgba(235, 109, 32, 0.1);
+	color: #eb6d20;
 	display: flex;
 	align-items: center;
 	justify-content: center;

@@ -1,30 +1,28 @@
 <template>
 	<view class="bg-gray-50 min-h-screen">
 		<!-- 内容区域 -->
-		<scroll-view 
-			class="pb-safe" 
-			scroll-y 
-			:style="{height: scrollViewHeight}"
+		<scroll-view
+			class="pb-safe"
+			scroll-y
+			:style="{ height: scrollViewHeight }"
 			@scrolltolower="loadMore"
 			:refresher-enabled="true"
 			:refresher-triggered="refreshing"
 			@refresherrefresh="onRefresh"
-			@refresherrestore="onRestore"
-		>
+			@refresherrestore="onRestore">
 			<!-- 订单标签页 -->
 			<view class="flex bg-white border-b border-gray-100 sticky top-0 z-5">
-				<view 
-					v-for="(tab, index) in tabs" 
-					:key="index" 
-					class="flex-1 text-center py-3 text-sm relative" 
-					:class="{ 'text-blue-500 font-medium': currentTab === index, 'text-gray-600': currentTab !== index }"
-					@click="switchTab(index)"
-				>
+				<view
+					v-for="(tab, index) in tabs"
+					:key="index"
+					class="flex-1 text-center py-3 text-sm relative"
+					:class="{ 'text-brand-orange font-medium': currentTab === index, 'text-gray-600': currentTab !== index }"
+					@click="switchTab(index)">
 					{{ tab.name }}
 					<view v-if="tab.badge && tab.badge > 0" class="absolute top-1.5 right-1/4 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
 						{{ tab.badge }}
 					</view>
-					<view v-if="currentTab === index" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-blue-500 rounded-sm"></view>
+					<view v-if="currentTab === index" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-brand-orange rounded-sm"></view>
 				</view>
 			</view>
 
@@ -33,33 +31,27 @@
 				<!-- 加载状态 -->
 				<view v-if="loading" class="flex justify-center items-center py-20">
 					<view class="flex flex-col items-center">
-						<view class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></view>
+						<view class="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin mb-2"></view>
 						<text class="text-gray-500 text-sm">加载中...</text>
 					</view>
 				</view>
-				
+
 				<!-- 订单列表 -->
-				<view 
-					v-else
-					v-for="(order, index) in displayOrders" 
-					:key="index" 
-					class="bg-white mb-3 rounded-xl overflow-hidden shadow-sm"
-					@click="goToOrderDetail(order)"
-				>
+				<view v-else v-for="(order, index) in orders" :key="index" class="bg-white mb-3 rounded-xl overflow-hidden shadow-sm" @click="goToOrderDetail(order)">
 					<!-- 订单头部 -->
 					<view class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
 						<view class="text-gray-500 text-sm flex items-center" @click="copyOrderNumber(order.orderNumber)">
 							订单号: {{ order.orderNumber }}
-							<text class="fa fa-copy ml-1 text-xs opacity-60"></text>
+							<!-- <text class="fa fa-copy ml-1 text-xs opacity-60"></text> -->
+							<image src="/static/icons/copy.svg" class="w-3 h-3 ml-1" mode="aspectFit" />
 						</view>
-						<view 
+						<view
 							class="text-sm font-medium"
 							:class="{
-								'text-blue-500': order.status === '进行中',
+								'text-brand-orange': order.status === '进行中',
 								'text-gray-500': order.status === '已完成',
 								'text-orange-500': order.status === '待支付'
-							}"
-						>
+							}">
 							{{ order.status }}
 						</view>
 					</view>
@@ -81,14 +73,20 @@
 					<!-- 订单底部 -->
 					<view class="px-4 py-3 border-t border-gray-100 flex justify-between items-center">
 						<view class="text-gray-800 font-medium">¥{{ order.price }}</view>
-						<view class="flex space-x-2">
-							<button 
-								v-for="(btn, btnIndex) in order.buttons" 
+						<view class="flex">
+							<button
+								v-for="(btn, btnIndex) in order.buttons"
 								:key="btnIndex"
 								class="px-4 py-1 text-sm rounded-full"
-								:class="btn.type === 'primary' ? 'bg-blue-500 text-white' : btn.type === 'orange' ? 'bg-orange-500 text-white' : 'border border-gray-400 text-gray-500'"
-								@click="handleButtonClick(btn.action, order)"
-							>
+								:class="
+									btn.type === 'primary'
+										? 'bg-brand-orange text-white'
+										: btn.type === 'orange'
+										? 'bg-orange-500 text-white'
+										: 'border border-brand-orange text-brand-orange bg-white'
+								"
+								@click.stop="handleButtonClick(btn.action, order)"
+								:style="{ marginLeft: btnIndex > 0 ? '8px' : '0' }">
 								{{ btn.text }}
 							</button>
 						</view>
@@ -96,13 +94,14 @@
 				</view>
 
 				<!-- 无订单状态 -->
-				<view v-if="!loading && displayOrders.length === 0" class="flex flex-col items-center justify-center text-gray-400" style="height: 60vh;">
-					<text class="fa fa-file-text text-6xl text-gray-300 mb-4"></text>
+				<view v-if="!loading && orders.length === 0" class="flex flex-col items-center justify-center text-gray-400" style="height: 60vh">
+					<!-- <text class="fa fa-file-text text-6xl text-gray-300 mb-4"></text> -->
+					<image src="/static/icons/file-text.svg" class="w-16 h-16 mb-4" mode="aspectFit" />
 					<view class="text-base">暂无{{ tabs[currentTab].name }}订单</view>
 					<view class="text-sm text-gray-400 mt-2">快去下单吧~</view>
 				</view>
 			</view>
-			
+
 			<!-- 加载更多状态 -->
 			<view v-if="hasMore && !loading" class="flex justify-center py-4">
 				<view v-if="loadingMore" class="flex items-center text-gray-500 text-sm">
@@ -111,7 +110,7 @@
 				</view>
 				<view v-else class="text-gray-400 text-sm">上拉加载更多</view>
 			</view>
-			
+
 			<!-- 没有更多数据 -->
 			<view v-if="!hasMore && orders.length > 0" class="flex justify-center py-4">
 				<view class="text-gray-400 text-sm">没有更多订单了</view>
@@ -121,16 +120,17 @@
 </template>
 
 <script>
+import { toRaw } from 'vue';
+const orderService = uniCloud.importObject('a-order-service', {
+	customUI: true
+});
+
 export default {
 	data() {
 		return {
-			tabs: [
-				{ name: '全部', badge: 0 },
-				{ name: '待支付', badge: 0 },
-				{ name: '进行中', badge: 0 },
-				{ name: '已完成', badge: 0 }
-			],
+			tabs: [],
 			currentTab: 0,
+			isGuide: false,
 			orders: [],
 			loading: true,
 			refreshing: false,
@@ -139,43 +139,56 @@ export default {
 			pageSize: 10,
 			currentPage: 1,
 			scrollViewHeight: '100vh'
-		}
-	},
-	computed: {
-		displayOrders() {
-			if (this.currentTab === 0) {
-				return this.orders;
-			} else if (this.currentTab === 1) {
-				return this.orders.filter(order => order.status === '待支付');
-			} else if (this.currentTab === 2) {
-				return this.orders.filter(order => order.status === '进行中');
-			} else {
-				return this.orders.filter(order => order.status === '已完成');
-			}
-		}
+		};
 	},
 	async onLoad(options) {
 		// 检查传入的类型参数
+		this.isGuide = options.isGuide === 'true';
+		console.log('[订单列表] 向导模式:', this.isGuide);
+
+		if (this.isGuide) {
+			this.tabs = [
+				{ name: '全部', badge: 0 },
+				{ name: '待出行', badge: 0 },
+				{ name: '进行中', badge: 0 },
+				{ name: '已完成', badge: 0 }
+			];
+		} else {
+			this.tabs = [
+				{ name: '全部', badge: 0 },
+				{ name: '待支付', badge: 0 },
+				{ name: '进行中', badge: 0 },
+				{ name: '已完成', badge: 0 }
+			];
+		}
+
 		if (options.type) {
 			const typeMapping = {
-				'pending': 1,
-				'ongoing': 2,
-				'completed': 3
+				pending: 1,
+				ongoing: 2,
+				completed: 3
 			};
 			this.currentTab = typeMapping[options.type] || 0;
 		}
-		
+
 		// 计算 scroll-view 高度
 		this.calculateScrollViewHeight();
-		
+
 		// 加载订单数据
-		await this.loadOrders();
+		await this.loadOrders(true);
 	},
 	methods: {
 		switchTab(index) {
+			if (this.currentTab === index) return;
+
+			console.log('切换到tab: ', index);
 			this.currentTab = index;
+			this.currentPage = 1;
+			this.hasMore = true;
+			this.orders = [];
+			this.loadOrders(true);
 		},
-		
+
 		// 计算 scroll-view 高度
 		calculateScrollViewHeight() {
 			const systemInfo = uni.getSystemInfoSync();
@@ -183,150 +196,65 @@ export default {
 			// 减去导航栏高度（系统导航栏约44px）和安全区域
 			this.scrollViewHeight = windowHeight + 'px';
 		},
-		
+
 		// 下拉刷新
 		async onRefresh() {
 			console.log('[订单列表] 开始下拉刷新');
 			this.refreshing = true;
 			this.currentPage = 1;
 			this.hasMore = true;
+			this.preloadBadgeCounts();
 			await this.loadOrders(true);
 			this.refreshing = false;
 		},
-		
+
 		// 刷新恢复
 		onRestore() {
 			this.refreshing = false;
 		},
-		
+
 		// 上拉加载更多
 		async loadMore() {
 			if (this.loadingMore || !this.hasMore || this.loading) {
 				return;
 			}
-			
+
 			console.log('[订单列表] 开始加载更多订单');
 			this.loadingMore = true;
 			this.currentPage++;
 			await this.loadOrders(false);
 			this.loadingMore = false;
 		},
-		
+
 		// 加载订单数据
 		async loadOrders(isRefresh = true) {
 			try {
-				console.log('[订单列表] 开始加载订单数据, isRefresh:', isRefresh, 'currentPage:', this.currentPage);
-				
-				// 只有首次加载或刷新时显示loading
 				if (isRefresh) {
 					this.loading = true;
+					this.preloadBadgeCounts();
 				}
-				
-				// 检查登录状态
-				const token = uni.getStorageSync('uni_id_token');
-				if (!token) {
-					console.error('[订单列表] 用户未登录');
-					uni.navigateTo({
-						url: '/pages/login/login'
-					});
-					return;
-				}
-				
-				// 使用 ClientDB 查询订单，支持分页
-				const db = uniCloud.database();
-				const ordersCollection = db.collection('a-orders');
-				
-				const orderRes = await ordersCollection
-					.where('user_id == $cloudEnv_uid')
-					.field('_id,order_no,status,product_snapshot,final_amount,departure_date,quantity,created_at')
-					.orderBy('created_at', 'desc')
-					.skip((this.currentPage - 1) * this.pageSize)
-					.limit(this.pageSize)
-					.get();
-				
-				console.log('[订单列表] 查询结果:', orderRes);
-				
-				if (orderRes.result && orderRes.result.data) {
-					const newOrders = orderRes.result.data.map(order => {
-						// 转换订单状态为中文显示
-						let statusText = '未知状态';
-						switch (order.status) {
-							case 'pending':
-								statusText = '待支付';
-								break;
-							case 'paid':
-							case 'confirmed':
-							case 'processing':
-								statusText = '进行中';
-								break;
-							case 'completed':
-								statusText = '已完成';
-								break;
-							case 'cancelled':
-								statusText = '已取消';
-								break;
-							case 'refunded':
-								statusText = '已退款';
-								break;
-						}
-						
-						// 生成操作按钮
-						let buttons = [];
-						if (order.status === 'pending') {
-							buttons = [
-								{ text: '联系客服', type: 'outline', action: 'contactService' },
-								{ text: '立即支付', type: 'orange', action: 'pay' }
-							];
-						} else if (['paid', 'confirmed', 'processing'].includes(order.status)) {
-							buttons = [
-								{ text: '联系客服', type: 'primary', action: 'contactService' }
-							];
-						} else if (order.status === 'completed') {
-							buttons = [
-								{ text: '查看详情', type: 'outline', action: 'viewDetail' },
-								{ text: '再次预订', type: 'orange', action: 'bookAgain' }
-							];
-						}
-						
-						return {
-							_id: order._id,
-							orderNumber: order.order_no,
-							status: statusText,
-							originalStatus: order.status,
-							title: order.product_snapshot?.title || '未知商品',
-							departureDate: order.departure_date || '待确定',
-							travelers: order.quantity || 1,
-							price: (order.final_amount || 0).toLocaleString(),
-							image: order.product_snapshot?.images?.[0] || 'https://dimg04.c-ctrip.com/images/0303s12000dwdbkfnEB6E.webp',
-							buttons: buttons
-						};
-					});
-					
-					// 判断是刷新还是加载更多
-					if (isRefresh || this.currentPage === 1) {
-						// 刷新或首次加载，替换数据
-						this.orders = newOrders;
-					} else {
-						// 加载更多，追加数据
-						this.orders = [...this.orders, ...newOrders];
-					}
-					
-					// 判断是否还有更多数据
-					this.hasMore = newOrders.length >= this.pageSize;
-					
-					console.log('[订单列表] 处理后的订单数据:', this.orders.length, '条');
-					console.log('[订单列表] 是否还有更多数据:', this.hasMore);
-					
-					// 更新标签页徽章
-					this.updateTabBadges();
+
+				const res = await orderService.getOrders({
+					isGuide: this.isGuide,
+					tabIndex: this.currentTab,
+					pageCurrent: this.currentPage,
+					pageSize: this.pageSize
+				});
+
+				console.log('[订单列表] Cloud Object 返回结果:', res);
+
+				const mappedOrders = res.orders.map((order) => this.mapOrderData(order));
+				const mappedSnapshots = res.snapshots.map((snapshot) => this.mapSnapshotData(snapshot));
+
+				const combinedResults = [...mappedOrders, ...mappedSnapshots].sort((a, b) => b.created_at_timestamp - a.created_at_timestamp);
+
+				if (isRefresh) {
+					this.orders = combinedResults;
 				} else {
-					console.log('[订单列表] 未查询到订单数据');
-					if (isRefresh || this.currentPage === 1) {
-						this.orders = [];
-					}
-					this.hasMore = false;
+					this.orders = [...this.orders, ...combinedResults];
 				}
-				
+
+				this.hasMore = res.hasMore;
 			} catch (error) {
 				console.error('[订单列表] 加载订单失败:', error);
 				uni.showToast({
@@ -338,19 +266,170 @@ export default {
 				this.loading = false;
 			}
 		},
-		
-		// 更新标签页徽章数量
-		updateTabBadges() {
-			this.tabs[1].badge = this.orders.filter(order => order.status === '待支付').length;
-			this.tabs[2].badge = this.orders.filter(order => order.status === '进行中').length;
-			this.tabs[3].badge = this.orders.filter(order => order.status === '已完成').length;
+
+		// a-orders 数据映射
+		mapOrderData(order) {
+			const now = Date.now();
+			const DAY_MS = 86400000;
+
+			// [!!] 确保使用 duration_days，如果不存在则回退到 quantity
+			const days = order.duration_days !== undefined ? order.duration_days : order.quantity;
+			const calculatedEndDate = (order.departure_date || 0) + (days || 0) * DAY_MS;
+
+			let statusText = '未知状态';
+			let buttons = [];
+
+			if (this.isGuide) {
+				// --- 向导 (a-orders) ---
+				if (order.status === 'paid' || order.status === 'confirmed') {
+					if (order.departure_date >= now) {
+						statusText = '待出行';
+						buttons = [
+							{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
+							{ text: '联系客户', type: 'primary', action: 'contactClient' }
+						];
+					} else if (calculatedEndDate >= now) {
+						statusText = '进行中';
+						buttons = [
+							{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
+							{ text: '联系客户', type: 'primary', action: 'contactClient' }
+						];
+					} else {
+						statusText = '已完成';
+						buttons = [{ text: '查看详情', type: 'outline', action: 'viewDetail' }];
+					}
+				} else if (order.status === 'processing') {
+					statusText = '进行中';
+					buttons = [
+						{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
+						{ text: '联系客户', type: 'primary', action: 'contactClient' }
+					];
+				} else if (order.status === 'completed') {
+					statusText = '已完成';
+					buttons = [{ text: '查看详情', type: 'outline', action: 'viewDetail' }];
+				} else {
+					statusText = order.status; // (pending, cancelled, etc.)
+					buttons = [{ text: '查看详情', type: 'outline', action: 'viewDetail' }];
+				}
+			} else {
+				// --- 用户 (a-orders) ---
+				if (order.status === 'pending') {
+					statusText = '待支付';
+					buttons = [
+						{ text: '联系客服', type: 'outline', action: 'contactService' },
+						{ text: '立即支付', type: 'orange', action: 'pay' }
+					];
+				} else if (order.status === 'paid' || order.status === 'confirmed' || order.status === 'processing') {
+					// [!!] 按您的要求：paid + 时间
+					if (calculatedEndDate < now) {
+						statusText = '已完成';
+						buttons = [
+							{ text: '查看详情', type: 'outline', action: 'viewDetail' },
+							{ text: '再次预订', type: 'orange', action: 'bookAgain' }
+						];
+					} else {
+						statusText = '进行中';
+						buttons = [
+							{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
+							{ text: '联系客服', type: 'primary', action: 'contactService' }
+						];
+					}
+				} else if (order.status === 'completed') {
+					statusText = '已完成';
+					buttons = [
+						{ text: '查看详情', type: 'outline', action: 'viewDetail' },
+						{ text: '再次预订', type: 'orange', action: 'bookAgain' }
+					];
+				} else {
+					statusText = order.status === 'cancelled' ? '已取消' : '已退款';
+				}
+			}
+
+			return {
+				_id: order._id,
+				orderNumber: order.order_no,
+				status: statusText,
+				originalStatus: order.status,
+				title: order.product_snapshot?.title || '未知商品',
+				departureDate: this.formatDate(order.departure_date) || '待确定',
+				travelers: order.travel_users?.length || 1,
+				price: (order.final_amount || 0).toLocaleString(),
+				image: order.product_snapshot?.images?.[0] || 'https://dimg04.c-ctrip.com/images/0303s12000dwdbkfnEB6E.webp',
+				buttons: buttons,
+				contact_info: order.contact_info,
+				travel_users: order.travel_users,
+				staves: order.staves,
+				created_at_timestamp: order.created_at, // 用于排序
+				isSnapshot: false
+			};
 		},
-		
+
+		// a-snapshots 数据映射
+		mapSnapshotData(snapshot, imageMap) {
+			const now = Date.now();
+			const DAY_MS = 86400000;
+			const endDate = (snapshot.departure_date || 0) + (snapshot.total_days || 0) * DAY_MS;
+
+			let statusText = '未知状态';
+			let buttons = [];
+
+			// 快照的状态逻辑对双方都是一样的
+			if (snapshot.departure_date >= now) {
+				statusText = '待出行';
+			} else if (endDate >= now) {
+				statusText = '进行中';
+			} else {
+				statusText = '已完成';
+			}
+
+			if (this.isGuide) {
+				buttons = [
+					{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
+					{ text: '联系客户', type: 'primary', action: 'contactClient' }
+				];
+			} else {
+				buttons = [
+					{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
+					{ text: '联系客服', type: 'primary', action: 'contactService' }
+				];
+			}
+
+			return {
+				_id: snapshot.order_id,
+				orderNumber: snapshot.order_id,
+				status: statusText,
+				originalStatus: 'confirmed', // 假设 snapshot 都是 confirmed
+				title: snapshot.title || '未知商品',
+				departureDate: this.formatDate(snapshot.departure_date) || '待确定',
+				travelers: snapshot.travel_users?.length || 1,
+				price: '--',
+				image: snapshot.product_image_url || 'https://dimg04.c-ctrip.com/images/0303s12000dwdbkfnEB6E.webp',
+				buttons: buttons,
+				contact_info: snapshot.contact_info,
+				travel_users: snapshot.travel_users,
+				staves: snapshot.staves,
+				created_at_timestamp: snapshot.created_at,
+				isSnapshot: true
+			};
+		},
+
+		async preloadBadgeCounts() {
+			try {
+				const counts = await orderService.getBadgeCounts({ isGuide: this.isGuide });
+				this.tabs[1].badge = counts.tab1;
+				this.tabs[2].badge = counts.tab2;
+				this.tabs[3].badge = counts.tab3;
+				console.log('[徽章] 刷新:', counts.tab1, counts.tab2, counts.tab3);
+			} catch (error) {
+				console.error('[徽章] 加载徽章数量失败:', error);
+			}
+		},
+
 		// 跳转到订单详情页
 		goToOrderDetail(order) {
 			console.log('[订单列表] 跳转到订单详情页:', order.orderNumber);
 			uni.navigateTo({
-				url: `/pages/order/order-detail?orderId=${order._id}&orderNo=${order.orderNumber}`
+				url: `/pages/order/order-detail?orderId=${order._id}&orderNo=${order.orderNumber}&isGuide=${this.isGuide}&isSnapshot=${order.isSnapshot}`
 			});
 		},
 		copyOrderNumber(orderNumber) {
@@ -373,24 +452,57 @@ export default {
 			});
 		},
 		handleButtonClick(action, order) {
-			switch(action) {
+			console.log('action: ', action);
+			console.log('order', order);
+			if (action === 'contactClient') {
+				const travelers = order.travel_users;
+
+				if (!travelers || travelers.length === 0 || !travelers[0].mobile) {
+					uni.showToast({ title: '未找到客户手机号', icon: 'none' });
+					return;
+				}
+
+				const clientMobile = travelers[0].mobile;
+				uni.showModal({
+					title: '联系客户',
+					content: `确定要拨打客户电话吗？\n号码：${clientMobile}`,
+					success: (res) => {
+						if (res.confirm) {
+							uni.makePhoneCall({
+								phoneNumber: clientMobile
+							});
+						}
+					}
+				});
+				return; // 结束
+			}
+
+			switch (action) {
 				case 'contactService':
+					const staves = order.staves;
+
+					if (!staves || staves.length === 0 || !staves[0].mobile) {
+						uni.showToast({ title: '未找到客服号码', icon: 'none' });
+						return;
+					}
+					const staffMobile = staves[0].mobile;
 					uni.showModal({
 						title: '联系客服',
-						content: '是否拨打客服电话？',
+						content: `是否拨打客服电话？\n号码：${staffMobile}`,
 						success: (res) => {
 							if (res.confirm) {
 								uni.makePhoneCall({
-									phoneNumber: '400-123-4567'
+									phoneNumber: staffMobile
 								});
 							}
 						}
 					});
 					break;
+				case 'viewItinerary':
+					this.viewItinerary(order);
+					break;
 				case 'viewDetail':
-					uni.navigateTo({
-						url: `/pages/order/order-detail?orderId=${order._id}&orderNo=${order.orderNumber}`
-					});
+					this.goToOrderDetail(order);
 					break;
 				case 'bookAgain':
 					uni.showToast({
@@ -425,7 +537,7 @@ export default {
 										{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
 										{ text: '联系客服', type: 'primary', action: 'contactService' }
 									];
-									this.updateTabBadges();
+									this.onRefresh();
 								}, 2000);
 							}
 						}
@@ -434,9 +546,42 @@ export default {
 				default:
 					console.log('未知操作:', action);
 			}
+		},
+
+		viewItinerary(order) {
+			if (this.isGuide) {
+				// 1. 将要查看的订单号存入缓存
+				console.log('[订单列表] 向导模式跳转行程, 设置缓存:', order.orderNumber);
+				uni.setStorageSync('guide_override_order_id', order.orderNumber);
+			} else {
+				// (可选) 如果是普通用户（虽然此按钮不应出现），确保清除该缓存
+				uni.removeStorageSync('guide_override_order_id');
+			}
+
+			// 2. 正常跳转到 Tab Bar 页面
+			uni.switchTab({
+				url: '/pages/itinerary/itinerary'
+			});
+		},
+
+		formatDate(timestamp) {
+			if (!timestamp) {
+				return '待确定';
+			}
+			try {
+				const date = new Date(Number(timestamp));
+				// 补零
+				const year = date.getFullYear();
+				const month = String(date.getMonth() + 1).padStart(2, '0');
+				const day = String(date.getDate()).padStart(2, '0');
+				return `${year}-${month}-${day}`;
+			} catch (e) {
+				console.error('日期格式化失败:', e);
+				return '日期无效';
+			}
 		}
 	}
-}
+};
 </script>
 
 <style>
@@ -452,20 +597,30 @@ export default {
 }
 
 .shadow-sm {
-	box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.space-x-2  {
+.space-x-2 {
 	margin-left: 0.5rem;
+}
+
+.bg-brand-orange {
+	background-color: #eb6d20;
+}
+.text-brand-orange {
+	color: #eb6d20;
+}
+.border-brand-orange {
+	border-color: #eb6d20;
 }
 
 /* 橙色按钮样式 */
 .bg-orange-500 {
-	background-color: #FF9500;
+	background-color: #ff9500;
 }
 
 .text-orange-500 {
-	color: #FF9500;
+	color: #ff9500;
 }
 
 /* 加载动画 */
@@ -481,4 +636,4 @@ export default {
 		transform: rotate(360deg);
 	}
 }
-</style> 
+</style>

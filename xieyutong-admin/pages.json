@@ -317,10 +317,70 @@
 			}
 		},
 		{
-			"path" : "pages/a-group-albums/detail",
-			"style" : 
-			{
-				"navigationBarTitleText" : "相册详情"
+			"path": "pages/a-group-albums/detail",
+			"style": {
+				"navigationBarTitleText": "相册详情"
+			}
+		},
+		{
+			"path": "pages/a-system/list",
+			"style": {
+				"navigationBarTitleText": "系统管理"
+			}
+		},
+		{
+			"path": "pages/a-orders/components/orders-table",
+			"style": {
+				"navigationBarTitleText": "小程序订单管理"
+			}
+		},
+		{
+			"path": "pages/a-orders/components/snapshots-table",
+			"style": {
+				"navigationBarTitleText": "携程订单快照管理"
+			}
+		},
+		{
+			"path": "pages/a-system/banner-manager",
+			"style": {
+				"navigationBarTitleText": "首页轮播图管理"
+			}
+		},
+		{
+			"path": "pages/a-system/member-levels-config",
+			"style": {
+				"navigationBarTitleText": "会员等级管理"
+			}
+		},
+		{
+			"path": "pages/a-regions/add",
+			"style": {
+				"navigationBarTitleText": "新增区域"
+			}
+		}, {
+			"path": "pages/a-regions/edit",
+			"style": {
+				"navigationBarTitleText": "编辑区域"
+			}
+		}, {
+			"path": "pages/a-regions/list",
+			"style": {
+				"navigationBarTitleText": "区域列表"
+			}
+		}, {
+			"path": "pages/a-region-content/add",
+			"style": {
+				"navigationBarTitleText": "新增区域内容"
+			}
+		}, {
+			"path": "pages/a-region-content/edit",
+			"style": {
+				"navigationBarTitleText": "编辑区域内容"
+			}
+		}, {
+			"path": "pages/a-region-content/list",
+			"style": {
+				"navigationBarTitleText": "区域内容列表"
 			}
 		}
 	],

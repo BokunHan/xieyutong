@@ -52,6 +52,67 @@
 						</td>
 					</tr>
 
+					<tr class="hover:bg-gray-50 transition-colors">
+						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-map-signs text-blue-500 mr-3"></i>
+							路线标题
+						</td>
+						<td class="px-8 py-6">
+							<uni-easyinput v-model="localData.route_title" @change="handleUserInput" :styles="inputStyles" placeholder="请输入路线标题" :clearable="true" />
+						</td>
+					</tr>
+
+					<tr class="hover:bg-gray-50 transition-colors">
+						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-clipboard-list text-blue-500 mr-3"></i>
+							路线概览
+						</td>
+						<td class="px-8 py-6">
+							<view class="space-y-4">
+								<view class="flex items-center">
+									<label class="flex-shrink-0 w-28 flex items-center text-gray-600">
+										<i class="fas fa-car w-6 text-center mr-1 text-gray-500"></i>
+										行
+									</label>
+									<uni-easyinput v-model="localData.route_overview.transport" @change="handleUserInput" :styles="flexInputStyles" placeholder="例如：专车接送" :clearable="true" />
+								</view>
+								<view class="flex items-center">
+									<label class="flex-shrink-0 w-28 flex items-center text-gray-600">
+										<i class="fas fa-hotel w-6 text-center mr-1 text-gray-500"></i>
+										住
+									</label>
+									<uni-easyinput
+										v-model="localData.route_overview.accommodation"
+										@change="handleUserInput"
+										:styles="flexInputStyles"
+										placeholder="例如：全程5星酒店"
+										:clearable="true" />
+								</view>
+								<view class="flex items-center">
+									<label class="flex-shrink-0 w-28 flex items-center text-gray-600">
+										<i class="fas fa-camera-retro w-6 text-center mr-1 text-gray-500"></i>
+										游
+									</label>
+									<uni-easyinput v-model="localData.route_overview.spots" @change="handleUserInput" :styles="flexInputStyles" placeholder="例如：5大核心景点" :clearable="true" />
+								</view>
+								<view class="flex items-center">
+									<label class="flex-shrink-0 w-28 flex items-center text-gray-600">
+										<i class="fas fa-utensils w-6 text-center mr-1 text-gray-500"></i>
+										餐
+									</label>
+									<uni-easyinput v-model="localData.route_overview.meals" @change="handleUserInput" :styles="flexInputStyles" placeholder="例如：包含3顿特色餐" :clearable="true" />
+								</view>
+								<view class="flex items-center">
+									<label class="flex-shrink-0 w-28 flex items-center text-gray-600">
+										<i class="fas fa-hiking w-6 text-center mr-1 text-gray-500"></i>
+										活
+									</label>
+									<uni-easyinput v-model="localData.route_overview.activities" @change="handleUserInput" :styles="flexInputStyles" placeholder="例如：篝火晚会" :clearable="true" />
+								</view>
+							</view>
+						</td>
+					</tr>
+
 					<!-- 商品图片 -->
 					<tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
@@ -74,6 +135,7 @@
 										@dragover="onDragOver($event)"
 										@drop="onDrop($event, index, 'product')"
 										@dragend="onDragEnd"
+										@click="previewImage(image, localData.product_images)"
 										:class="{ 'scale-105 shadow-lg': draggingIndex === index && draggingType === 'product' }">
 										<image
 											:src="image"
@@ -175,6 +237,7 @@
 										@dragover="onDragOver($event)"
 										@drop="onDrop($event, index, 'detail')"
 										@dragend="onDragEnd"
+										@click="previewImage(image, localData.detail_images)"
 										:class="{ 'scale-105 shadow-lg': draggingIndex === index && draggingType === 'detail' }">
 										<image
 											:src="image"
@@ -322,6 +385,73 @@
 										</view>
 									</view>
 									<text class="ml-2 text-gray-600 text-lg">{{ localData.rating }}/5.0</text>
+								</view>
+							</view>
+						</td>
+					</tr>
+
+					<tr class="hover:bg-gray-50 transition-colors">
+						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-thumbs-up text-blue-500 mr-3"></i>
+							好评率
+						</td>
+						<td class="px-8 py-6">
+							<view class="flex items-center space-x-3">
+								<uni-easyinput v-model.number="localData.good_rate" @change="handleUserInput" type="number" :styles="smallInputStyles" placeholder="98.5" :clearable="true" />
+								<text class="text-lg text-gray-600">%</text>
+								<view class="text-sm text-gray-500">
+									<i class="fas fa-info-circle mr-1"></i>
+									请输入 0-100 之间的数值
+								</view>
+							</view>
+						</td>
+					</tr>
+
+					<tr class="hover:bg-gray-50 transition-colors">
+						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
+							<i class="fas fa-star-half-alt text-blue-500 mr-3"></i>
+							评分明细
+						</td>
+						<td class="px-8 py-6">
+							<view class="grid grid-cols-1 md:grid-cols-3 gap-6">
+								<view>
+									<label class="block text-sm font-medium text-gray-700 mb-2">
+										<i class="fas fa-route w-6 text-center mr-2 text-gray-500"></i>
+										行程安排
+									</label>
+									<uni-easyinput
+										v-model.number="localData.rating_spec.itinerary"
+										@change="handleUserInput"
+										type="number"
+										:styles="inputStyles"
+										placeholder="例如：4.8"
+										:clearable="true" />
+								</view>
+								<view>
+									<label class="block text-sm font-medium text-gray-700 mb-2">
+										<i class="fas fa-bed w-6 text-center mr-2 text-gray-500"></i>
+										酒店体验
+									</label>
+									<uni-easyinput
+										v-model.number="localData.rating_spec.accommodation"
+										@change="handleUserInput"
+										type="number"
+										:styles="inputStyles"
+										placeholder="例如：4.7"
+										:clearable="true" />
+								</view>
+								<view>
+									<label class="block text-sm font-medium text-gray-700 mb-2">
+										<i class="fas fa-user-tie w-6 text-center mr-2 text-gray-500"></i>
+										司导服务
+									</label>
+									<uni-easyinput
+										v-model.number="localData.rating_spec.service"
+										@change="handleUserInput"
+										type="number"
+										:styles="inputStyles"
+										placeholder="例如：4.9"
+										:clearable="true" />
 								</view>
 							</view>
 						</td>
@@ -616,9 +746,23 @@ export default {
 				ctrip_id: '',
 				title: '',
 				subtitle: '',
+				route_title: '',
+				route_overview: {
+					transport: '',
+					accommodation: '',
+					spots: '',
+					meals: '',
+					activities: ''
+				},
 				price: 0,
 				child_price: 0,
 				rating: 5.0,
+				good_rate: 100,
+				rating_spec: {
+					itinerary: 5,
+					accommodation: 5,
+					service: 5
+				},
 				status: 1,
 				view_count: 0,
 				sales_count: 0,
@@ -946,6 +1090,21 @@ export default {
 					icon: 'error'
 				});
 			}
+		},
+
+		// 图片预览方法
+		previewImage(currentUrl, allImages) {
+			console.log('📸 [图片预览] 触发:', { currentUrl, total: allImages.length });
+
+			if (!allImages || allImages.length === 0) {
+				console.warn('📸 [图片预览] 没有图片可供预览');
+				return;
+			}
+
+			uni.previewImage({
+				current: currentUrl,
+				urls: allImages
+			});
 		},
 
 		addProductImageUrl() {

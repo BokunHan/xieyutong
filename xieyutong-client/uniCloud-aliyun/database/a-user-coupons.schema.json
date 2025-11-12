@@ -1,136 +1,148 @@
 {
-  "bsonType": "object",
-  "description": "用户优惠券关联表，管理用户领取的优惠券状态和使用记录",
-  "required": ["user_id", "coupon_id", "status"],
-  "permission": {
-    "read": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
-    "create": "'admin' in auth.role || 'super_admin' in auth.role",
-    "update": "'admin' in auth.role || 'super_admin' in auth.role",
-    "delete": "'super_admin' in auth.role",
-    "count": true
-  },
-  "properties": {
-    "_id": {
-      "description": "系统自动生成的唯一标识"
-    },
-    "user_id": {
-      "bsonType": "string",
-      "description": "用户ID，关联uni-id-users表",
-      "title": "用户ID",
-      "required": true,
-      "maxLength": 50,
-      "foreignKey": "uni-id-users._id"
-    },
-    "coupon_id": {
-      "bsonType": "string",
-      "description": "优惠券ID，关联a-coupons表",
-      "title": "优惠券ID",
-      "required": true,
-      "maxLength": 50,
-      "foreignKey": "a-coupons._id"
-    },
-    "coupon_code": {
-      "bsonType": "string",
-      "description": "优惠券码，用户使用时的唯一标识",
-      "title": "优惠券码",
-      "maxLength": 32
-    },
-    "status": {
-      "bsonType": "string",
-      "description": "优惠券状态",
-      "title": "使用状态",
-      "enum": ["unused", "used", "expired"],
-      "default": "unused",
-      "required": true
-    },
-    "order_id": {
-      "bsonType": "string",
-      "description": "使用该券的订单ID",
-      "title": "关联订单ID",
-      "maxLength": 50,
-      "foreignKey": "a-orders._id"
-    },
-    "source_type": {
-      "bsonType": "string",
-      "description": "获取来源类型",
-      "title": "获取来源",
-      "enum": ["manual", "referral_reward", "new_user_gift", "member_upgrade", "activity"],
-      "default": "manual"
-    },
-    "source_detail": {
-      "bsonType": "object",
-      "description": "来源详细信息",
-      "title": "来源详情",
-      "properties": {
-        "referral_id": {
-          "bsonType": "string",
-          "description": "推荐记录ID（来源为推荐奖励时）"
-        },
-        "activity_id": {
-          "bsonType": "string",
-          "description": "活动ID（来源为活动时）"
-        },
-        "admin_user": {
-          "bsonType": "string",
-          "description": "发放管理员（手动发放时）"
-        }
-      }
-    },
-    "received_at": {
-      "bsonType": "timestamp",
-      "description": "领取时间",
-      "title": "领取时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "used_at": {
-      "bsonType": "timestamp",
-      "description": "使用时间",
-      "title": "使用时间"
-    },
-    "expired_at": {
-      "bsonType": "timestamp",
-      "description": "过期时间",
-      "title": "过期时间"
-    },
-    "amount": {
-      "bsonType": "number",
-      "description": "优惠金额（冗余存储，避免查询时关联）",
-      "title": "优惠金额",
-      "minimum": 0
-    },
-    "min_amount": {
-      "bsonType": "number",
-      "description": "最低消费门槛（冗余存储）",
-      "title": "使用门槛",
-      "minimum": 0
-    },
-    "title": {
-      "bsonType": "string",
-      "description": "优惠券标题（冗余存储）",
-      "title": "券标题",
-      "maxLength": 50
-    },
-    "remark": {
-      "bsonType": "string",
-      "description": "备注信息",
-      "title": "备注",
-      "maxLength": 200
-    },
-    "created_at": {
-      "bsonType": "timestamp",
-      "description": "创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updated_at": {
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    }
-  }
-} 
+	"bsonType": "object",
+	"description": "用户优惠券关联表，管理用户领取的优惠券状态和使用记录",
+	"required": ["user_id", "coupon_id", "status"],
+	"permission": {
+		"read": true,
+		"create": "'MANAGE_COUPONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role",
+		"update": "'MANAGE_COUPONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "'MANAGE_COUPONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role",
+		"count": true
+	},
+	"properties": {
+		"_id": {
+			"description": "系统自动生成的唯一标识"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "用户ID，关联uni-id-users表",
+			"title": "用户ID",
+			"required": true,
+			"maxLength": 50,
+			"foreignKey": "uni-id-users._id"
+		},
+		"coupon_id": {
+			"bsonType": "string",
+			"description": "优惠券ID，关联a-coupons表",
+			"title": "优惠券ID",
+			"required": true,
+			"maxLength": 50,
+			"foreignKey": "a-coupons._id"
+		},
+		"coupon_code": {
+			"bsonType": "string",
+			"description": "优惠券码，用户使用时的唯一标识",
+			"title": "优惠券码",
+			"maxLength": 32
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "优惠券状态",
+			"title": "使用状态",
+			"enum": ["unused", "used", "expired"],
+			"default": "unused",
+			"required": true
+		},
+		"order_id": {
+			"bsonType": "string",
+			"description": "使用该券的订单ID",
+			"title": "关联订单ID",
+			"maxLength": 50,
+			"foreignKey": "a-orders._id"
+		},
+		"source_type": {
+			"bsonType": "string",
+			"description": "获取来源类型",
+			"title": "获取来源",
+			"enum": ["manual", "referral_reward", "new_user_gift", "member_upgrade", "activity"],
+			"default": "manual"
+		},
+		"source_detail": {
+			"bsonType": "object",
+			"description": "来源详细信息",
+			"title": "来源详情",
+			"properties": {
+				"referral_id": {
+					"bsonType": "string",
+					"description": "推荐记录ID（来源为推荐奖励时）"
+				},
+				"activity_id": {
+					"bsonType": "string",
+					"description": "活动ID（来源为活动时）"
+				},
+				"admin_user": {
+					"bsonType": "string",
+					"description": "发放管理员（手动发放时）"
+				}
+			}
+		},
+		"received_at": {
+			"bsonType": "timestamp",
+			"description": "领取时间",
+			"title": "领取时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"used_at": {
+			"bsonType": "timestamp",
+			"description": "使用时间",
+			"title": "使用时间"
+		},
+		"expired_at": {
+			"bsonType": "timestamp",
+			"description": "过期时间",
+			"title": "过期时间"
+		},
+		"type": {
+			"bsonType": "string",
+			"description": "优惠类型",
+			"title": "优惠类型",
+			"enum": ["fixed", "percent"],
+			"default": "fixed"
+		},
+		"amount": {
+			"bsonType": "number",
+			"description": "优惠金额（冗余存储，避免查询时关联）",
+			"title": "优惠金额",
+			"minimum": 0
+		},
+		"min_amount": {
+			"bsonType": "number",
+			"description": "最低消费门槛（冗余存储）",
+			"title": "使用门槛",
+			"minimum": 0
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "优惠券标题（冗余存储）",
+			"title": "券标题",
+			"maxLength": 50
+		},
+		"remark": {
+			"bsonType": "string",
+			"description": "备注信息",
+			"title": "备注",
+			"maxLength": 200
+		},
+		"is_notified": {
+			"bsonType": "bool",
+			"description": "是否已弹窗通知用户",
+			"defaultValue": false
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

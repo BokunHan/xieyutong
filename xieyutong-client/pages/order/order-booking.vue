@@ -34,7 +34,8 @@
 							{{ selectedDate ? formatDate(selectedDate) : '请选择出发日期' }}
 						</text>
 					</view>
-					<text class="fa fa-chevron-right arrow-icon"></text>
+					<!-- <text class="fa fa-chevron-right arrow-icon"></text> -->
+					<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 				</view>
 			</view>
 
@@ -45,7 +46,8 @@
 					<text class="required">*</text>
 					<view class="section-action" @click="goToTravelersPage">
 						<text class="action-text">管理出行人</text>
-						<text class="fa fa-chevron-right action-icon"></text>
+						<!-- <text class="fa fa-chevron-right action-icon"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 					</view>
 				</view>
 
@@ -60,14 +62,16 @@
 							<text class="traveler-type">{{ traveler.type }}</text>
 						</view>
 						<view class="remove-traveler" @click="removeTraveler(index)">
-							<text class="fa fa-times"></text>
+							<!-- <text class="fa fa-times"></text> -->
+							<image src="/static/icons/times.png" class="w-5 h-5" mode="aspectFit" />
 						</view>
 					</view>
 				</view>
 
 				<!-- 选择出行人按钮 -->
 				<view class="select-travelers-btn" @click="showTravelerSelector">
-					<text class="fa fa-plus select-icon"></text>
+					<!-- <text class="fa fa-plus select-icon"></text> -->
+					<image src="/static/icons/plus.svg" class="w-4 h-4 mr-2" mode="aspectFit" />
 					<text class="select-text">{{ selectedTravelers.length > 0 ? '继续添加出行人' : '选择出行人' }}</text>
 				</view>
 			</view>
@@ -83,12 +87,14 @@
 					<view class="form-row">
 						<text class="form-label">姓名</text>
 						<input class="form-input" v-model="contactInfo.name" placeholder="请输入联系人姓名" :class="{ 'auto-filled': contactInfo.name }" />
-						<text v-if="contactInfo.name" class="fa fa-edit edit-icon"></text>
+						<!-- <text v-if="contactInfo.name" class="fa fa-edit edit-icon"></text> -->
+						<image v-if="contactInfo.name" src="/static/icons/edit.svg" class="w-5 h-5 edit-icon" mode="aspectFit" />
 					</view>
 					<view class="form-row">
 						<text class="form-label">手机号</text>
 						<input class="form-input" v-model="contactInfo.phone" placeholder="请输入手机号码" type="number" :class="{ 'auto-filled': contactInfo.phone }" />
-						<text v-if="contactInfo.phone" class="fa fa-edit edit-icon"></text>
+						<!-- <text v-if="contactInfo.phone" class="fa fa-edit edit-icon"></text> -->
+						<image v-if="contactInfo.phone" src="/static/icons/edit.svg" class="w-5 h-5 edit-icon" mode="aspectFit" />
 					</view>
 				</view>
 			</view>
@@ -99,7 +105,8 @@
 					<text class="section-title">优惠券</text>
 					<view class="section-action" @click="showCouponSelector">
 						<text class="action-text">{{ selectedCoupon ? '已选择' : '选择优惠券' }}</text>
-						<text class="fa fa-chevron-right action-icon"></text>
+						<!-- <text class="fa fa-chevron-right action-icon"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 					</view>
 				</view>
 
@@ -111,7 +118,8 @@
 								<text class="coupon-name">{{ selectedCoupon.name }}</text>
 								<text class="coupon-tag">{{ selectedCoupon.type === 'fixed' ? '立减券' : '折扣券' }}</text>
 								<view class="best-choice-badge" v-if="isBestChoice(selectedCoupon)">
-									<text class="fa fa-star"></text>
+									<!-- <text class="fa fa-star"></text> -->
+									<image src="/static/icons/star.svg" class="w-3 h-3" mode="aspectFit" />
 									<text class="badge-text">最优</text>
 								</view>
 							</view>
@@ -123,7 +131,8 @@
 							<text class="amount-value">{{ selectedCoupon.type === 'fixed' ? selectedCoupon.amount : selectedCoupon.amount + '折' }}</text>
 						</view>
 						<view class="remove-coupon" @click="removeCoupon">
-							<text class="fa fa-times"></text>
+							<!-- <text class="fa fa-times"></text> -->
+							<image src="/static/icons/times.png" class="w-5 h-5" mode="aspectFit" />
 						</view>
 					</view>
 				</view>
@@ -131,9 +140,11 @@
 				<!-- 未选择优惠券时的提示 -->
 				<view v-else class="no-coupon-selected">
 					<view class="coupon-placeholder" @click="showCouponSelector">
-						<text class="fa fa-ticket placeholder-icon"></text>
+						<!-- <text class="fa fa-ticket placeholder-icon"></text> -->
+						<image src="/static/icons/ticket-alt.svg" class="w-5 h-5 mr-2" mode="aspectFit" />
 						<text class="placeholder-text">选择优惠券，享受更多优惠</text>
-						<text class="fa fa-chevron-right placeholder-arrow"></text>
+						<!-- <text class="fa fa-chevron-right placeholder-arrow"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 					</view>
 				</view>
 			</view>
@@ -146,11 +157,13 @@
 				<view class="price-summary">
 					<view class="price-row">
 						<text class="price-label">成人 x {{ adultCount }}</text>
-						<text class="price-value">¥{{ adultTotalPrice }}</text>
+						<text class="price-value">¥{{ originalPrice }}</text>
+						<!-- <text class="price-value">¥{{ adultTotalPrice }}</text> -->
 					</view>
 					<view class="price-row" v-if="childCount > 0 && productData.child_price">
 						<text class="price-label">儿童 x {{ childCount }}</text>
-						<text class="price-value">¥{{ childTotalPrice }}</text>
+						<text class="price-value">¥{{ originalChildPrice }}</text>
+						<!-- <text class="price-value">¥{{ childTotalPrice }}</text> -->
 					</view>
 					<view class="price-row discount-row" v-if="totalDiscount > 0">
 						<text class="price-label">优惠减免</text>
@@ -223,7 +236,8 @@
 						<text class="modal-subtitle">为您精选了{{ availableCoupons.length }}张可用优惠券</text>
 					</view>
 					<view class="close-button" @click="closeCouponModal">
-						<text class="fa fa-times"></text>
+						<!-- <text class="fa fa-times"></text> -->
+						<image src="/static/icons/times.png" class="w-5 h-5" mode="aspectFit" />
 					</view>
 				</view>
 				<view class="modal-content">
@@ -254,7 +268,11 @@
 								<text class="coupon-expire">{{ formatExpireDate(coupon.expire_date) }}</text>
 							</view>
 							<view class="coupon-status">
-								<text class="fa" :class="tempSelectedCoupon && tempSelectedCoupon.id === coupon.id ? 'fa-check-circle selected' : 'fa-circle-o'"></text>
+								<!-- <text class="fa" :class="tempSelectedCoupon && tempSelectedCoupon.id === coupon.id ? 'fa-check-circle selected' : 'fa-circle-o'"></text> -->
+								<image
+									:src="tempSelectedCoupon && tempSelectedCoupon.id === coupon.id ? '/static/icons/check-circle.svg' : '/static/icons/circle.svg'"
+									:class="tempSelectedCoupon && tempSelectedCoupon.id === coupon.id ? 'w-5 h-5 selected' : 'w-5 h-5'"
+									mode="aspectFit" />
 							</view>
 						</view>
 
@@ -274,13 +292,15 @@
 								<text class="unavailable-reason">{{ coupon.unavailable_reason }}</text>
 							</view>
 							<view class="coupon-status">
-								<text class="fa fa-circle-o disabled"></text>
+								<!-- <text class="fa fa-circle-o disabled"></text> -->
+								<image src="/static/icons/circle.svg" class="w-5 h-5 disabled" mode="aspectFit" />
 							</view>
 						</view>
 
 						<!-- 空状态 -->
 						<view v-if="availableCoupons.length === 0 && unavailableCoupons.length === 0" class="empty-coupons">
-							<text class="fa fa-ticket empty-icon"></text>
+							<!-- <text class="fa fa-ticket empty-icon"></text> -->
+							<image src="/static/icons/ticket-alt.svg" class="w-12 h-12 mb-3" mode="aspectFit" />
 							<text class="empty-text">暂无可用优惠券</text>
 							<text class="empty-desc">完成更多操作可获得优惠券</text>
 						</view>
@@ -290,7 +310,11 @@
 					<view class="no-coupon-option" :class="{ selected: !tempSelectedCoupon }" @click="selectCoupon(null)">
 						<text class="no-coupon-text">不使用优惠券</text>
 						<view class="coupon-status">
-							<text class="fa" :class="!tempSelectedCoupon ? 'fa-check-circle selected' : 'fa-circle-o'"></text>
+							<!-- <text class="fa" :class="!tempSelectedCoupon ? 'fa-check-circle selected' : 'fa-circle-o'"></text> -->
+							<image
+								:src="tempSelectedCoupon ? '/static/icons/check-circle.svg' : '/static/icons/circle.svg'"
+								:class="tempSelectedCoupon ? 'w-5 h-5 selected' : 'w-5 h-5'"
+								mode="aspectFit" />
 						</view>
 					</view>
 				</view>
@@ -311,7 +335,8 @@
 				<view class="modal-header">
 					<text class="modal-title">选择出行人</text>
 					<view class="close-button" @click="closeTravelerModal">
-						<text class="fa fa-times"></text>
+						<!-- <text class="fa fa-times"></text> -->
+						<image src="/static/icons/times.png" class="w-5 h-5" mode="aspectFit" />
 					</view>
 				</view>
 				<view class="modal-content">
@@ -329,7 +354,11 @@
 							:class="{ selected: isTravelerSelected(traveler._id) }"
 							@click="toggleTravelerSelection(traveler)">
 							<view class="traveler-checkbox">
-								<text class="fa" :class="isTravelerSelected(traveler._id) ? 'fa-check-circle selected' : 'fa-circle-o'"></text>
+								<!-- <text class="fa" :class="isTravelerSelected(traveler._id) ? 'fa-check-circle selected' : 'fa-circle-o'"></text> -->
+								<image
+									:src="isTravelerSelected(traveler._id) ? '/static/icons/check-circle.svg' : '/static/icons/circle.svg'"
+									:class="isTravelerSelected(traveler._id) ? 'w-5 h-5 selected' : 'w-5 h-5'"
+									mode="aspectFit" />
 							</view>
 							<view class="traveler-info">
 								<text class="traveler-name">{{ traveler.name }}</text>
@@ -339,7 +368,8 @@
 
 						<!-- 空状态 -->
 						<view v-if="availableTravelers.length === 0" class="empty-travelers">
-							<text class="fa fa-user-plus empty-icon"></text>
+							<!-- <text class="fa fa-user-plus empty-icon"></text> -->
+							<image src="/static/icons/user-plus.svg" class="w-12 h-12 mb-3" mode="aspectFit" />
 							<text class="empty-text">暂无出行人</text>
 							<text class="empty-desc">请先添加出行人信息</text>
 						</view>
@@ -347,7 +377,8 @@
 
 					<!-- 添加新出行人按钮 -->
 					<view class="add-traveler-btn" @click="addNewTraveler">
-						<text class="fa fa-plus add-icon"></text>
+						<!-- <text class="fa fa-plus add-icon"></text> -->
+						<image src="/static/icons/plus.svg" class="w-4 h-4" mode="aspectFit" />
 						<text class="add-text">添加新出行人</text>
 					</view>
 				</view>
@@ -365,6 +396,7 @@ import DatePicker from '@/components/date-picker/date-picker.vue';
 
 // 引入支付云对象
 const uniPayCo = uniCloud.importObject('uni-pay-co');
+const couponService = uniCloud.importObject('coupon-service');
 
 export default {
 	components: {
@@ -389,12 +421,14 @@ export default {
 			},
 
 			// 价格计算
-			userMemberLevel: 'gold',
+			userMemberLevel: 'normal',
+			memberConfig: {},
 			selectedCoupon: null,
 
 			// 优惠券相关
 			showCouponModal: false,
 			loadingCoupons: false,
+			allUnusedCoupons: [],
 			availableCoupons: [],
 			unavailableCoupons: [],
 			tempSelectedCoupon: null, // 临时选择的优惠券，确认后才赋值给selectedCoupon
@@ -410,11 +444,23 @@ export default {
 		// 原价计算
 		originalPrice() {
 			const basePrice = this.productData.price || 0;
-			return Math.round(basePrice * 1.2);
+			if (basePrice > 1) return Math.round(basePrice * 1.2);
+			else return (basePrice * 1.2).toFixed(2);
+		},
+
+		originalChildPrice() {
+			const basePrice = this.productData.child_price || 0;
+			if (basePrice > 1) return Math.round(basePrice * 1.2);
+			else return (basePrice * 1.2).toFixed(2);
 		},
 
 		// 会员等级文字
 		memberLevelText() {
+			if (this.memberConfig && this.memberConfig[this.userMemberLevel]) {
+				return this.memberConfig[this.userMemberLevel].title || '会员';
+			}
+
+			console.warn('[预订页面] 未找到会员配置, 使用硬编码的等级文字');
 			const levelMap = {
 				normal: '普通会员',
 				silver: '银卡会员',
@@ -427,6 +473,24 @@ export default {
 		// 会员折扣
 		memberDiscount() {
 			const originalPrice = this.originalPrice;
+
+			if (this.memberConfig && this.memberConfig[this.userMemberLevel]) {
+				// 从配置中读取折扣率
+				// 假设 1 = 100% (不打折), 0.9 = 9折, 0 = 免费
+				const multiplier = this.memberConfig[this.userMemberLevel].discount_rate;
+
+				// 检查折扣率是否存在，以及是否为1 (1=不打折)
+				if (multiplier === undefined || multiplier >= 1) {
+					return 0; // 0 折扣
+				}
+
+				// 计算折扣金额: 原价 * (1 - 折扣乘数)
+				// e.g., 1200 * (1 - 0.9) = 120
+				const discountAmount = originalPrice * (1 - multiplier);
+				return Math.round(discountAmount);
+			}
+
+			console.warn('[预订页面] 未找到会员配置, 使用硬编码的折扣率');
 			const discountMap = {
 				normal: 0.05,
 				silver: 0.08,
@@ -435,6 +499,12 @@ export default {
 			};
 			const discountRate = discountMap[this.userMemberLevel] || 0;
 			return Math.round(originalPrice * discountRate);
+		},
+
+		totalPriceForCouponCheck() {
+			const adultPriceAfterMember = this.originalPrice - this.memberDiscount;
+			const totalAdultPrice = adultPriceAfterMember * this.adultCount;
+			return totalAdultPrice + this.childTotalPrice;
 		},
 
 		// 优惠券折扣
@@ -460,7 +530,8 @@ export default {
 		// 最终单价
 		finalPrice() {
 			const final = this.originalPrice - this.totalSavings;
-			return Math.max(final, this.productData.price || 0);
+			// return Math.max(final, this.productData.price || 0);
+			return Math.max(final, 0);
 		},
 
 		// 成人总价
@@ -534,32 +605,47 @@ export default {
 
 	watch: {
 		// 监听总金额变化，自动重新选择最佳优惠券
-		totalAmount: {
+		// totalAmount: {
+		// 	handler(newAmount, oldAmount) {
+		// 		if (newAmount !== oldAmount && this.availableCoupons.length > 0) {
+		// 			console.log(`[优惠券] 订单金额变化: ¥${oldAmount} → ¥${newAmount}`);
+		// 			// 延迟执行，避免在初始化时重复执行
+		// 			this.$nextTick(() => {
+		// 				// this.selectBestCoupon();
+		// 				this.processAndFilterCoupons();
+		// 			});
+		// 		}
+		// 	},
+		// 	immediate: false // 不在初始化时立即执行
+		// },
+
+		totalPriceForCouponCheck: {
 			handler(newAmount, oldAmount) {
-				if (newAmount !== oldAmount && this.availableCoupons.length > 0) {
-					console.log(`[优惠券] 订单金额变化: ¥${oldAmount} → ¥${newAmount}`);
-					// 延迟执行，避免在初始化时重复执行
+				// (修改) allUnusedCoupons.length > 0 是为了确保券列表已加载
+				if (newAmount !== oldAmount && this.allUnusedCoupons.length > 0) {
+					console.log(`[优惠券] 订单金额(券前)变化: ¥${oldAmount} → ¥${newAmount}`);
+					// 当出行人数变化导致券前总价变化时，重新刷选优惠券
 					this.$nextTick(() => {
-						this.selectBestCoupon();
+						this.processAndFilterCoupons();
 					});
 				}
 			},
 			immediate: false // 不在初始化时立即执行
-		},
+		}
 
 		// 监听出行人变化，重新加载优惠券数据
-		selectedTravelers: {
-			handler(newTravelers, oldTravelers) {
-				if (newTravelers && oldTravelers && newTravelers.length !== oldTravelers.length) {
-					console.log(`[优惠券] 出行人数量变化: ${oldTravelers.length} → ${newTravelers.length}`);
-					// 重新设置优惠券数据并自动选择
-					this.$nextTick(() => {
-						this.setMockCoupons();
-					});
-				}
-			},
-			deep: true
-		}
+		// selectedTravelers: {
+		// 	handler(newTravelers, oldTravelers) {
+		// 		if (newTravelers && oldTravelers && newTravelers.length !== oldTravelers.length) {
+		// 			console.log(`[优惠券] 出行人数量变化: ${oldTravelers.length} → ${newTravelers.length}`);
+		// 			// 重新设置优惠券数据并自动选择
+		// 			// this.$nextTick(() => {
+		// 			// 	this.setMockCoupons();
+		// 			// });
+		// 		}
+		// 	},
+		// 	deep: true
+		// }
 	},
 
 	onLoad(options) {
@@ -591,19 +677,21 @@ export default {
 				this.loading = true;
 				this.error = null;
 
-				// 并行加载产品数据、用户信息、出行人数据和优惠券数据
-				const [productResult, userResult, travelersResult] = await Promise.all([
-					this.loadProductData(),
-					this.loadUserInfo(),
-					this.loadTravelers(false), // 不显示加载状态
-					this.loadCoupons(false) // 不显示加载状态
-				]);
-
+				const productResult = await this.loadProductData();
 				if (productResult.success) {
 					this.productData = productResult.data;
 				} else {
 					throw new Error(productResult.error || '加载产品数据失败');
 				}
+
+				// 并行加载产品数据、用户信息、出行人数据和优惠券数据
+				const [userResult, memberResult, memberConfigResult, travelersResult, couponsResult] = await Promise.all([
+					this.loadUserInfo(),
+					this.loadMemberInfo(),
+					this.loadMemberConfig(),
+					this.loadTravelers(false), // 不显示加载状态
+					this.loadCoupons(false) // 不显示加载状态
+				]);
 
 				// 自动填充用户联系信息
 				if (userResult.success && userResult.data) {
@@ -613,6 +701,21 @@ export default {
 						phone: userData.mobile || ''
 					};
 					console.log('[预订页面] 自动填充联系人信息:', this.contactInfo);
+				}
+
+				if (memberResult.success && memberResult.data) {
+					this.userMemberLevel = memberResult.data.level;
+					console.log('[预订页面] 加载会员等级:', this.userMemberLevel);
+				} else {
+					this.userMemberLevel = 'normal'; // Fallback
+					console.log('[预订页面] 未查询到会员信息, 默认为 normal');
+				}
+
+				if (memberConfigResult.success && memberConfigResult.data) {
+					this.memberConfig = memberConfigResult.data;
+					console.log('[预订页面] 加载会员配置成功');
+				} else {
+					console.error('[预订页面] 加载会员配置失败，将使用硬编码的折扣');
 				}
 			} catch (err) {
 				console.error('加载数据失败:', err);
@@ -676,6 +779,54 @@ export default {
 			} catch (error) {
 				console.error('[预订页面] 加载用户信息失败:', error);
 				return { success: false, error: error.message || '加载用户信息失败' };
+			}
+		},
+
+		async loadMemberInfo() {
+			try {
+				const token = uni.getStorageSync('uni_id_token');
+				if (!token) {
+					console.log('[预订页面] 用户未登录，跳过加载会员信息');
+					return { success: false, error: '用户未登录' };
+				}
+
+				const db = uniCloud.database();
+				const res = await db.collection('a-members').where('user_id == $cloudEnv_uid').field('level').get();
+
+				console.log('[预订页面] 查询会员信息结果:', res);
+
+				if (res.result && res.result.data && res.result.data.length > 0) {
+					return {
+						success: true,
+						data: res.result.data[0]
+					};
+				} else {
+					console.log('[预订页面] 未查询到会员信息');
+					return { success: false, error: '未查询到会员信息' };
+				}
+			} catch (error) {
+				console.error('[预订页面] 加载会员信息失败:', error);
+				return { success: false, error: error.message || '加载会员信息失败' };
+			}
+		},
+
+		async loadMemberConfig() {
+			try {
+				const db = uniCloud.database();
+				const res = await db.collection('a-system-configs').doc('config_member_upgrade').field('config_value').get();
+
+				if (res.result && res.result.data && res.result.data.length > 0) {
+					return {
+						success: true,
+						data: res.result.data[0].config_value
+					};
+				} else {
+					console.log('[预订页面] 未查询到会员配置');
+					return { success: false, error: '未查询到会员配置' };
+				}
+			} catch (error) {
+				console.error('[预订页面] 加载会员配置失败:', error);
+				return { success: false, error: error.message || '加载会员配置失败' };
 			}
 		},
 
@@ -954,6 +1105,16 @@ export default {
 
 				console.log('[创建订单] 用户已登录，token存在');
 
+				const db = uniCloud.database();
+				const userCollection = db.collection('uni-id-users');
+				const userRes = await userCollection.where('_id == $cloudEnv_uid').field({ _id: true, mobile: true }).get();
+				console.log('userRes: ', userRes);
+				let travel_users = [];
+				if (userRes && userRes.result.data && userRes.result.data.length > 0) {
+					travel_users = [{ id: userRes.result.data[0]._id, mobile: userRes.result.data[0].mobile }];
+				}
+				console.log('[创建订单] 获取出行人信息成功：', travel_users);
+
 				const orderData = {
 					order_no: orderNo,
 					// user_id 会由 ClientDB 根据当前用户token自动设置
@@ -984,6 +1145,7 @@ export default {
 						phone: traveler.phone,
 						passport: traveler.passport || ''
 					})),
+					travel_users,
 					departure_date: this.selectedDate,
 					duration_days: this.productData.duration_days || 1
 					// 移除 created_at 字段，让数据库根据 schema 自动生成
@@ -1250,22 +1412,49 @@ export default {
 				// 检查用户登录状态
 				const token = uni.getStorageSync('uni_id_token');
 				if (!token) {
-					console.log('[优惠券] 用户未登录，使用模拟数据');
-					this.setMockCoupons();
+					// console.log('[优惠券] 用户未登录，使用模拟数据');
+					// this.setMockCoupons();
+					// return;
+					console.log('[优惠券] 用户未登录，跳过加载');
+					this.allUnusedCoupons = [];
+					this.processAndFilterCoupons(); // 确保清空列表
 					return;
 				}
 
-				// 模拟优惠券数据（后续可替换为真实API调用）
-				console.log('[优惠券] 模拟网络延迟...');
-				await new Promise((resolve) => setTimeout(resolve, 500)); // 模拟网络延迟
-				this.setMockCoupons();
-
-				console.log('[优惠券] 加载完成:', {
-					available: this.availableCoupons.length,
-					unavailable: this.unavailableCoupons.length
+				// 调用云对象获取所有 "未使用" 的优惠券
+				const res = await uniCloud.callFunction({
+					name: 'coupon-service',
+					data: {
+						action: 'getUserCoupons',
+						event: {
+							uniIdToken: token,
+							status: 'unused' // 只获取未使用的
+						}
+					}
 				});
+
+				if (res.result && res.result.errCode === 0) {
+					console.log('[优惠券] 从数据库加载成功:', res.result.data.list);
+					this.allUnusedCoupons = res.result.data.list || [];
+				} else {
+					throw new Error(res.result.errMsg || '加载优惠券失败');
+				}
+
+				this.processAndFilterCoupons();
+
+				// 模拟优惠券数据（后续可替换为真实API调用）
+				// console.log('[优惠券] 模拟网络延迟...');
+				// await new Promise((resolve) => setTimeout(resolve, 500)); // 模拟网络延迟
+				// this.setMockCoupons();
+
+				// console.log('[优惠券] 加载完成:', {
+				// 	available: this.availableCoupons.length,
+				// 	unavailable: this.unavailableCoupons.length
+				// });
 			} catch (error) {
 				console.error('[优惠券] 加载失败:', error);
+				this.allUnusedCoupons = [];
+				this.processAndFilterCoupons();
 				uni.showToast({
 					title: '优惠券加载失败',
 					icon: 'none'
@@ -1279,59 +1468,116 @@ export default {
 		},
 
 		// 设置模拟优惠券数据
-		setMockCoupons() {
-			const currentAmount = this.totalAmount;
+		// setMockCoupons() {
+		// 	const currentAmount = this.totalAmount;
 
-			this.availableCoupons = [
-				{
-					id: 'coupon1',
-					name: '新用户专享',
-					type: 'fixed',
-					amount: 200,
-					min_amount: 1000,
-					expire_date: '2024-12-31',
-					description: '新用户专享立减券'
-				},
-				{
-					id: 'coupon2',
-					name: '限时优惠',
-					type: 'fixed',
-					amount: 100,
-					min_amount: 500,
-					expire_date: '2024-06-30',
-					description: '限时优惠立减券'
-				},
-				{
-					id: 'coupon3',
-					name: '九折优惠',
-					type: 'percent',
-					amount: 9,
-					min_amount: 800,
-					expire_date: '2024-09-30',
-					description: '九折优惠券'
+		// 	this.availableCoupons = [
+		// 		{
+		// 			id: 'coupon1',
+		// 			name: '新用户专享',
+		// 			type: 'fixed',
+		// 			amount: 200,
+		// 			min_amount: 1000,
+		// 			expire_date: '2024-12-31',
+		// 			description: '新用户专享立减券'
+		// 		},
+		// 		{
+		// 			id: 'coupon2',
+		// 			name: '限时优惠',
+		// 			type: 'fixed',
+		// 			amount: 100,
+		// 			min_amount: 500,
+		// 			expire_date: '2024-06-30',
+		// 			description: '限时优惠立减券'
+		// 		},
+		// 		{
+		// 			id: 'coupon3',
+		// 			name: '九折优惠',
+		// 			type: 'percent',
+		// 			amount: 9,
+		// 			min_amount: 800,
+		// 			expire_date: '2024-09-30',
+		// 			description: '九折优惠券'
+		// 		}
+		// 	].filter((coupon) => {
+		// 		// 过滤掉不满足最低金额要求的优惠券
+		// 		return currentAmount >= (coupon.min_amount || 0);
+		// 	});
+
+		// 	this.unavailableCoupons = [
+		// 		{
+		// 			id: 'coupon4',
+		// 			name: '超级优惠',
+		// 			type: 'fixed',
+		// 			amount: 500,
+		// 			min_amount: 2000,
+		// 			expire_date: '2024-08-31',
+		// 			description: '超级优惠立减券',
+		// 			unavailable_reason: `满${2000}元可用`
+		// 		}
+		// 	].filter((coupon) => {
+		// 		// 不满足条件的优惠券
+		// 		return currentAmount < (coupon.min_amount || 0);
+		// 	});
+
+		// 	// 自动选择最佳优惠券
+		// 	this.selectBestCoupon();
+		// },
+
+		// 处理和过滤优惠券的方法
+		processAndFilterCoupons() {
+			// console.log('[优惠券] 开始处理和过滤... totalAmount:', this.totalAmount);
+			// const currentAmount = this.totalAmount;
+			const currentAmount = this.totalPriceForCouponCheck;
+			console.log('[优惠券] 开始处理和过滤... 券前总价(totalPriceForCouponCheck):', currentAmount);
+			const now = Date.now();
+
+			const available = [];
+			const unavailable = [];
+
+			this.allUnusedCoupons.forEach((coupon) => {
+				console.log(coupon);
+				// ⚠️ 注意：数据转换 (DB -> Template)
+				// 云对象返回的字段是 title, _id, expired_at
+				// 但模板需要的是 name, id, expire_date
+				const formattedCoupon = {
+					id: coupon._id,
+					name: coupon.title,
+					amount: coupon.amount,
+					min_amount: coupon.min_amount,
+					expire_date: coupon.expired_at,
+					type: coupon.type
+				};
+
+				// 检查是否可用
+				let isAvailable = true;
+				let reason = '';
+
+				// 1. 检查是否过期
+				if (formattedCoupon.expire_date < now) {
+					isAvailable = false;
+					reason = '已过期';
+					console.log(formattedCoupon.expire_date, now);
 				}
-			].filter((coupon) => {
-				// 过滤掉不满足最低金额要求的优惠券
-				return currentAmount >= (coupon.min_amount || 0);
+				// 2. 检查门槛
+				else if (currentAmount < formattedCoupon.min_amount) {
+					isAvailable = false;
+					reason = `满${formattedCoupon.min_amount}元可用`;
+					console.log(currentAmount, formattedCoupon.min_amount);
+				}
+
+				if (isAvailable) {
+					available.push(formattedCoupon);
+				} else {
+					formattedCoupon.unavailable_reason = reason;
+					unavailable.push(formattedCoupon);
+				}
 			});
 
-			this.unavailableCoupons = [
-				{
-					id: 'coupon4',
-					name: '超级优惠',
-					type: 'fixed',
-					amount: 500,
-					min_amount: 2000,
-					expire_date: '2024-08-31',
-					description: '超级优惠立减券',
-					unavailable_reason: `满${2000}元可用`
-				}
-			].filter((coupon) => {
-				// 不满足条件的优惠券
-				return currentAmount < (coupon.min_amount || 0);
-			});
+			this.availableCoupons = available;
+			this.unavailableCoupons = unavailable;
 
-			// 自动选择最佳优惠券
+			// 过滤完成后，自动选择最佳优惠券
 			this.selectBestCoupon();
 		},
 
@@ -1343,7 +1589,8 @@ export default {
 				return;
 			}
 
-			const currentAmount = this.totalAmount;
+			// const currentAmount = this.totalAmount;
+			const currentAmount = this.totalPriceForCouponCheck;
 			let bestCoupon = null;
 			let maxDiscount = 0;
 
@@ -1575,7 +1822,7 @@ export default {
 
 .action-text {
 	font-size: 14px;
-	color: #2196f3;
+	color: #eb6d20;
 	margin-right: 4px;
 }
 
@@ -1626,13 +1873,13 @@ export default {
 
 .action-text {
 	font-size: 14px;
-	color: #2196f3;
+	color: #eb6d20;
 	margin-right: 4px;
 }
 
 .action-icon {
 	font-size: 12px;
-	color: #2196f3;
+	color: #eb6d20;
 }
 
 /* 已选择的出行人 */
@@ -1686,13 +1933,13 @@ export default {
 
 .select-icon {
 	font-size: 16px;
-	color: #2196f3;
+	color: #eb6d20;
 	margin-right: 8px;
 }
 
 .select-text {
 	font-size: 14px;
-	color: #2196f3;
+	color: #eb6d20;
 }
 
 .traveler-row {
@@ -1756,6 +2003,52 @@ export default {
 
 /* 出行人列表 */
 .travelers-list {
+	padding-bottom: 8px;
+}
+
+.traveler-option {
+	display: flex;
+	align-items: center;
+	padding: 16px;
+	background-color: white;
+	border-radius: 12px;
+	margin-bottom: 8px;
+	border: 2px solid #f0f0f0;
+	transition: all 0.2s ease;
+}
+
+.traveler-option.selected {
+	border-color: #eb6d20; /* 选中时的边框颜色 */
+	background-color: #fffaf7; /* 选中时的背景色 */
+	box-shadow: 0 4px 12px rgba(235, 109, 32, 0.1);
+}
+
+.traveler-checkbox {
+	margin-right: 12px;
+}
+
+.traveler-checkbox .w-3 {
+	color: #ddd;
+}
+.traveler-checkbox .w-3.selected {
+	color: #eb6d20;
+}
+
+.traveler-info {
+	flex: 1;
+}
+
+.traveler-info .traveler-name {
+	font-size: 16px;
+	font-weight: 600;
+	color: #333;
+	display: block; /* 确保独占一行 */
+}
+
+.traveler-info .traveler-type {
+	font-size: 14px;
+	color: #666;
+	display: block; /* 确保独占一行 */
 }
 
 .traveler-item {
@@ -1783,7 +2076,7 @@ export default {
 .avatar-text {
 	font-size: 16px;
 	font-weight: 600;
-	color: #1976d2;
+	color: #eb6d20;
 }
 
 .traveler-details {
@@ -1807,6 +2100,30 @@ export default {
 	margin-left: auto;
 }
 
+.add-traveler-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background-color: #f0f8ff; /* 淡蓝色背景 */
+	border-radius: 12px;
+	border: 1px dashed #eb6d20;
+	margin-top: 8px;
+	margin-bottom: 8px; /* 增加一点底部间距 */
+	cursor: pointer;
+}
+
+.add-traveler-btn:active {
+	background-color: #e6f2ff;
+}
+
+.add-traveler-btn .add-text {
+	font-size: 14px;
+	color: #eb6d20;
+	font-weight: 500;
+	margin-left: 8px; /* 图标和文字的间距 */
+}
+
 .type-tag {
 	font-size: 12px;
 	background-color: #f0f0f0;
@@ -1819,8 +2136,11 @@ export default {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding: 32px 0;
 	cursor: pointer;
+	background-color: #fff;
+	border-radius: 12px;
+	padding: 32px 16px;
+	margin-top: 8px;
 }
 
 .empty-icon {
@@ -1875,14 +2195,14 @@ export default {
 .edit-icon {
 	position: absolute;
 	right: 16px;
-	color: #2196f3;
+	color: #eb6d20;
 	font-size: 14px;
 	pointer-events: none;
 }
 
 .auto-fill-tip {
 	font-size: 12px;
-	color: #1976d2;
+	color: #eb6d20;
 	margin-left: 8px;
 	background-color: #e3f2fd;
 	padding: 2px 8px;
@@ -2147,7 +2467,7 @@ export default {
 	align-items: center;
 	justify-content: space-between;
 	padding: 20px 24px 16px 24px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, #ff9a56 0%, #eb6d20 100%);
 	color: white;
 	position: relative;
 }
@@ -2362,7 +2682,7 @@ export default {
 }
 
 .coupon-status .fa.selected {
-	color: #2196f3;
+	color: #eb6d20;
 }
 
 .coupon-status .fa.disabled {
@@ -2435,6 +2755,9 @@ export default {
 .cancel-btn,
 .confirm-btn {
 	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	height: 48px;
 	border-radius: 12px;
 	border: none;
@@ -2470,5 +2793,34 @@ export default {
 .btn-text {
 	position: relative;
 	z-index: 1;
+}
+
+.traveler-modal {
+	width: 90%;
+	max-width: 500px;
+	max-height: 80vh;
+	background-color: white;
+	border-radius: 20px;
+	overflow: hidden;
+	margin: 20px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+	animation: slideUp 0.3s ease-out;
+
+	display: flex;
+	flex-direction: column;
+}
+
+.modal-content {
+	padding: 8px 16px;
+	background-color: #f5f7fa;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.loading-travelers {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px;
 }
 </style>

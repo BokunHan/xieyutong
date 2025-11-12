@@ -3,331 +3,396 @@
 const uniIdCommon = require('uni-id-common');
 
 exports.main = async (event, context) => {
-  const { action, ...params } = event;
-  
-  // 根据 action 参数路由到不同的处理函数
-  switch (action) {
-    case 'getCouponByShareCode':
-      return await getCouponByShareCode(event, context);
-    case 'claimCoupon':
-      return await claimCoupon(event, context);
-    case 'getUserCoupons':
-      return await getUserCoupons(event, context);
-    case 'getValidCouponsForOrder':
-      return await getValidCouponsForOrder(event, context);
-    default:
-      return {
-        errCode: 'INVALID_ACTION',
-        errMsg: '无效的操作类型'
-      };
-  }
+	const { action, ...params } = event;
+
+	// 根据 action 参数路由到不同的处理函数
+	switch (action) {
+		case 'getCouponByShareCode':
+			return await getCouponByShareCode(event, context);
+		case 'claimCoupon':
+			return await claimCoupon(event, context);
+		case 'getUserCoupons':
+			return await getUserCoupons(event, context);
+		case 'getValidCouponsForOrder':
+			return await getValidCouponsForOrder(event, context);
+		case 'getNewManualCoupon':
+			return await getNewManualCoupon(event, context);
+		default:
+			return {
+				errCode: 'INVALID_ACTION',
+				errMsg: '无效的操作类型'
+			};
+	}
 };
 
 /**
  * 根据分享码获取优惠券信息
  */
 async function getCouponByShareCode(event, context) {
-  const { shareCode, uniIdToken } = event;
-  
-  if (!shareCode) {
-    return {
-      errCode: 'INVALID_PARAM',
-      errMsg: '分享码不能为空'
-    };
-  }
+	const { shareCode, uniIdToken } = event;
 
-  try {
-    const db = uniCloud.databaseForJQL({ event, context });
-    
-    // 查询优惠券信息
-    const couponResult = await db.collection('a-coupons')
-      .where(`share_code == "${shareCode}" && status == "active"`)
-      .get();
+	if (!shareCode) {
+		return {
+			errCode: 'INVALID_PARAM',
+			errMsg: '分享码不能为空'
+		};
+	}
 
-    if (couponResult.data.length === 0) {
-      return {
-        errCode: 'COUPON_NOT_FOUND',
-        errMsg: '优惠券不存在或已失效'
-      };
-    }
+	try {
+		const db = uniCloud.databaseForJQL({ event, context });
 
-    const coupon = couponResult.data[0];
-    let claimStatus = 'can_claim';
+		// 查询优惠券信息
+		const couponResult = await db.collection('a-coupons').where(`share_code == "${shareCode}" && status == "active"`).get();
 
-    // 如果用户已登录，检查是否已领取
-    if (uniIdToken) {
-      const uniIdInstance = uniIdCommon.createInstance({ context });
-      const checkResult = await uniIdInstance.checkToken(uniIdToken);
-      
-      if (checkResult.errCode === 0) {
-        const userId = checkResult.uid;
-        
-        // 检查用户是否已领取此优惠券
-        const userCouponResult = await db.collection('a-user-coupons')
-          .where(`user_id == "${userId}" && coupon_id == "${coupon._id}"`)
-          .get();
+		if (couponResult.data.length === 0) {
+			return {
+				errCode: 'COUPON_NOT_FOUND',
+				errMsg: '优惠券不存在或已失效'
+			};
+		}
 
-        if (userCouponResult.data.length > 0) {
-          claimStatus = 'already_claimed';
-        }
-      }
-    }
+		const coupon = couponResult.data[0];
+		let claimStatus = 'can_claim';
 
-    return {
-      errCode: 0,
-      data: {
-        coupon,
-        claimStatus
-      }
-    };
-  } catch (error) {
-    console.error('获取优惠券信息失败:', error);
-    return {
-      errCode: 'SERVER_ERROR',
-      errMsg: '服务器错误，请重试'
-    };
-  }
+		// 如果用户已登录，检查是否已领取
+		if (uniIdToken) {
+			const uniIdInstance = uniIdCommon.createInstance({ context });
+			const checkResult = await uniIdInstance.checkToken(uniIdToken);
+
+			if (checkResult.errCode === 0) {
+				const userId = checkResult.uid;
+
+				// 检查用户是否已领取此优惠券
+				const userCouponResult = await db.collection('a-user-coupons').where(`user_id == "${userId}" && coupon_id == "${coupon._id}"`).get();
+
+				if (userCouponResult.data.length > 0) {
+					claimStatus = 'already_claimed';
+				}
+			}
+		}
+
+		return {
+			errCode: 0,
+			data: {
+				coupon,
+				claimStatus
+			}
+		};
+	} catch (error) {
+		console.error('获取优惠券信息失败:', error);
+		return {
+			errCode: 'SERVER_ERROR',
+			errMsg: '服务器错误，请重试'
+		};
+	}
 }
 
 /**
  * 领取优惠券
  */
 async function claimCoupon(event, context) {
-  const { shareCode, uniIdToken } = event;
-  
-  if (!shareCode || !uniIdToken) {
-    return {
-      errCode: 'INVALID_PARAM',
-      errMsg: '参数不完整'
-    };
-  }
+	const { shareCode, uniIdToken } = event;
 
-  try {
-    const uniIdInstance = uniIdCommon.createInstance({ context });
-    const checkResult = await uniIdInstance.checkToken(uniIdToken);
-    
-    if (checkResult.errCode !== 0) {
-      return {
-        errCode: 'TOKEN_INVALID',
-        errMsg: '身份验证失败，请重新登录'
-      };
-    }
+	if (!shareCode || !uniIdToken) {
+		return {
+			errCode: 'INVALID_PARAM',
+			errMsg: '参数不完整'
+		};
+	}
 
-    const userId = checkResult.uid;
-    const db = uniCloud.databaseForJQL({ event, context });
+	try {
+		const uniIdInstance = uniIdCommon.createInstance({ context });
+		const checkResult = await uniIdInstance.checkToken(uniIdToken);
 
-    // 查询优惠券信息
-    const couponResult = await db.collection('a-coupons')
-      .where(`share_code == "${shareCode}" && status == "active"`)
-      .get();
+		if (checkResult.errCode !== 0) {
+			return {
+				errCode: 'TOKEN_INVALID',
+				errMsg: '身份验证失败，请重新登录'
+			};
+		}
 
-    if (couponResult.data.length === 0) {
-      return {
-        errCode: 'COUPON_NOT_FOUND',
-        errMsg: '优惠券不存在或已失效'
-      };
-    }
+		const userId = checkResult.uid;
+		const db = uniCloud.databaseForJQL({ event, context });
 
-    const coupon = couponResult.data[0];
+		// 查询优惠券信息
+		const couponResult = await db.collection('a-coupons').where(`share_code == "${shareCode}" && status == "active"`).get();
 
-    // 检查用户是否已领取
-    const existingResult = await db.collection('a-user-coupons')
-      .where(`user_id == "${userId}" && coupon_id == "${coupon._id}"`)
-      .get();
+		if (couponResult.data.length === 0) {
+			return {
+				errCode: 'COUPON_NOT_FOUND',
+				errMsg: '优惠券不存在或已失效'
+			};
+		}
 
-    if (existingResult.data.length > 0) {
-      return {
-        errCode: 'ALREADY_CLAIMED',
-        errMsg: '您已经领取过此优惠券了'
-      };
-    }
+		const coupon = couponResult.data[0];
 
-    // 检查发放数量限制
-    if (coupon.total_count > 0) {
-      const claimedCount = await db.collection('a-user-coupons')
-        .where(`coupon_id == "${coupon._id}"`)
-        .count();
+		// 检查用户是否已领取
+		const existingResult = await db.collection('a-user-coupons').where(`user_id == "${userId}" && coupon_id == "${coupon._id}"`).get();
 
-      if (claimedCount.total >= coupon.total_count) {
-        return {
-          errCode: 'COUPON_SOLD_OUT',
-          errMsg: '优惠券已被抢完'
-        };
-      }
-    }
+		if (existingResult.data.length > 0) {
+			return {
+				errCode: 'ALREADY_CLAIMED',
+				errMsg: '您已经领取过此优惠券了'
+			};
+		}
 
-    // 计算过期时间
-    const now = new Date();
-    const expiredAt = new Date(now.getTime() + coupon.valid_days * 24 * 60 * 60 * 1000);
+		// 检查发放数量限制
+		if (coupon.total_count > 0) {
+			const claimedCount = await db.collection('a-user-coupons').where(`coupon_id == "${coupon._id}"`).count();
 
-    // 生成优惠券码
-    const couponCode = generateCouponCode();
+			if (claimedCount.total >= coupon.total_count) {
+				return {
+					errCode: 'COUPON_SOLD_OUT',
+					errMsg: '优惠券已被抢完'
+				};
+			}
+		}
 
-    // 创建用户优惠券记录
-    const userCouponData = {
-      user_id: userId,
-      coupon_id: coupon._id,
-      coupon_code: couponCode,
-      status: 'unused',
-      source_type: 'manual',
-      source_detail: {
-        share_code: shareCode
-      },
-      expired_at: expiredAt,
-      // 冗余存储优惠券基本信息
-      amount: coupon.amount,
-      min_amount: coupon.min_amount,
-      title: coupon.title
-    };
+		// 计算过期时间
+		const now = new Date();
+		const expiredAt = new Date(now.getTime() + coupon.valid_days * 24 * 60 * 60 * 1000);
 
-    await db.collection('a-user-coupons').add(userCouponData);
+		// 生成优惠券码
+		const couponCode = generateCouponCode();
 
-    return {
-      errCode: 0,
-      data: {
-        message: '领取成功',
-        userCoupon: userCouponData
-      }
-    };
-  } catch (error) {
-    console.error('领取优惠券失败:', error);
-    return {
-      errCode: 'SERVER_ERROR',
-      errMsg: '领取失败，请重试'
-    };
-  }
+		// 创建用户优惠券记录
+		const userCouponData = {
+			user_id: userId,
+			coupon_id: coupon._id,
+			coupon_code: couponCode,
+			status: 'unused',
+			source_type: 'manual',
+			source_detail: {
+				share_code: shareCode
+			},
+			expired_at: expiredAt,
+			// 冗余存储优惠券基本信息
+			type: coupon.type,
+			amount: coupon.amount,
+			min_amount: coupon.min_amount,
+			title: coupon.title
+		};
+
+		await db.collection('a-user-coupons').add(userCouponData);
+
+		return {
+			errCode: 0,
+			data: {
+				message: '领取成功',
+				userCoupon: userCouponData
+			}
+		};
+	} catch (error) {
+		console.error('领取优惠券失败:', error);
+		return {
+			errCode: 'SERVER_ERROR',
+			errMsg: '领取失败，请重试'
+		};
+	}
 }
 
 /**
  * 获取用户的优惠券列表
  */
 async function getUserCoupons(event, context) {
-  const { uniIdToken, status = 'all', pageIndex = 1, pageSize = 20 } = event;
-  
-  if (!uniIdToken) {
-    return {
-      errCode: 'TOKEN_REQUIRED',
-      errMsg: '请先登录'
-    };
-  }
+	const { uniIdToken, status = 'all', pageIndex = 1, pageSize = 20 } = event;
 
-  try {
-    const uniIdInstance = uniIdCommon.createInstance({ context });
-    const checkResult = await uniIdInstance.checkToken(uniIdToken);
-    
-    if (checkResult.errCode !== 0) {
-      return {
-        errCode: 'TOKEN_INVALID',
-        errMsg: '身份验证失败'
-      };
-    }
+	if (!uniIdToken) {
+		return {
+			errCode: 'TOKEN_REQUIRED',
+			errMsg: '请先登录'
+		};
+	}
 
-    const userId = checkResult.uid;
-    const db = uniCloud.databaseForJQL({ event, context });
+	try {
+		const uniIdInstance = uniIdCommon.createInstance({ context });
+		const checkResult = await uniIdInstance.checkToken(uniIdToken);
 
-    // 构建查询条件
-    let whereCondition = `user_id == "${userId}"`;
-    
-    if (status !== 'all') {
-      whereCondition += ` && status == "${status}"`;
-    }
+		if (checkResult.errCode !== 0) {
+			return {
+				errCode: 'TOKEN_INVALID',
+				errMsg: '身份验证失败'
+			};
+		}
 
-    // 自动标记过期的优惠券
-    // const now = new Date();
-    // await db.collection('a-user-coupons')
-    //   .where(`user_id == "${userId}" && status == "unused" && expired_at < ${now.getTime()}`)
-    //   .update({
-    //     status: 'expired'
-    //   });
+		const userId = checkResult.uid;
+		const db = uniCloud.databaseForJQL({ event, context });
 
-    // 查询用户优惠券
-    const result = await db.collection('a-user-coupons')
-      .where(whereCondition)
-      .orderBy('created_at desc')
-      .skip((pageIndex - 1) * pageSize)
-      .limit(pageSize)
-      .get();
+		// 构建查询条件
+		let whereCondition = `user_id == "${userId}"`;
 
-    return {
-      errCode: 0,
-      data: {
-        list: result.data,
-        hasMore: result.data.length === pageSize
-      }
-    };
-  } catch (error) {
-    console.error('获取用户优惠券失败:', error);
-    return {
-      errCode: 'SERVER_ERROR',
-      errMsg: '获取优惠券列表失败'
-    };
-  }
+		if (status !== 'all') {
+			whereCondition += ` && status == "${status}"`;
+		}
+
+		// 自动标记过期的优惠券
+		// const now = new Date();
+		// await db.collection('a-user-coupons')
+		//   .where(`user_id == "${userId}" && status == "unused" && expired_at < ${now.getTime()}`)
+		//   .update({
+		//     status: 'expired'
+		//   });
+
+		// 查询用户优惠券
+		const result = await db
+			.collection('a-user-coupons')
+			.where(whereCondition)
+			.orderBy('created_at desc')
+			.skip((pageIndex - 1) * pageSize)
+			.limit(pageSize)
+			.get();
+
+		return {
+			errCode: 0,
+			data: {
+				list: result.data,
+				hasMore: result.data.length === pageSize
+			}
+		};
+	} catch (error) {
+		console.error('获取用户优惠券失败:', error);
+		return {
+			errCode: 'SERVER_ERROR',
+			errMsg: '获取优惠券列表失败'
+		};
+	}
 }
 
 /**
  * 获取订单可用的优惠券
  */
 async function getValidCouponsForOrder(event, context) {
-  const { uniIdToken, orderAmount } = event;
-  
-  if (!uniIdToken || !orderAmount) {
-    return {
-      errCode: 'INVALID_PARAM',
-      errMsg: '参数不完整'
-    };
-  }
+	const { uniIdToken, orderAmount } = event;
 
-  try {
-    const uniIdInstance = uniIdCommon.createInstance({ context });
-    const checkResult = await uniIdInstance.checkToken(uniIdToken);
-    
-    if (checkResult.errCode !== 0) {
-      return {
-        errCode: 'TOKEN_INVALID',
-        errMsg: '身份验证失败'
-      };
-    }
+	if (!uniIdToken || !orderAmount) {
+		return {
+			errCode: 'INVALID_PARAM',
+			errMsg: '参数不完整'
+		};
+	}
 
-    const userId = checkResult.uid;
-    const db = uniCloud.databaseForJQL({ event, context });
+	try {
+		const uniIdInstance = uniIdCommon.createInstance({ context });
+		const checkResult = await uniIdInstance.checkToken(uniIdToken);
 
-    // 自动标记过期的优惠券
-    const now = new Date();
-    await db.collection('a-user-coupons')
-      .where(`user_id == "${userId}" && status == "unused" && expired_at < ${now.getTime()}`)
-      .update({
-        status: 'expired'
-      });
+		if (checkResult.errCode !== 0) {
+			return {
+				errCode: 'TOKEN_INVALID',
+				errMsg: '身份验证失败'
+			};
+		}
 
-    // 查询可用优惠券
-    const result = await db.collection('a-user-coupons')
-      .where(`user_id == "${userId}" && status == "unused" && min_amount <= ${orderAmount} && expired_at >= ${now.getTime()}`)
-      .orderBy('amount desc')
-      .get();
+		const userId = checkResult.uid;
+		const db = uniCloud.databaseForJQL({ event, context });
 
-    return {
-      errCode: 0,
-      data: {
-        coupons: result.data
-      }
-    };
-  } catch (error) {
-    console.error('获取订单可用优惠券失败:', error);
-    return {
-      errCode: 'SERVER_ERROR',
-      errMsg: '获取可用优惠券失败'
-    };
-  }
+		// 自动标记过期的优惠券
+		const now = new Date();
+		await db.collection('a-user-coupons').where(`user_id == "${userId}" && status == "unused" && expired_at < ${now.getTime()}`).update({
+			status: 'expired'
+		});
+
+		// 查询可用优惠券
+		const result = await db
+			.collection('a-user-coupons')
+			.where(`user_id == "${userId}" && status == "unused" && min_amount <= ${orderAmount} && expired_at >= ${now.getTime()}`)
+			.orderBy('amount desc')
+			.get();
+
+		return {
+			errCode: 0,
+			data: {
+				coupons: result.data
+			}
+		};
+	} catch (error) {
+		console.error('获取订单可用优惠券失败:', error);
+		return {
+			errCode: 'SERVER_ERROR',
+			errMsg: '获取可用优惠券失败'
+		};
+	}
+}
+
+/**
+ * *
+ * * 获取一张新发放的、未通知用户的优惠券 (用于首页弹窗)
+ */
+async function getNewManualCoupon(event, context) {
+	const { uniIdToken } = event;
+
+	if (!uniIdToken) {
+		return {
+			errCode: 'TOKEN_REQUIRED',
+			errMsg: '请先登录'
+		};
+	}
+
+	try {
+		// 1. 身份验证
+		const uniIdInstance = uniIdCommon.createInstance({ context });
+		const checkResult = await uniIdInstance.checkToken(uniIdToken);
+
+		if (checkResult.errCode !== 0) {
+			return {
+				errCode: 'TOKEN_INVALID',
+				errMsg: '身份验证失败'
+			};
+		}
+
+		const userId = checkResult.uid;
+		const db = uniCloud.database();
+
+		const couponCollection = db.collection('a-user-coupons');
+
+		// 2. 查找一张符合条件的优惠券
+		// 条件：属于当前用户、未使用、手动发放、尚未通知过 (is_notified)
+		const findRes = await couponCollection
+			.where({
+				user_id: userId,
+				status: 'unused',
+				source_type: 'manual',
+				is_notified: db.command.neq(true) // 关键：查找 is_notified 不为 true 的
+			})
+			.orderBy('created_at', 'desc') // 优先显示最新发放的
+			.limit(3)
+			.get();
+
+		if (!findRes.data || findRes.data.length === 0) {
+			// 没有找到新的优惠券
+			return { errCode: 0, data: null, msg: '没有新的优惠券' };
+		}
+
+		const newCoupons = findRes.data;
+		const couponIdsToUpdate = newCoupons.map((c) => c._id);
+
+		// 2. 批量标记这些优惠券为“已通知”，防止下次重复弹出
+		await couponCollection
+			.where({
+				_id: db.command.in(couponIdsToUpdate)
+			})
+			.update({
+				is_notified: true
+			});
+
+		// 4. 返回优惠券数据给前端
+		return { errCode: 0, data: newCoupons };
+	} catch (error) {
+		console.error('getNewManualCoupon 失败:', error);
+		return {
+			errCode: 'SERVER_ERROR',
+			errMsg: '查询优惠券失败'
+		};
+	}
 }
 
 /**
  * 生成优惠券码
  */
 function generateCouponCode() {
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let result = '';
-  for (let i = 0; i < 12; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+	const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	let result = '';
+	for (let i = 0; i < 12; i++) {
+		result += chars.charAt(Math.floor(Math.random() * chars.length));
+	}
+	return result;
 }

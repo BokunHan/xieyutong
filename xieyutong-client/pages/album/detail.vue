@@ -157,7 +157,7 @@ export default {
 
 				if (userRes.result && userRes.result.data && userRes.result.data.length > 0) {
 					this.currentUid = userRes.result.data[0]._id;
-					this.userRole = userRes.result.data[0].role;
+					this.userRole = userRes.result.data[0].role || [];
 				} else {
 					console.error('未找到用户信息');
 					return;
@@ -251,21 +251,46 @@ export default {
 								console.log('[页面] 准备上传临时文件:', tempFile);
 
 								// 0. 解析拍摄时间
-								let shootingTime = null;
+								let shootingTime = Date.now();
 								try {
-									exif.getData(tempFile, function () {
-										const dateTimeOriginal = exif.getTag(this, 'DateTimeOriginal');
-										const [datePart, timePart] = dateTimeOriginal.split(' ');
-										const [year, month, day] = datePart.split(':');
-										const [hours, minutes, seconds] = timePart.split(':');
-										const date = new Date(year, month - 1, day, hours, minutes, seconds);
-										shootingTime = date.getTime();
-										if (shootingTime) console.log('[EXIF] 解析到拍摄时间:', date.toLocaleString());
-										else {
-											shootingTime = Date.now(); // 默认使用上传时间
-											console.log('[EXIF] 解析失败，使用当前时间');
-										}
+									// 将EXIF解析包装在Promise中
+									const exifTime = await new Promise((exifResolve, exifReject) => {
+										// 设置一个超时，防止EXIF库卡死
+										const timer = setTimeout(() => {
+											exifReject(new Error('EXIF parsing timed out'));
+										}, 1500); // 1.5秒超时
+
+										exif.getData(tempFile, function () {
+											clearTimeout(timer);
+											try {
+												const dateTimeOriginal = exif.getTag(this, 'DateTimeOriginal');
+												if (!dateTimeOriginal) {
+													return exifResolve(null);
+												}
+
+												const [datePart, timePart] = dateTimeOriginal.split(' ');
+												const [year, month, day] = datePart.split(':');
+												const [hours, minutes, seconds] = timePart.split(':');
+												const date = new Date(year, month - 1, day, hours, minutes, seconds);
+												const time = date.getTime();
+
+												if (!isNaN(time)) {
+													console.log('[EXIF] 解析到拍摄时间:', date.toLocaleString());
+													exifResolve(time);
+												} else {
+													exifResolve(null);
+												}
+											} catch (e) {
+												// 捕获回调内部错误
+												exifReject(e);
+											}
+										});
 									});
+
+									// 如果成功解析到时间，则使用
+									if (exifTime) {
+										shootingTime = exifTime;
+									}
 								} catch (exifError) {
 									console.warn('[EXIF] 解析失败，使用当前时间:', exifError);
 								}
@@ -610,12 +635,12 @@ export default {
 	font-size: 14px;
 	white-space: nowrap;
 	background-color: #f0f7ff;
-	color: #0086f6;
+	color: #eb6d20;
 	transition: all 0.2s ease;
 }
 
 .day-tab.active {
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	color: white;
 	box-shadow: 0 2rpx 4rpx rgba(0, 134, 246, 0.3);
 }
@@ -641,7 +666,7 @@ export default {
 	transition: all 0.2s;
 }
 .filter-tab.active {
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	color: #fff;
 	font-weight: bold;
 }
@@ -703,11 +728,11 @@ export default {
 	width: 100rpx;
 	height: 100rpx;
 	border-radius: 50%;
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	box-shadow: 0 4rpx 12rpx rgba(0, 134, 246, 0.4);
+	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.4);
 	z-index: 10;
 }
 
@@ -738,7 +763,7 @@ export default {
 }
 
 .upload-fab {
-	background-color: #0086f6;
+	background-color: #eb6d20;
 }
 
 .share-fab {

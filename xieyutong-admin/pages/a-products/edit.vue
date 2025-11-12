@@ -119,9 +119,23 @@ export default {
 				product_id: '',
 				title: '',
 				subtitle: '',
+				route_title: '',
+				route_overview: {
+					transport: '',
+					accommodation: '',
+					spots: '',
+					meals: '',
+					activities: ''
+				},
 				price: null,
 				child_price: null,
 				rating: 5,
+				good_rate: 100,
+				rating_spec: {
+					itinerary: 5,
+					accommodation: 5,
+					service: 5
+				},
 				product_images: [],
 				detail_images: [],
 				duration_days: 1,
@@ -595,6 +609,7 @@ export default {
 				const res = await itineraryService.partialUpdateItinerary(payload);
 
 				if (res.errCode === 0) {
+					uni.showToast({ title: '自动保存成功', icon: 'success', duration: 1500 });
 					console.log('✅ [局部更新] 云对象方法执行成功');
 				} else {
 					// 如果云对象返回了错误，就抛出它

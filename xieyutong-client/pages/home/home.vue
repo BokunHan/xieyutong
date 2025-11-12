@@ -1,143 +1,106 @@
 <template>
 	<view class="min-h-screen bg-gray-50">
-		<!-- 固定头部导航 -->
-		<view class="fixed-header" :class="{ 'header-fixed': showFixedHeader }">
-			<!-- 状态栏安全区域 -->
+		<view class="page-header" id="page-header">
 			<view class="status-bar-safe-area" :style="{ height: statusBarHeight + 'px' }"></view>
 
-			<!-- 固定导航栏 -->
-			<view class="sticky-nav" :class="{ 'nav-visible': showFixedHeader }">
-				<view class="nav-content">
-					<!-- 导航搜索栏 -->
-					<view class="nav-search-bar" @click="goToSearch">
-						<text class="fa fa-search nav-search-icon"></text>
-						<text class="nav-search-placeholder">搜索目的地/产品</text>
-					</view>
-				</view>
-
-				<!-- 分类栏 -->
-				<view class="category-bar">
-					<scroll-view scroll-x="true" class="category-scroll">
-						<view class="category-list">
-							<view
-								v-for="(category, index) in categoryList"
-								:key="index"
-								class="category-item"
-								:class="{ 'category-active': selectedCategory === category.value }"
-								@click="selectCategory(category.value)">
-								{{ category.label }}
-							</view>
-						</view>
-					</scroll-view>
-				</view>
-
-				<!-- 排序栏 -->
-				<view class="sort-bar">
-					<view class="sort-tabs">
-						<view class="sort-tab" :class="{ 'sort-active': sortType === 'sales' }" @click="changeSortType('sales')">
-							<text>销量</text>
-							<text v-if="sortType === 'sales'" class="fa fa-arrow-down sort-arrow"></text>
-						</view>
-						<view class="sort-tab" :class="{ 'sort-active': sortType === 'price' }" @click="changeSortType('price')">
-							<text>价格</text>
-							<text v-if="sortType === 'price'" class="fa fa-arrow-down sort-arrow"></text>
-						</view>
-						<view class="sort-tab" :class="{ 'sort-active': sortType === 'newest' }" @click="changeSortType('newest')">
-							<text>新品</text>
-							<text v-if="sortType === 'newest'" class="fa fa-arrow-down sort-arrow"></text>
-						</view>
+			<view class="top-nav-bar">
+				<view class="logo-container">
+					<image src="/static/logo.jpg" class="logo-img" mode="aspectFill"></image>
+					<view class="logo-text-group">
+						<view class="app-title">风漫国际旅行</view>
+						<view class="app-slogan">随风漫行 × 向心而生</view>
 					</view>
 				</view>
 			</view>
 		</view>
 
-		<!-- 主滚动区域 -->
-		<scroll-view
-			scroll-y
-			scroll-with-animation
-			class="main-scroll-area"
-			:style="{ height: screenHeight + 'px' }"
-			:scroll-top="scrollViewScrollTop"
-			@scroll="onScroll"
-			ref="mainScrollView"
-			id="main-scroll-view">
-			<!-- Banner区域 -->
+		<scroll-view scroll-y scroll-with-animation class="main-scroll-area" :style="{ paddingTop: headerHeight + 'px' }" ref="mainScrollView" id="main-scroll-view">
+			<view class="search-bar-container" @click="goToSearch">
+				<view class="search-bar-content">
+					<!-- <text class="fa fa-search search-bar-icon"></text> -->
+					<image src="/static/icons/search.svg" class="search-icon" mode="aspectFit" />
+					<text class="search-text-placeholder">国内游 / 私家团</text>
+				</view>
+			</view>
+
+			<!-- <view class="hot-search-container">
+				<view class="hot-search-tag-active">热搜</view>
+				<view class="hot-search-tag" v-for="(tag, index) in hotSearchTags" :key="index">{{ tag }}</view>
+			</view> -->
+
 			<view class="banner-container">
-				<!-- Loading状态 -->
 				<view v-if="bannerLoading" class="banner-loading">
 					<view class="loading-spinner"></view>
 					<text class="loading-text">正在加载...</text>
 				</view>
 
-				<!-- 错误状态 -->
 				<view v-else-if="bannerError" class="banner-error">
 					<view class="error-icon">⚠️</view>
 					<text class="error-text">{{ bannerErrorMsg }}</text>
 					<button class="retry-btn" @click="refreshBannerData">重新加载</button>
 				</view>
-
-				<!-- 正常Banner显示 -->
 				<template v-else-if="bannerList.length > 0">
-					<!-- 轮播图 -->
 					<swiper
 						class="banner-swiper"
+						:circular="true"
 						:indicator-dots="true"
 						:autoplay="true"
 						:interval="5000"
 						:duration="500"
-						indicator-color="rgba(255, 255, 255, 0.5)"
-						indicator-active-color="white"
+						indicator-color="rgba(0, 0, 0, 0.2)"
+						indicator-active-color="#333"
 						@change="onSwiperChange">
 						<swiper-item v-for="(banner, index) in bannerList" :key="index">
-							<image :src="banner.image" class="banner-img" mode="aspectFill"></image>
+							<image :src="banner.image" class="banner-img" mode="aspectFill" @click="handleBannerClick(banner)"></image>
+							<view class="banner-content">
+								<view class="banner-title">{{ banner.title }}</view>
+								<view class="banner-subtitle">{{ banner.subtitle }}</view>
+							</view>
 						</swiper-item>
 					</swiper>
-
-					<!-- Banner内容 -->
-					<view class="banner-content">
-						<view class="banner-title">{{ bannerList[currentBannerIndex].title }}</view>
-						<view class="banner-subtitle">{{ bannerList[currentBannerIndex].subtitle }}</view>
-						<view class="explore-btn" @click="handleBannerClick(bannerList[currentBannerIndex])">{{ bannerList[currentBannerIndex].button_name }}</view>
-					</view>
-
-					<!-- 滚动提示 -->
-					<view class="scroll-hint" @click="scrollToContent">
-						<text class="fa fa-chevron-down"></text>
-					</view>
 				</template>
-
-				<!-- 无数据状态 -->
-				<view v-else class="banner-empty">
-					<view class="empty-icon">📷</view>
-					<text class="empty-text">暂无轮播图数据</text>
-					<button class="retry-btn" @click="refreshBannerData">重新加载</button>
-				</view>
 			</view>
 
-			<!-- 内容区域 -->
+			<!-- <view class="icon-grid-container">
+				<view class="icon-grid">
+					<view class="icon-item" v-for="(item, index) in iconGridList" :key="index">
+						<view class="icon-wrapper">
+							<image :src="item.icon" class="icon-item-img" mode="aspectFit" />
+						</view>
+						<text class="icon-label">{{ item.label }}</text>
+					</view>
+				</view>
+			</view> -->
+
 			<view class="content-area" id="content-area">
-				<!-- 产品列表加载状态 -->
+				<view class="section-title">
+					<text class="section-title-text">精品私家团</text>
+					<!-- <view class="section-title-more">
+						<text class="section-title-more-text">查看全部</text>
+						<image src="/static/icons/right.svg" class="right-icon" mode="aspectFit" />
+					</view> -->
+				</view>
+
 				<view v-if="productLoading" class="product-loading">
 					<view class="loading-spinner"></view>
 					<text class="loading-text">正在加载产品数据...</text>
 				</view>
 
-				<!-- 产品列表错误状态 -->
 				<view v-else-if="productError" class="product-error">
 					<view class="error-icon">⚠️</view>
 					<text class="error-text">{{ productErrorMsg }}</text>
 					<button class="retry-btn" @click="loadProductData">重新加载</button>
 				</view>
 
-				<!-- 产品列表 -->
 				<template v-else-if="displayProductList.length > 0">
 					<view v-for="(product, index) in displayProductList" :key="product.id || index" class="product-card" @click="goToProductDetail(product.id)">
 						<image :src="product.image" class="product-img" mode="aspectFill"></image>
 						<view class="product-info">
 							<view class="product-title">{{ product.title }}</view>
 							<view class="product-meta">
-								<view>
-									<text class="fa fa-star rating-star"></text>
+								<view class="product-rating">
+									<image src="/static/icons/star.svg" class="star-icon" mode="aspectFit" />
+									<!-- <text class="fa fa-star rating-star"></text> -->
 									<text>{{ product.rating }}分</text>
 								</view>
 								<view>已售{{ product.soldCount }}人</view>
@@ -152,53 +115,57 @@
 						</view>
 					</view>
 				</template>
-
-				<!-- 无数据状态 -->
-				<view v-else class="product-empty">
-					<view class="empty-icon">📦</view>
-					<text class="empty-text">暂无产品数据</text>
-					<button class="retry-btn" @click="loadProductData">重新加载</button>
-				</view>
 			</view>
 		</scroll-view>
+
+		<CouponModal :visible="showCouponModal" :couponList="newCouponData" @close="handleCloseCouponModal" @confirm="handleGoToCoupons" />
+		<UserInfoModal :visible="showUserInfoModal" @close="handleCloseUserInfoModal" />
 	</view>
 </template>
 
 <script>
+import CouponModal from '@/components/coupon-modal/coupon-modal.vue';
+import UserInfoModal from '@/components/userInfoModal/userInfoModal.vue';
+
 export default {
+	components: {
+		CouponModal,
+		UserInfoModal
+	},
 	data() {
 		return {
 			statusBarHeight: 0,
 			screenHeight: 0,
+			headerHeight: 0,
+			currentScrollTop: 0,
 			isLoading: false,
-			showFixedHeader: false, // 控制固定导航栏显示
-			scrollTimer: null, // 滚动节流计时器
-			// 添加scroll-view的scrollTop控制属性
 			scrollViewScrollTop: 0,
-			// 当前轮播图索引
 			currentBannerIndex: 0,
-			// Banner数据状态
 			bannerLoading: true,
 			bannerError: false,
 			bannerErrorMsg: '',
 			bannerList: [],
-			// 产品列表相关状态
 			productList: [],
 			productLoading: false,
 			productError: false,
 			productErrorMsg: '',
-			// 分类和排序相关状态
-			selectedCategory: 'all',
-			sortType: 'default', // default, sales, price
-			categoryList: [
-				{ label: '全部', value: 'all' },
-				{ label: '精品推荐', value: '精品推荐' },
-				{ label: '国内游', value: '国内游' },
-				{ label: '出境游', value: '出境游' },
-				{ label: '周边游', value: '周边游' },
-				{ label: '自由行', value: '自由行' },
-				{ label: '跟团游', value: '跟团游' }
-			]
+
+			hotSearchTags: ['北疆', '禾木雪村', '喀纳斯', '滑雪', '领队带玩'],
+
+			iconGridList: [
+				{ label: '国内出游', icon: '/static/icons/map-o.svg' },
+				{ label: '境外逸游', icon: '/static/icons/earth-o.svg' },
+				{ label: '精品小团', icon: '/static/icons/truck-o.svg' },
+				{ label: '私家主题', icon: '/static/icons/star-o.svg' },
+				{ label: '野奢营地', icon: '/static/icons/house-o.svg' },
+				{ label: '高端定制', icon: '/static/icons/write-o.svg' },
+				{ label: '超能领队', icon: '/static/icons/circle-user-o.svg' },
+				{ label: '旅行日历', icon: '/static/icons/calendar-o.svg' }
+			],
+
+			showCouponModal: false,
+			newCouponData: [],
+			showUserInfoModal: false
 		};
 	},
 	computed: {
@@ -226,43 +193,20 @@ export default {
 		// 过滤和排序后的产品列表
 		displayProductList() {
 			let filteredList = [...this.productList];
-
-			// 分类过滤
-			if (this.selectedCategory !== 'all') {
-				filteredList = filteredList.filter((product) => product.category === this.selectedCategory);
-			}
-
-			// 排序
-			if (this.sortType === 'sales') {
-				filteredList.sort((a, b) => b.soldCount - a.soldCount);
-			} else if (this.sortType === 'price') {
-				filteredList.sort((a, b) => {
-					const priceA = typeof a.price === 'string' ? parseFloat(a.price.replace(/[^0-9.]/g, '')) : a.price;
-					const priceB = typeof b.price === 'string' ? parseFloat(b.price.replace(/[^0-9.]/g, '')) : b.price;
-					return priceA - priceB;
-				});
-			} else if (this.sortType === 'newest') {
-				// 按创建时间倒序排列（新品在前）
-				filteredList.sort((a, b) => {
-					// 如果有创建时间字段，使用创建时间排序
-					// 否则按照sort_order排序
-					return b.sort_order - a.sort_order;
-				});
-			} else {
-				filteredList.sort((a, b) => (b.sort_order || 0) - (a.sort_order || 0));
-			}
+			filteredList.sort((a, b) => (b.sort_order || 0) - (a.sort_order || 0));
 
 			return filteredList;
 		}
 	},
 	// 页面卸载时清理资源
 	onUnload() {
-		if (this.scrollTimer) {
-			clearTimeout(this.scrollTimer);
-			this.scrollTimer = null;
-		}
+		// if (this.scrollTimer) {
+		// 	clearTimeout(this.scrollTimer);
+		// 	this.scrollTimer = null;
+		// }
 	},
 	async onLoad() {
+		getApp().globalData.isModalShowing = false;
 		console.log('=== 首页 onLoad 开始 ===');
 
 		// 获取系统信息
@@ -274,18 +218,40 @@ export default {
 			statusBarHeight: this.statusBarHeight
 		});
 
-		// 加载banner数据
 		this.loadBannerData();
-
-		// 加载产品数据
 		this.loadProductData();
 
-		// 检查是否有进行中的行程
-		await this.checkCurrentItinerary();
+		// 加载banner数据
+		// this.loadBannerData();
+
+		// // 加载产品数据
+		// this.loadProductData();
+
+		// // 调用检查优惠券的方法
+		// await this.checkNewCouponModal();
+
+		// // 检查是否有进行中的行程
+		// await this.checkCurrentItinerary();
 
 		console.log('=== 首页 onLoad 结束 ===');
 	},
-	onShow() {
+	onReady() {
+		try {
+			const query = uni.createSelectorQuery().in(this);
+			query
+				.select('#page-header')
+				.boundingClientRect((data) => {
+					if (data) {
+						this.headerHeight = data.height;
+						console.log('📐 头部高度计算:', this.headerHeight);
+					}
+				})
+				.exec();
+		} catch (e) {
+			console.error('计算头部高度失败:', e);
+		}
+	},
+	async onShow() {
 		// 检查是否有搜索关键词
 		const searchText = getApp().globalData.searchText;
 		if (searchText) {
@@ -295,100 +261,166 @@ export default {
 			// 清除搜索关键词，避免重复过滤
 			getApp().globalData.searchText = '';
 		}
+
+		const justLoggedIn = getApp().globalData.justLoggedIn;
+		if (justLoggedIn) {
+			getApp().globalData.justLoggedIn = false; // 立即清除标志
+			// 刚登录，强制刷新所有检查
+			this.checkAndShowModals(true); // true = 强制检查
+		} else {
+			// 普通进入，按缓存策略检查
+			this.checkAndShowModals(false); // false = 使用缓存
+		}
 	},
 	methods: {
-		// 滚动事件处理 - 优化性能
-		onScroll(e) {
-			const scrollTop = e.detail.scrollTop;
-			// 使用节流优化滚动性能
-			if (this.scrollTimer) {
-				clearTimeout(this.scrollTimer);
+		// 统一的弹窗检查逻辑
+		async checkAndShowModals(forceCheck = false) {
+			// 0. 检查是否已登录
+			const token = uni.getStorageSync('uni_id_token');
+			if (!token) {
+				console.log('[ModalCheck] 未登录，跳过所有检查');
+				return;
 			}
-			this.scrollTimer = setTimeout(() => {
-				// 当滚动超过banner高度时显示固定导航栏
-				const shouldShow = scrollTop > this.screenHeight * 0.6;
-				if (this.showFixedHeader !== shouldShow) {
-					this.showFixedHeader = shouldShow;
+
+			// 1. 检查是否已在显示弹窗
+			if (getApp().globalData.isModalShowing) {
+				console.log('[ModalCheck] 已有弹窗显示中，跳过');
+				return;
+			}
+
+			// 2. 检查用户信息是否完整
+			// (forceCheck=true 时，刚登录，必须检查)
+			const userInfoComplete = uni.getStorageSync('userInfoComplete');
+			if (forceCheck || !userInfoComplete) {
+				const checkRes = await this.checkUserInfoComplete();
+				if (!checkRes.complete) {
+					// 信息不完整，显示弹窗
+					console.log('[ModalCheck] 用户信息不全，显示弹窗');
+					getApp().globalData.isModalShowing = true;
+					this.showUserInfoModal = true;
+					return; // 优先显示信息弹窗，阻止优惠券弹窗
+				} else {
+					console.log('[ModalCheck] 用户信息完整');
 				}
-			}, 16); // 约60fps
+			}
+
+			// 3. (用户信息完整) 检查优惠券
+			await this.checkNewCouponModal();
+
+			// 4. (无弹窗) 检查行程
+			await this.checkCurrentItinerary();
 		},
 
-		// 分类选择 - 优化用户体验
-		selectCategory(category) {
-			console.log('🏷️ 选择分类:', category);
-			this.selectedCategory = category;
+		// 检查用户信息完整性
+		async checkUserInfoComplete() {
+			try {
+				const db = uniCloud.database();
+				const userRes = await db.collection('uni-id-users').where('_id == $cloudEnv_uid').field('nickname, avatar_file, mobile_confirmed').get({ getOne: true });
 
-			// 添加触觉反馈
-			// #ifdef MP-WEIXIN
-			uni.vibrateShort({
-				type: 'light'
-			});
-			// #endif
-
-			// 滚动到产品区域
-			this.scrollToProductList();
+				if (userRes.result.data) {
+					const user = userRes.result.data;
+					// 检查关键字段是否存在
+					if (user.nickname && user.avatar_file && user.mobile_confirmed) {
+						uni.setStorageSync('userInfoComplete', true); // 存入缓存
+						return { complete: true };
+					}
+				}
+			} catch (e) {
+				console.error('检查用户信息失败:', e);
+			}
+			uni.removeStorageSync('userInfoComplete'); // 检查失败或信息不全
+			return { complete: false };
 		},
 
-		// 排序类型切换 - 优化交互
-		changeSortType(sortType) {
-			console.log('🔄 切换排序:', sortType);
-
-			// 添加触觉反馈
-			// #ifdef MP-WEIXIN
-			uni.vibrateShort({
-				type: 'light'
-			});
-			// #endif
-
-			if (this.sortType === sortType) {
-				// 如果点击相同的排序，则切换为默认排序
-				this.sortType = 'default';
-				uni.showToast({
-					title: '恢复默认排序',
-					icon: 'none',
-					duration: 1500
-				});
+		// 处理用户信息弹窗关闭
+		handleCloseUserInfoModal(e) {
+			this.showUserInfoModal = false;
+			getApp().globalData.isModalShowing = false; // 解锁
+			if (e.success) {
+				// 如果提交成功，立即重新检查后续流程
+				this.checkAndShowModals(false);
 			} else {
-				this.sortType = sortType;
-				const sortNames = {
-					sales: '按销量排序',
-					price: '按价格排序',
-					newest: '按新品排序'
-				};
-				uni.showToast({
-					title: sortNames[sortType],
-					icon: 'none',
-					duration: 1500
-				});
+				// 用户取消
+				this.checkAndShowModals(false);
 			}
 		},
 
-		// 滚动到产品列表区域
-		scrollToProductList() {
+		/**
+		 * 检查是否有新的手动发放的优惠券
+		 */
+		async checkNewCouponModal() {
+			console.log('[首页] 检查是否有新优惠券');
+
+			// 检查登录状态
+			const token = uni.getStorageSync('uni_id_token');
+			const tokenExpired = uni.getStorageSync('uni_id_token_expired');
+
+			if (!token || (tokenExpired && Date.now() > tokenExpired)) {
+				console.log('[首页] 用户未登录，不检查优惠券');
+				return;
+			}
+
+			if (getApp().globalData.isModalShowing) {
+				console.log('[首页] 已有其他弹窗，跳过优惠券检查');
+				return;
+			}
+
 			try {
-				const query = uni.createSelectorQuery().in(this);
-				query.select('#content-area').boundingClientRect();
-				query.exec((res) => {
-					if (res && res[0]) {
-						const targetScrollTop = this.screenHeight - 50;
-						this.scrollViewScrollTop = targetScrollTop;
+				// 调用云对象
+				const { result } = await uniCloud.callFunction({
+					name: 'coupon-service',
+					data: {
+						action: 'getNewManualCoupon',
+						event: { uniIdToken: token }
 					}
 				});
+
+				console.log('[首页] 新优惠券检查结果:', result);
+
+				if (result.errCode === 0 && result.data) {
+					// 找到了新的优惠券
+					this.newCouponData = result.data;
+					this.showCouponModal = true;
+					getApp().globalData.isModalShowing = true;
+					console.log(`[首页] 发现 ${result.data.length} 张新优惠券，准备弹窗:`, result.data);
+				} else {
+					console.log('[首页] 没有新的优惠券');
+				}
 			} catch (error) {
-				console.error('滚动到产品列表失败:', error);
+				console.error('[首页] 检查新优惠券失败:', error);
+				// 即便失败了也不打扰用户
 			}
+		},
+
+		/**
+		 * 关闭弹窗
+		 */
+		handleCloseCouponModal() {
+			this.showCouponModal = false;
+			this.newCouponData = [];
+			getApp().globalData.isModalShowing = false;
+		},
+
+		/**
+		 * 点击“立即查看”
+		 */
+		handleGoToCoupons() {
+			this.showCouponModal = false;
+			this.newCouponData = [];
+			getApp().globalData.isModalShowing = false;
+			uni.navigateTo({
+				url: '/pages/coupon/list'
+			});
+		},
+
+		// 滚动事件处理 - 优化性能
+		onScroll(e) {
+			this.currentScrollTop = e.detail.scrollTop;
 		},
 
 		// 优化搜索跳转体验
 		goToSearch() {
 			console.log('🔍 跳转到搜索页面');
-
-			// 添加触觉反馈
-			// #ifdef MP-WEIXIN
-			uni.vibrateShort({
-				type: 'light'
-			});
-			// #endif
 
 			uni.navigateTo({
 				url: '/pages/search/search',
@@ -475,6 +507,13 @@ export default {
 
 		// 检查是否有进行中的行程
 		async checkCurrentItinerary() {
+			// 检查优惠券弹窗是否将要显示
+			if (this.showCouponModal) {
+				console.log('[首页] 已有新优惠券弹窗，本次不检查/跳转行程');
+				// 阻止后续的行程检查和跳转
+				return;
+			}
+
 			try {
 				console.log('[首页] 检查是否有进行中的行程');
 
@@ -857,52 +896,6 @@ export default {
 			return tag;
 		},
 
-		// 根据搜索关键词过滤产品列表
-		filterProductsBySearch(searchText) {
-			console.log('=== filterProductsBySearch 开始 ===');
-			console.log('🔍 搜索关键词:', searchText);
-			console.log('📊 当前产品列表长度:', this.productList.length);
-
-			if (!searchText || searchText.trim() === '') {
-				console.log('⚠️ 搜索关键词为空，不进行过滤');
-				return;
-			}
-
-			const keyword = searchText.trim().toLowerCase();
-			console.log('🔍 处理后的搜索关键词:', keyword);
-
-			// 过滤产品列表
-			const filteredList = this.productList.filter((product) => {
-				const titleMatch = product.title && product.title.toLowerCase().includes(keyword);
-				const subtitleMatch = product.subtitle && product.subtitle.toLowerCase().includes(keyword);
-				console.log(`🔍 产品"${product.title}"匹配结果:`, {
-					标题匹配: titleMatch,
-					副标题匹配: subtitleMatch,
-					最终匹配: titleMatch || subtitleMatch
-				});
-				return titleMatch || subtitleMatch;
-			});
-
-			console.log('✅ 过滤结果:', {
-				原始数量: this.productList.length,
-				过滤后数量: filteredList.length,
-				过滤关键词: keyword
-			});
-
-			this.productList = filteredList;
-
-			if (filteredList.length === 0) {
-				console.log('⚠️ 没有找到匹配的产品');
-				uni.showToast({
-					title: '未找到相关产品',
-					icon: 'none',
-					duration: 2000
-				});
-			}
-
-			console.log('=== filterProductsBySearch 结束 ===');
-		},
-
 		// 格式化价格显示
 		formatPrice(price) {
 			console.log('💰 formatPrice 输入:', price, '类型:', typeof price);
@@ -946,316 +939,267 @@ export default {
 
 <style>
 /* 首页样式 */
-/* 固定头部导航样式 */
-.fixed-header {
+/* 1. 新的固定头部样式 */
+.page-header {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	z-index: 100;
-	transition: all 0.3s ease;
-}
-
-/* 状态栏安全区域 */
-.status-bar-safe-area {
-	width: 100%;
-	background-color: transparent;
-	transition: background-color 0.3s ease;
-}
-
-.header-fixed .status-bar-safe-area {
-	background-color: rgba(255, 255, 255, 0.95);
-}
-
-/* 支持刘海屏等特殊屏幕 */
-.fixed-header {
-	/* iOS安全区域适配 */
+	/* 背景改为白色 */
+	background-color: white;
 	padding-top: constant(safe-area-inset-top);
 	padding-top: env(safe-area-inset-top);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
-.header-fixed {
-	background-color: rgba(255, 255, 255, 0.95);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.status-bar-safe-area {
+	width: 100%;
 }
 
-/* 固定导航栏 */
-.sticky-nav {
-	opacity: 0;
-	transform: translateY(-100%);
-	transition: all 0.3s ease;
-	pointer-events: none;
-}
-
-.nav-visible {
-	opacity: 1;
-	transform: translateY(0);
-	pointer-events: auto;
-}
-
-.nav-content {
-	padding: 8px 16px;
-}
-
-/* 导航搜索栏 - 匹配设计图的白色搜索框 */
-.nav-search-bar {
-	background-color: #ffffff;
-	border-radius: 20px;
-	padding: 10px 16px;
+/* 顶部Logo栏 */
+.top-nav-bar {
 	display: flex;
 	align-items: center;
-	margin-bottom: 8px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-	border: 1px solid #e0e0e0;
+	justify-content: space-between;
+	padding: 8px 16px;
+	height: 44px; /* 标准导航栏高度 */
 }
 
-.nav-search-icon {
-	color: #ff6b35;
-	margin-right: 8px;
-	font-size: 16px;
+.logo-container {
+	display: flex;
+	align-items: center;
 }
 
-.nav-search-placeholder {
+.logo-img {
+	width: 49px;
+	height: 40px;
+	border-radius: 8px;
+}
+
+.logo-text-group {
+	display: flex;
+	flex-direction: column;
+	color: #333;
+}
+
+.app-title {
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.app-slogan {
+	font-size: 11px;
+	color: #888;
+	line-height: 1.3;
+}
+
+/* 固定搜索栏 */
+.search-bar-container {
+	padding: 8px 16px;
+	margin-top: 6px;
+}
+
+.search-bar-content {
+	display: flex;
+	align-items: center;
+	background-color: #f5f5f5;
+	border-radius: 20px;
+	border-color: rgba(255, 107, 53, 0.1);
+	border-radius: 18px;
+	border-style: solid;
+	padding: 10px 16px;
+}
+
+.search-icon {
+	width: 20px;
+	height: 20px;
+	margin-right: 10px;
+}
+
+.search-text-placeholder {
 	color: #999;
 	font-size: 14px;
 	flex: 1;
 }
 
-/* 分类栏样式 - 匹配设计图的黄色标签 */
-.category-bar {
-	background-color: white;
-	padding: 8px 0;
-}
-
-.category-scroll {
-	white-space: nowrap;
-}
-
-.category-list {
-	display: inline-flex;
-	padding: 0 16px;
-}
-
-.category-item {
-	flex-shrink: 0;
-	padding: 8px 16px;
-	margin-right: 12px;
-	border-radius: 20px;
-	font-size: 14px;
-	background-color: #fff8f0;
-	color: #ff6b35;
-	white-space: nowrap;
-	transition: all 0.2s ease;
-	border: 1px solid #ffe4d6;
-	font-weight: 500;
-}
-
-.category-active {
-	background-color: #ff6b35;
-	color: white;
-	border-color: #ff6b35;
-	box-shadow: 0 2px 6px rgba(255, 107, 53, 0.3);
-}
-
-/* 排序栏样式 - 三个tab等分布局 */
-.sort-bar {
-	background-color: white;
-	padding: 0;
-	border-top: 1px solid #f0f0f0;
-}
-
-.sort-tabs {
-	display: flex;
-	width: 100%;
-}
-
-.sort-tab {
-	flex: 1;
+.hot-search-container {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	padding: 12px 0;
-	font-size: 14px;
-	color: #666;
-	position: relative;
-	transition: all 0.2s ease;
-	font-weight: 500;
-	border-right: 1px solid #f0f0f0;
+	padding: 0px 16px 12px;
+	margin-top: 10px;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	/* 隐藏滚动条 */
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
+.hot-search-container::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera */
 }
 
-.sort-tab:last-child {
-	border-right: none;
+.hot-search-tag,
+.hot-search-tag-active {
+	flex-shrink: 0;
+	padding: 6px 14px;
+	border-radius: 18px;
+	font-size: 13px;
+	margin-right: 10px;
+	background-color: #f5f5f5;
+	color: #555;
 }
-
-.sort-tab.sort-active {
-	color: #e53e3e;
-	background-color: #fef2f2;
-}
-
-.sort-arrow {
-	margin-left: 4px;
-	font-size: 10px;
-	transition: transform 0.2s ease;
-}
-
-/* Banner和产品卡片的颜色优化 */
-.hero-section {
-	background: linear-gradient(135deg, #0086f6 0%, #0066cc 100%);
+.hot-search-tag-active {
+	background-color: #ff6b35;
 	color: white;
-	padding: 20px;
-	border-radius: 0 0 20px 20px;
+	font-weight: 600;
 }
 
-/* 主滚动区域 */
+/* 2. 主滚动区域 */
 .main-scroll-area {
 	width: 100%;
+	/* padding-top 将由JS动态设置 */
+}
+.main-scroll-area ::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+	-webkit-appearance: none;
+	background: transparent;
+	color: transparent;
 }
 
-/* Banner容器 */
+/* 3. Banner容器 (新样式) */
 .banner-container {
 	position: relative;
-	height: 100vh;
+	height: 30vh; /* 缩小高度 */
 	overflow: hidden;
+	/* 为轮播图底部留出空间，避免裁切 */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	width: calc(100% - 24px);
+	margin: 8px auto;
+	border-radius: 12px;
 }
 
-/* 轮播图 */
 .banner-swiper {
 	width: 100%;
 	height: 100%;
-	/* 确保轮播图本身不响应点击 */
+	border-radius: 12px;
+	overflow: hidden;
 }
 
-/* 确保轮播项不响应点击 */
-.banner-swiper swiper-item {
-	pointer-events: none;
-}
-
-/* 确保图片区域没有点击效果 */
 .banner-img {
 	width: 100%;
 	height: 100%;
-	pointer-events: none; /* 禁用图片的点击事件 */
 }
 
-/* Banner内容 */
 .banner-content {
 	position: absolute;
-	bottom: 15%;
-	left: 0;
-	right: 0;
-	transform: translateY(-60%);
-	padding: 0 20px;
+	bottom: 30px; /* 距离底部30px (可调整) */
+	left: 20px;
+	right: 20px;
 	color: white;
-	z-index: 3;
-	text-align: center;
-	/* 允许内容区域的事件传递，但不阻止按钮点击 */
-	pointer-events: auto;
+	z-index: 10;
+	/* 添加文字阴影，使其在亮色背景下更清晰 */
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .banner-title {
-	font-family: 'Playfair Display', serif;
-	font-size: 36px;
+	font-size: 22px;
 	font-weight: 600;
-	margin-bottom: 16px;
-	text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 0, 0, 0.6);
-	letter-spacing: 0.5px;
-	line-height: 1.2;
-	/* 标题不响应点击 */
-	pointer-events: none;
+	margin-bottom: 8px;
+	/* 最多显示1行 */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .banner-subtitle {
-	font-size: 18px;
-	font-weight: 300;
-	opacity: 0.95;
-	margin-bottom: 30px;
-	text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
-	letter-spacing: 1px;
-	/* 副标题不响应点击 */
-	pointer-events: none;
-}
-
-.explore-btn {
-	background-color: rgba(0, 0, 0, 0.3);
-	color: white;
-	padding: 12px 32px;
-	border-radius: 30px;
-	font-weight: 500;
-	display: inline-block;
-	border: 2px solid white;
-	letter-spacing: 1px;
-	transition: all 0.2s ease;
-	cursor: pointer;
-	position: relative;
-	z-index: 10;
-	backdrop-filter: blur(5px);
-	-webkit-backdrop-filter: blur(5px);
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.explore-btn:active {
-	transform: translateY(2px);
-	background-color: rgba(255, 255, 255, 0.2);
-	border-color: rgba(255, 255, 255, 0.8);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.explore-btn:hover {
-	background-color: rgba(255, 255, 255, 0.1);
-	transform: scale(1.05);
-}
-
-/* 滚动提示 */
-.scroll-hint {
-	position: absolute;
-	bottom: 10%;
-	left: 50%;
-	transform: translateX(-50%);
-	color: white;
-	font-size: 20px;
+	font-size: 14px;
 	opacity: 0.9;
-	z-index: 5;
-	width: 40px;
-	height: 40px;
+	/* 最多显示2行 */
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* 4. 新增图标网格 */
+.icon-grid-container {
+	margin: 8px 12px 8px 12px;
+	padding: 20px 16px;
+	border-radius: 16px;
+	position: relative;
+}
+.icon-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16px 8px;
+}
+.icon-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	color: #333;
+}
+.icon-wrapper {
+	width: 56px;
+	height: 56px;
+	border-color: rgba(255, 107, 53, 0.1);
+	border-radius: 18px;
+	border-style: solid;
+	border-width: 2px;
+	background-color: #fff8f3; /* 您的橙色配套浅色 */
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border: 1px solid rgba(255, 255, 255, 0.3);
-	border-radius: 50%;
-	background-color: rgba(0, 0, 0, 0.2);
-	backdrop-filter: blur(2px);
-	-webkit-backdrop-filter: blur(2px);
-	animation: bounce 2s infinite;
+	margin-bottom: 8px;
+}
+.icon-item-img {
+	width: 32px; /* 控制图标宽度 */
+	height: 32px; /* 控制图标高度 */
+}
+.icon-item-fa {
+	font-size: 22px;
+	color: #ff6b35; /* 您的主色 */
+}
+.icon-label {
+	font-size: 12px;
+	color: #444;
 }
 
-@keyframes bounce {
-	0%,
-	20%,
-	50%,
-	80%,
-	100% {
-		transform: translateY(0) translateX(-50%);
-	}
-	40% {
-		transform: translateY(-8px) translateX(-50%);
-	}
-	60% {
-		transform: translateY(-4px) translateX(-50%);
-	}
-}
-
-/* 内容区域 */
+/* 6. 内容区域 (产品列表) */
 .content-area {
-	padding: 32px 16px;
-	background-color: white;
-	position: relative;
-	z-index: 5;
-	margin-top: -20px;
-	border-top-left-radius: 24px;
-	border-top-right-radius: 24px;
-	box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+	padding: 16px 12px; /* 调整内边距 */
+	background-color: #f9f9f9; /* 浅灰色背景 */
+	/* 移除旧的负边距和圆角 */
+}
+
+/* 新增：章节标题 */
+.section-title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 4px 16px 4px; /* 匹配卡片边距 */
+}
+.section-title-text {
+	font-size: 18px;
+	font-weight: 600;
+	color: #333;
+}
+.section-title-more {
+	display: flex;
+	align-items: center;
+}
+.section-title-more-text {
+	font-size: 13px;
+	color: #999;
+}
+.right-icon {
+	width: 18px;
+	height: 18px;
 }
 
 /* 产品卡片 - 匹配设计图样式 */
@@ -1269,6 +1213,7 @@ export default {
 	border: 1px solid #f0f0f0;
 }
 
+/* ... (产品卡片 .product-card 内部样式保持不变) ... */
 .product-card:active {
 	transform: scale(0.98);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
@@ -1304,10 +1249,21 @@ export default {
 	color: #666666;
 }
 
-.rating-star {
+.product-rating {
+	display: flex;
+	align-items: center;
+}
+
+.star-icon {
+	width: 16px;
+	height: 16px;
+	margin-right: 3px;
+}
+
+/* .rating-star {
 	color: #ffb400;
 	margin-right: 4px;
-}
+} */
 
 .product-price {
 	display: flex;
@@ -1329,13 +1285,13 @@ export default {
 }
 
 .promotion-tag {
-	background-color: #fff2e8;
+	background-color: #fff8f3;
 	color: #ff6b35;
 	padding: 4px 8px;
 	border-radius: 12px;
 	font-size: 11px;
 	font-weight: 600;
-	border: 1px solid #ffe4d6;
+	border: 1px solid #fceae1;
 }
 
 /* 微动画效果 */
@@ -1348,11 +1304,11 @@ export default {
 	background-color: #f5f5f5;
 }
 
-.nav-search-bar:active {
+.search-bar-content:active {
 	transform: scale(0.98);
 }
 
-/* 加载状态优化 */
+/* ... (加载、错误、空状态样式保持不变) ... */
 .loading-spinner {
 	width: 50px;
 	height: 50px;
@@ -1366,15 +1322,6 @@ export default {
 .loading-text {
 	font-size: 16px;
 	opacity: 0.9;
-}
-
-/* 优化滚动条样式 */
-.category-scroll::-webkit-scrollbar {
-	display: none;
-}
-
-.category-scroll {
-	scrollbar-width: none;
 }
 
 @keyframes spin {
@@ -1394,26 +1341,12 @@ export default {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	height: 100vh;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	height: 35vh; /* 匹配新高度 */
+	background: linear-gradient(135deg, #cfd8dc 0%, #263238 100%);
 	color: white;
 	text-align: center;
 	padding: 40px 20px;
-}
-
-.loading-spinner {
-	width: 50px;
-	height: 50px;
-	border: 4px solid rgba(255, 255, 255, 0.3);
-	border-top: 4px solid white;
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-	margin-bottom: 20px;
-}
-
-.loading-text {
-	font-size: 16px;
-	opacity: 0.9;
+	border-radius: 0 0 20px 20px; /* 匹配新圆角 */
 }
 
 .error-icon,
@@ -1448,97 +1381,33 @@ export default {
 }
 
 /* 产品列表加载状态 */
-.product-loading {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	height: 100vh;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	text-align: center;
-	padding: 40px 20px;
-}
-
-/* 产品列表错误状态 */
-.product-error {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	height: 100vh;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	text-align: center;
-	padding: 40px 20px;
-}
-
-.loading-spinner {
-	width: 50px;
-	height: 50px;
-	border: 4px solid rgba(255, 255, 255, 0.3);
-	border-top: 4px solid white;
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-	margin-bottom: 20px;
-}
-
-.loading-text {
-	font-size: 16px;
-	opacity: 0.9;
-}
-
-.error-icon {
-	font-size: 60px;
-	margin-bottom: 20px;
-}
-
-.error-text {
-	font-size: 16px;
-	margin-bottom: 30px;
-	opacity: 0.9;
-	line-height: 1.4;
-}
-
-.retry-btn {
-	background-color: rgba(255, 255, 255, 0.2);
-	color: white;
-	border: 2px solid white;
-	border-radius: 25px;
-	padding: 12px 24px;
-	font-size: 16px;
-	font-weight: 500;
-	letter-spacing: 1px;
-	transition: all 0.3s ease;
-}
-
-.retry-btn:active {
-	background-color: rgba(255, 255, 255, 0.3);
-	transform: translateY(2px);
-}
-
-/* 无数据状态 */
+.product-loading,
+.product-error,
 .product-empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	height: 100vh;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
+	min-height: 300px; /* 避免撑满全屏 */
+	background-color: #f9f9f9;
+	color: #666; /* 更改文字颜色以适应浅色背景 */
 	text-align: center;
 	padding: 40px 20px;
 }
-
-.empty-icon {
-	font-size: 60px;
-	margin-bottom: 20px;
+/* 覆盖原有的深色背景和白色文字 */
+.product-loading .loading-spinner {
+	border: 4px solid rgba(0, 0, 0, 0.1);
+	border-top: 4px solid #ff6b35;
 }
-
-.empty-text {
-	font-size: 16px;
-	margin-bottom: 30px;
-	opacity: 0.9;
-	line-height: 1.4;
+.product-loading .loading-text,
+.product-error .error-text,
+.product-empty .empty-text {
+	color: #666;
+}
+.product-error .retry-btn,
+.product-empty .retry-btn {
+	background-color: #ff6b35;
+	color: white;
+	border: none;
 }
 </style>

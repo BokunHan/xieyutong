@@ -1,108 +1,116 @@
 {
-  "bsonType": "object",
-  "description": "优惠券表，支持手动发券和自动发券",
-  "required": ["title", "amount", "min_amount", "issue_type", "status"],
-  "permission": {
-    "read": true,
-    "create": "'admin' in auth.role || 'super_admin' in auth.role",
-    "update": "'admin' in auth.role || 'super_admin' in auth.role",
-    "delete": "'super_admin' in auth.role",
-    "count": true
-  },
-  "properties": {
-    "_id": {
-      "description": "系统自动生成的唯一标识"
-    },
-    "title": {
-      "bsonType": "string",
-      "description": "优惠券标题",
-      "title": "券名称",
-      "required": true,
-      "maxLength": 50
-    },
-    "description": {
-      "bsonType": "string",
-      "description": "优惠券描述",
-      "title": "券描述",
-      "maxLength": 200
-    },
-    "amount": {
-      "bsonType": "number",
-      "description": "优惠金额",
-      "title": "优惠金额",
-      "required": true,
-      "minimum": 0
-    },
-    "min_amount": {
-      "bsonType": "number",
-      "description": "最低消费金额（使用门槛）",
-      "title": "使用门槛",
-      "required": true,
-      "minimum": 0
-    },
-    "issue_type": {
-      "bsonType": "string",
-      "description": "发券类型",
-      "title": "发券类型",
-      "enum": ["manual", "auto_referral"],
-      "default": "manual",
-      "required": true
-    },
-    "total_count": {
-      "bsonType": "number",
-      "description": "发放总数量（0表示无限制，自动发券通常无限制）",
-      "title": "发放总数",
-      "minimum": 0,
-      "default": 0
-    },
-    "used_count": {
-      "bsonType": "number",
-      "description": "已使用数量",
-      "title": "已使用数",
-      "minimum": 0,
-      "default": 0
-    },
-    "valid_days": {
-      "bsonType": "number",
-      "description": "有效天数（从领取日开始计算）",
-      "title": "有效天数",
-      "minimum": 1,
-      "default": 180
-    },
-    "share_code": {
-      "bsonType": "string",
-      "description": "分享码，用于生成领券链接和二维码（仅手动发券使用）",
-      "title": "分享码",
-      "maxLength": 20
-    },
-    "auto_issue_condition": {
-      "bsonType": "string",
-      "description": "自动发券条件（auto_referral类型使用）",
-      "title": "自动发券条件",
-      "enum": ["referrer_reward", "referee_reward"],
-      "maxLength": 50
-    },
-    "status": {
-      "bsonType": "string",
-      "description": "优惠券状态",
-      "title": "状态",
-      "enum": ["active", "inactive"],
-      "default": "active",
-      "required": true
-    },
-    "created_at": {
-      "bsonType": "timestamp",
-      "description": "创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updated_at": {
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    }
-  }
-} 
+	"bsonType": "object",
+	"description": "优惠券表，支持手动发券和自动发券",
+	"required": ["title", "type", "amount", "min_amount", "issue_type", "status"],
+	"permission": {
+		"read": true,
+		"create": "'MANAGE_COUPONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role",
+		"update": "'MANAGE_COUPONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "'MANAGE_COUPONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role",
+		"count": true
+	},
+	"properties": {
+		"_id": {
+			"description": "系统自动生成的唯一标识"
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "优惠券标题",
+			"title": "券名称",
+			"required": true,
+			"maxLength": 50
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "优惠券描述",
+			"title": "券描述",
+			"maxLength": 200
+		},
+		"type": {
+			"bsonType": "string",
+			"description": "优惠类型",
+			"title": "优惠类型",
+			"enum": ["fixed", "percent"],
+			"default": "fixed",
+			"required": true
+		},
+		"amount": {
+			"bsonType": "number",
+			"description": "优惠金额",
+			"title": "优惠金额",
+			"required": true,
+			"minimum": 0
+		},
+		"min_amount": {
+			"bsonType": "number",
+			"description": "最低消费金额（使用门槛）",
+			"title": "使用门槛",
+			"required": true,
+			"minimum": 0
+		},
+		"issue_type": {
+			"bsonType": "string",
+			"description": "发券类型",
+			"title": "发券类型",
+			"enum": ["manual", "auto_referral"],
+			"default": "manual",
+			"required": true
+		},
+		"total_count": {
+			"bsonType": "number",
+			"description": "发放总数量（0表示无限制，自动发券通常无限制）",
+			"title": "发放总数",
+			"minimum": 0,
+			"default": 0
+		},
+		"used_count": {
+			"bsonType": "number",
+			"description": "已使用数量",
+			"title": "已使用数",
+			"minimum": 0,
+			"default": 0
+		},
+		"valid_days": {
+			"bsonType": "number",
+			"description": "有效天数（从领取日开始计算）",
+			"title": "有效天数",
+			"minimum": 1,
+			"default": 180
+		},
+		"share_code": {
+			"bsonType": "string",
+			"description": "分享码，用于生成领券链接和二维码（仅手动发券使用）",
+			"title": "分享码",
+			"maxLength": 20
+		},
+		"auto_issue_condition": {
+			"bsonType": "string",
+			"description": "自动发券条件（auto_referral类型使用）",
+			"title": "自动发券条件",
+			"enum": ["referrer_reward", "referee_reward"],
+			"maxLength": 50
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "优惠券状态",
+			"title": "状态",
+			"enum": ["active", "inactive"],
+			"default": "active",
+			"required": true
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

@@ -29,7 +29,7 @@
 					<view class="flex items-center space-x-3 flex-1 min-w-0">
 						<view class="flex-1 max-w-md">
 							<uni-easyinput
-								v-model="query"
+								v-model="searchQuery"
 								placeholder="搜索商品标题、副标题或携程商品ID"
 								prefixIcon="search"
 								:clearable="true"
@@ -86,7 +86,7 @@
 			<unicloud-db
 				ref="udb"
 				:collection="collectionList"
-				field="_id,ctrip_id,title,subtitle,price,child_price,product_images,status,created_at"
+				field="_id,ctrip_id,title,subtitle,route_title,duration_days,price,child_price,product_images,status,created_at"
 				:where="where"
 				page-data="replace"
 				:orderby="orderby"
@@ -120,7 +120,7 @@
 							<el-table-column type="selection" width="40" :reserve-selection="true" />
 
 							<!-- 商品ID -->
-							<el-table-column prop="_id" label="商品ID" width="140" show-overflow-tooltip>
+							<!-- <el-table-column prop="_id" label="商品ID" width="140" show-overflow-tooltip>
 								<template #default="scope">
 									<div class="flex items-center">
 										<el-text type="info" class="cursor-pointer hover:text-blue-600" @click="copyToClipboard(scope.row._id)">
@@ -129,7 +129,7 @@
 										<i class="fas fa-copy text-gray-400 ml-2 cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(scope.row._id)"></i>
 									</div>
 								</template>
-							</el-table-column>
+							</el-table-column> -->
 
 							<!-- 携程商品ID -->
 							<el-table-column prop="ctrip_id" label="携程商品ID" width="120" show-overflow-tooltip>
@@ -150,8 +150,12 @@
 										<div class="font-medium text-gray-900 line-clamp-2 mb-1">
 											{{ scope.row.title || '未设置标题' }}
 										</div>
-										<div class="text-xs text-gray-500 line-clamp-3" v-if="scope.row.subtitle">
+										<div class="text-xs text-gray-500 line-clamp-2" v-if="scope.row.subtitle">
 											{{ scope.row.subtitle }}
+										</div>
+										<div class="text-xs text-blue-600 line-clamp-1 mt-1" v-if="scope.row.route_title">
+											<i class="fas fa-route mr-1" style="font-size: 11px"></i>
+											{{ scope.row.route_title }}
 										</div>
 									</div>
 								</template>
@@ -187,6 +191,38 @@
 							<el-table-column prop="child_price" label="儿童价格" width="120" sortable>
 								<template #default="scope">
 									<el-text type="warning" v-if="scope.row.child_price">¥{{ scope.row.child_price }}</el-text>
+									<el-text type="info" v-else>-</el-text>
+								</template>
+							</el-table-column>
+
+							<!-- 天数 -->
+							<el-table-column prop="duration_days" label="天数" width="100" sortable>
+								<template #header>
+									<div class="flex items-center">
+										<span>天数</span>
+										<el-popover placement="bottom" title="筛选天数" :width="200" trigger="click" v-model:visible="durationPopoverVisible">
+											<template #reference>
+												<el-button type="primary" link class="ml-1 !p-1" :class="durationFilter ? 'text-blue-500' : 'text-gray-400'" @click.stop title="筛选天数">
+													<i class="fas fa-filter"></i>
+												</el-button>
+											</template>
+											<template #default>
+												<el-select
+													v-if="durationPopoverVisible"
+													v-model="durationFilter"
+													placeholder="选择天数 (1-15)"
+													clearable
+													class="w-full"
+													size="small"
+													@change="onDurationChange">
+													<el-option v-for="n in 15" :key="n" :label="`${n} 天`" :value="n" />
+												</el-select>
+											</template>
+										</el-popover>
+									</div>
+								</template>
+								<template #default="scope">
+									<el-text v-if="scope.row.duration_days > 0">{{ scope.row.duration_days }} 天</el-text>
 									<el-text type="info" v-else>-</el-text>
 								</template>
 							</el-table-column>
@@ -304,13 +340,15 @@ export default {
 	data() {
 		return {
 			collectionList: 'a-products',
-			query: '',
+			searchQuery: '',
 			where: '',
 			orderby: dbOrderBy,
 			orderByFieldName: '',
 			selectedIndexs: [],
 			selectedRows: [], // element-plus选中的行数据
 			currentTime: '',
+			durationFilter: null,
+			durationPopoverVisible: false,
 			options: {
 				pageSize,
 				pageCurrent,
@@ -341,6 +379,7 @@ export default {
 	},
 	onLoad() {
 		this._filter = {};
+		this.buildWhereClause();
 		this.updateCurrentTime();
 		// 定时更新时间
 		setInterval(() => {
@@ -357,7 +396,8 @@ export default {
 		this.$nextTick(() => {
 			if (this.$refs.udb) {
 				console.log('✅ [列表页] udb 组件已就绪，调用 loadData() 刷新！');
-				this.$refs.udb.loadData();
+				// this.$refs.udb.loadData();
+				this.loadData();
 			} else {
 				console.error('❌ [列表页] onShow 中未能找到 udb 组件的引用！');
 			}
@@ -620,19 +660,48 @@ export default {
 			this.exportExcelData = data;
 		},
 
-		getWhere() {
-			const query = this.query.trim();
-			if (!query) {
-				return '';
+		buildWhereClause() {
+			let textConditions = [];
+			let durationCondition = '';
+			const query = this.searchQuery.trim();
+
+			if (query) {
+				textConditions = dbSearchFields.map((field) => {
+					return `/${query}/i.test(${field})`;
+				});
 			}
-			// 构建模糊搜索条件
-			const conditions = dbSearchFields.map((field) => `/${query}/i.test(${field})`);
-			return conditions.join(' || ');
+
+			if (this.durationFilter) {
+				durationCondition = `duration_days == ${this.durationFilter}`;
+			}
+
+			if (textConditions.length > 0 && durationCondition) {
+				this.where = `(${textConditions.join(' || ')}) && (${durationCondition})`;
+			} else if (textConditions.length > 0) {
+				this.where = textConditions.join(' || ');
+			} else if (durationCondition) {
+				this.where = durationCondition;
+			} else {
+				this.where = '';
+			}
+
+			console.log('Updated WHERE string:', this.where);
+		},
+
+		onDurationChange(value) {
+			console.log(`Duration filter changed to: ${value}`);
+
+			this.buildWhereClause();
+
+			this.$nextTick(() => {
+				this.loadData();
+			});
+
+			this.durationPopoverVisible = false;
 		},
 
 		search() {
-			const newWhere = this.getWhere();
-			this.where = newWhere;
+			this.buildWhereClause();
 			this.selectedIndexs = []; // 清空选择
 			this.$nextTick(() => {
 				this.loadData();
@@ -640,8 +709,8 @@ export default {
 		},
 
 		clearSearch() {
-			this.query = '';
-			this.where = '';
+			this.searchQuery = '';
+			this.buildWhereClause();
 			this.selectedIndexs = []; // 清空选择
 			this.$nextTick(() => {
 				this.loadData();
@@ -650,14 +719,16 @@ export default {
 
 		loadData(clear = true) {
 			this.$refs.udb.loadData({
-				clear
+				clear,
+				where: this.where
 			});
 		},
 
 		onPageChanged(e) {
 			this.selectedIndexs = []; // 切换页面时清空选择
 			this.$refs.udb.loadData({
-				current: e.current
+				current: e.current,
+				where: this.where
 			});
 		},
 
@@ -688,43 +759,23 @@ export default {
 			const selectedCount = this.selectedRows ? this.selectedRows.length : this.selectedIndexs.length;
 			if (!selectedCount) return;
 
-			this.$confirm(`确定要删除选中的 ${selectedCount} 个商品吗？此操作不可恢复。`, '确认删除', {
-				confirmButtonText: '确定',
-				cancelButtonText: '取消',
-				type: 'warning'
-			})
-				.then(() => {
-					this.$refs.udb.remove(this.selectedItems(), {
-						success: (res) => {
-							this.selectedIndexs = [];
-							this.selectedRows = [];
-							this.$message.success('删除成功');
-						}
-					});
-				})
-				.catch(() => {
-					// 用户取消删除
-				});
+			this.$refs.udb.remove(this.selectedItems(), {
+				success: (res) => {
+					this.selectedIndexs = [];
+					this.selectedRows = [];
+					this.$message.success('删除成功');
+				}
+			});
 		},
 
 		confirmDelete(id) {
-			this.$confirm('确定要删除这个商品吗？此操作不可恢复。', '确认删除', {
-				confirmButtonText: '确定',
-				cancelButtonText: '取消',
-				type: 'warning'
-			})
-				.then(() => {
-					this.$refs.udb.remove(id, {
-						success: (res) => {
-							this.selectedIndexs = [];
-							this.selectedRows = [];
-							this.$message.success('删除成功');
-						}
-					});
-				})
-				.catch(() => {
-					// 用户取消删除
-				});
+			this.$refs.udb.remove(id, {
+				success: (res) => {
+					this.selectedIndexs = [];
+					this.selectedRows = [];
+					this.$message.success('删除成功');
+				}
+			});
 		},
 
 		sortChange(e, name) {

@@ -1,23 +1,11 @@
 <template>
 	<view class="favorites-container">
 		<!-- 内容区域 -->
-		<scroll-view 
-			class="content-area" 
-			scroll-y
-			refresher-enabled
-			:refresher-triggered="isRefreshing"
-			@refresherrefresh="onRefresh"
-			@scrolltolower="onLoadMore"
-		>
+		<scroll-view class="content-area" scroll-y refresher-enabled :refresher-triggered="isRefreshing" @refresherrefresh="onRefresh" @scrolltolower="onLoadMore">
 			<!-- 收藏列表 -->
 			<view class="favorite-list">
 				<!-- 收藏项目 -->
-				<view 
-					class="favorite-card" 
-					v-for="(item, index) in favoriteItems" 
-					:key="item._id"
-					@click="goToProductDetail(item)"
-				>
+				<view class="favorite-card" v-for="(item, index) in favoriteItems" :key="item._id" @click="goToProductDetail(item)">
 					<view class="favorite-content">
 						<view class="flex">
 							<view class="w-20 h-20 rounded overflow-hidden flex-shrink-0">
@@ -30,12 +18,12 @@
 								<view class="product-rating-container">
 									<text class="rating-score">{{ item.product_rating }}分</text>
 									<view class="rating-stars">
-										<text 
-											class="fa fa-star" 
-											v-for="star in 5" 
+										<!-- <text class="fa fa-star" v-for="star in 5" :key="star" :class="star <= Math.floor(item.product_rating) ? 'star-active' : 'star-inactive'"></text> -->
+										<image
+											class="w-3 h-3"
+											v-for="star in 5"
 											:key="star"
-											:class="star <= Math.floor(item.product_rating) ? 'star-active' : 'star-inactive'"
-										></text>
+											:src="star <= Math.floor(item.product_rating) ? '/static/icons/star.svg' : '/static/icons/star-inactive.svg'" />
 									</view>
 									<text class="sales-count">已售{{ item.product_sales }}人</text>
 								</view>
@@ -45,9 +33,7 @@
 					<view class="favorite-footer">
 						<view class="text-orange-500 font-medium">¥{{ item.product_price }}/人起</view>
 						<view class="flex space-x-2">
-							<button class="cancel-button" @click.stop="removeFavorite(item, index)">
-								取消收藏
-							</button>
+							<button class="cancel-button" @click.stop="removeFavorite(item, index)">取消收藏</button>
 							<button class="orange-button" @click.stop="bookNow(item)">立即预订</button>
 						</view>
 					</view>
@@ -55,12 +41,13 @@
 
 				<!-- 空状态 -->
 				<view class="empty-state" v-if="favoriteItems.length === 0 && !isLoading">
-					<view class="flex flex-col items-center justify-center" style="height: 60vh;">
-					<text class="fa fa-heart empty-icon"></text>
-					<view class="empty-title">暂无收藏</view>
-					<view class="empty-desc">您还没有收藏任何商品</view>
-					<button class="browse-button" @click="goToBrowse">去逛逛</button>
-				</view>
+					<view class="flex flex-col items-center justify-center" style="height: 60vh">
+						<!-- <text class="fa fa-heart empty-icon"></text> -->
+						<image src="/static/icons/heart-gray.svg" class="w-12 h-12 mb-3" mode="aspectFit" />
+						<view class="empty-title">暂无收藏</view>
+						<view class="empty-desc">您还没有收藏任何商品</view>
+						<button class="browse-button" @click="goToBrowse">去逛逛</button>
+					</view>
 				</view>
 
 				<!-- 加载更多 -->
@@ -74,7 +61,7 @@
 
 		<!-- 加载中状态 -->
 		<view class="loading-state" v-if="isLoading && favoriteItems.length === 0">
-			<view class="flex flex-col items-center justify-center" style="height: 60vh;">
+			<view class="flex flex-col items-center justify-center" style="height: 60vh">
 				<text class="text-gray-500">加载中...</text>
 			</view>
 		</view>
@@ -107,9 +94,10 @@ const getFavoriteList = async (page = 1, isRefresh = false) => {
 		// 直接使用 ClientDB，会自动验证用户身份和权限
 		const db = uniCloud.database();
 		const skip = (page - 1) * pageSize;
-		
-		const result = await db.collection('a-favorites')
-			.where('user_id == $cloudEnv_uid')  // ClientDB 自动替换为当前用户ID
+
+		const result = await db
+			.collection('a-favorites')
+			.where('user_id == $cloudEnv_uid') // ClientDB 自动替换为当前用户ID
 			.orderBy('created_at desc')
 			.skip(skip)
 			.limit(pageSize)
@@ -119,7 +107,7 @@ const getFavoriteList = async (page = 1, isRefresh = false) => {
 
 		if (result.result && result.result.data) {
 			const newItems = result.result.data;
-			
+
 			if (page === 1) {
 				favoriteItems.value = newItems;
 			} else {
@@ -157,7 +145,7 @@ const onLoadMore = async () => {
 		console.log('[收藏列表] 没有更多数据或正在加载中');
 		return;
 	}
-	
+
 	console.log('[收藏列表] 上拉加载更多');
 	await getFavoriteList(currentPage.value + 1);
 };
@@ -165,7 +153,7 @@ const onLoadMore = async () => {
 // 取消收藏 - 直接使用 ClientDB
 const removeFavorite = async (item, index) => {
 	console.log('[收藏列表] 准备取消收藏:', item.product_title);
-	
+
 	uni.showModal({
 		title: '取消收藏',
 		content: '确定要取消收藏这个商品吗？',
@@ -173,24 +161,22 @@ const removeFavorite = async (item, index) => {
 			if (res.confirm) {
 				try {
 					console.log('[收藏列表] 开始删除收藏记录，ID:', item._id);
-					
+
 					// 直接使用 ClientDB 删除，会自动验证权限（只能删除自己的收藏）
 					const db = uniCloud.database();
-					const result = await db.collection('a-favorites')
-						.doc(item._id)
-						.remove();
+					const result = await db.collection('a-favorites').doc(item._id).remove();
 
 					console.log('[收藏列表] ClientDB 删除结果:', result);
 
 					if (result.result && result.result.deleted > 0) {
 						// 从本地数组中移除
-				favoriteItems.value.splice(index, 1);
-						
-				uni.showToast({
-					title: '已取消收藏',
-					icon: 'success'
-				});
-						
+						favoriteItems.value.splice(index, 1);
+
+						uni.showToast({
+							title: '已取消收藏',
+							icon: 'success'
+						});
+
 						console.log('[收藏列表] 取消收藏成功');
 					} else {
 						throw new Error('删除失败');
@@ -259,7 +245,7 @@ onMounted(() => {
 	margin: 12px;
 	border-radius: 12px;
 	overflow: hidden;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .favorite-content {
@@ -293,7 +279,7 @@ onMounted(() => {
 .rating-score {
 	font-size: 13px;
 	font-weight: 500;
-	color: #3b82f6;
+	color: #eb6d20;
 }
 
 .rating-stars {
@@ -343,7 +329,7 @@ onMounted(() => {
 }
 
 .orange-button {
-	background-color: #FF9500;
+	background-color: #eb6d20;
 	color: white;
 	border-radius: 9999px;
 	padding: 6px 16px;
@@ -385,9 +371,9 @@ onMounted(() => {
 }
 
 .browse-button {
-	background-color: #FF9500;
+	background-color: #eb6d20;
 	color: white;
-	border-radius: 20px;
+	border-radius: 10px;
 	padding: 8px 20px;
 	font-size: 14px;
 	border: none;
@@ -405,4 +391,4 @@ onMounted(() => {
 .loading-state {
 	background-color: #f5f5f5;
 }
-</style> 
+</style>

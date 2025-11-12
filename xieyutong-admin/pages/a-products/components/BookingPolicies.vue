@@ -258,7 +258,7 @@
 						</td>
 					</tr> -->
 
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-building text-gray-500 mr-3"></i>
 							旅行社信息
@@ -275,7 +275,7 @@
 								</view>
 							</view>
 						</td>
-					</tr>
+					</tr> -->
 
 					<tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
@@ -483,7 +483,7 @@
 						</td>
 					</tr>
 
-					<tr class="hover:bg-gray-50 transition-colors">
+					<!-- <tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50">
 							<i class="fas fa-credit-card text-blue-500 mr-3"></i>
 							支付信息
@@ -518,7 +518,7 @@
 									placeholder="请输入支付相关说明" />
 							</view>
 						</td>
-					</tr>
+					</tr> -->
 				</tbody>
 			</table>
 		</view>

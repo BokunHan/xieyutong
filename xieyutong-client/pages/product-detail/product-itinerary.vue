@@ -34,7 +34,8 @@
 				<view class="day-highlights" v-if="dayData.day_highlights">
 					<view class="highlight-section">
 						<view class="highlight-header">
-							<text class="fa fa-star text-amber-500 mr-2"></text>
+							<!-- <text class="fa fa-star text-amber-500 mr-2"></text> -->
+							<image src="/static/icons/star.svg" class="w-5 h-5 mr-2" mode="aspectFit" />
 							<text class="font-semibold text-gray-800">当日亮点</text>
 						</view>
 						<view class="highlight-content">
@@ -48,13 +49,15 @@
 
 					<view class="timeline-item" :id="'timeline-item-' + index" v-for="(item, index) in transformDayActivities(dayData.activities)" :key="index">
 						<view class="timeline-dot">
-							<text :class="getTimelineIcon(item.type)"></text>
+							<!-- <text :class="getTimelineIcon(item.type)"></text> -->
+							<image :src="getTimelineIcon(item.type)" class="w-4 h-4" mode="aspectFit" />
 						</view>
 						<view class="timeline-content">
 							<view class="timeline-header">
 								<view class="timeline-time">{{ item.time }}</view>
 								<view class="timeline-type">
-									<text :class="getTimelineIcon(item.type)"></text>
+									<!-- <text :class="getTimelineIcon(item.type)"></text> -->
+									<image :src="getTimelineIcon(item.type)" class="w-4 h-4" mode="aspectFit" />
 									<text class="type-text">{{ getActivityTypeName(item.elementType) }}</text>
 								</view>
 							</view>
@@ -75,7 +78,8 @@
 		<view class="content-area" v-else>
 			<view class="empty-state">
 				<view class="empty-state-icon">
-					<text class="fa fa-route"></text>
+					<!-- <text class="fa fa-route"></text> -->
+					<image src="/static/icons/route.svg" class="w-12 h-12 mb-4" mode="aspectFit" />
 				</view>
 				<text class="text-xl font-semibold text-gray-800 mb-2">无法加载行程</text>
 				<text class="text-gray-600">未找到该产品的行程详情，</text>
@@ -718,12 +722,17 @@ export default {
 		// 获取时间轴图标
 		getTimelineIcon(type) {
 			const iconMap = {
-				meal: 'fa fa-utensils',
-				transport: 'fa fa-car',
-				attraction: 'fa fa-camera',
-				hotel: 'fa fa-hotel'
+				// meal: 'fa fa-utensils',
+				meal: '/static/icons/utensils.svg',
+				// transport: 'fa fa-car',
+				transport: '/static/icons/car.svg',
+				// attraction: 'fa fa-camera',
+				attraction: '/static/icons/camera.svg',
+				// hotel: 'fa fa-hotel'
+				hotel: '/static/icons/hotel.svg'
 			};
-			return iconMap[type] || 'fa fa-circle';
+			// return iconMap[type] || 'fa fa-circle';
+			return iconMap[type] || '/static/icons/circle.svg';
 		},
 
 		// 获取活动类型名称
@@ -775,7 +784,7 @@ export default {
 	padding: 16px 20px;
 	font-size: 18px;
 	font-weight: 600;
-	color: #0086f6;
+	color: #eb6d20;
 	background-color: #f0f7ff;
 	border-bottom: 1px solid #e0e8f3;
 }
@@ -793,7 +802,7 @@ export default {
 	width: 40px;
 	height: 40px;
 	border: 3px solid #f0f0f0;
-	border-top: 3px solid #0086f6;
+	border-top: 3px solid #eb6d20;
 	border-radius: 50%;
 	animation: spin 1s linear infinite;
 	margin-bottom: 16px;
@@ -847,12 +856,12 @@ export default {
 	font-size: 14px;
 	white-space: nowrap;
 	background-color: #f0f7ff;
-	color: #0086f6;
+	color: #eb6d20;
 	transition: all 0.2s ease;
 }
 
 .day-tab.active {
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	color: white;
 	box-shadow: 0 2px 8px rgba(0, 134, 246, 0.3);
 }
@@ -911,7 +920,7 @@ export default {
 	height: 24px;
 	border-radius: 50%;
 	background-color: #f0f9ff;
-	border: 1px solid #0086f6;
+	border: 1px solid #eb6d20;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -919,7 +928,7 @@ export default {
 }
 
 .timeline-dot text {
-	color: #0086f6;
+	color: #eb6d20;
 	font-size: 12px;
 }
 
@@ -938,7 +947,7 @@ export default {
 }
 
 .timeline-time {
-	color: #0086f6;
+	color: #eb6d20;
 	font-weight: 500;
 	font-size: 14px;
 }
@@ -1024,7 +1033,7 @@ export default {
 
 .empty-state-icon text {
 	font-size: 48px;
-	color: #0086f6;
+	color: #eb6d20;
 }
 
 .formatted-content {

@@ -79,14 +79,16 @@
 		{
 			"path": "pages/itinerary/itinerary",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": true
 			},
 			"needLogin": true
 		},
 		{
 			"path": "pages/album/list",
 			"style": {
-				"navigationBarTitleText": "我的相册"
+				"navigationBarTitleText": "我的相册",
+				"enablePullDownRefresh": true
 			},
 			"needLogin": true
 		},
@@ -172,17 +174,21 @@
 			"needLogin": false
 		},
 		{
-			"path" : "pages/product-detail/booking-policies",
-			"style" : 
-			{
-				"navigationBarTitleText" : "预订须知及安全提示"
+			"path": "pages/product-detail/booking-policies",
+			"style": {
+				"navigationBarTitleText": "预订须知及安全提示"
 			}
 		},
 		{
-			"path" : "pages/product-detail/product-reviews",
-			"style" : 
-			{
-				"navigationBarTitleText" : "点评"
+			"path": "pages/product-detail/product-reviews",
+			"style": {
+				"navigationBarTitleText": "点评"
+			}
+		},
+		{
+			"path": "pages/itinerary/itinerary-tips",
+			"style": {
+				"navigationBarTitleText": "行程相关提示"
 			}
 		}
 	],
@@ -210,7 +216,7 @@
 	"navigationStyle": "custom",
 	"tabBar": {
 		"color": "#999999",
-		"selectedColor": "#0086F6",
+		"selectedColor": "#000000",
 		"backgroundColor": "#FFFFFF",
 		"borderStyle": "black",
 		"list": [{

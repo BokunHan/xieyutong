@@ -1,0 +1,66 @@
+{
+	"bsonType": "object",
+	"required": ["name", "slug"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null && ('MANAGE_REGIONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"update": "auth.uid != null && ('MANAGE_REGIONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"delete": "auth.uid != null && ('MANAGE_REGIONS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)"
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID（用户 ID），系统自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"title": "区域名称",
+			"description": "区域名称，如：西藏",
+			"trim": "both"
+		},
+		"slug": {
+			"bsonType": "string",
+			"title": "唯一标识",
+			"description": "英文标识，如：tibet，用于程序调用",
+			"trim": "both"
+		},
+		"parent_id": {
+			"bsonType": "string",
+			"title": "父级区域",
+			"description": "用于构建区域层级，可选",
+			"foreignKey": "a-regions._id"
+		},
+		"cover_image": {
+			"bsonType": "file",
+			"title": "区域封面图",
+			"description": "区域的大图展示",
+			"fileMediaType": "image"
+		},
+		"description": {
+			"bsonType": "string",
+			"title": "区域简介",
+			"description": "简短的介绍文本",
+			"componentForEdit": {
+				"name": "textarea"
+			}
+		},
+		"order": {
+			"bsonType": "int",
+			"title": "排序权重",
+			"description": "数字越大越靠前",
+			"defaultValue": 0
+		},
+		"status": {
+			"bsonType": "bool",
+			"title": "启用状态",
+			"description": "是否在前端显示",
+			"defaultValue": true
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"title": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

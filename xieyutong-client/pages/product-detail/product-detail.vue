@@ -2,7 +2,8 @@
 	<view class="page-container">
 		<view class="nav-bar">
 			<view class="back-button" @click="goBack">
-				<text class="fa fa-chevron-left"></text>
+				<!-- <text class="fa fa-chevron-left"></text> -->
+				<image src="/static/icons/chevron-left-white.svg" class="w-6 h-6" mode="aspectFit" />
 			</view>
 			<view class="flex-1"></view>
 		</view>
@@ -39,44 +40,69 @@
 					<text class="text-xl font-semibold text-gray-800 block mb-2">{{ productData.title || '暂无标题' }}</text>
 					<text class="text-sm text-gray-600 block">{{ productData.subtitle || '暂无描述' }}</text>
 				</view>
-				<view class="flex justify-between items-center mb-3">
+				<view class="flex justify-between items-center mb-3 cursor-pointer" @click="navigateToReviews">
 					<view class="flex items-center">
 						<text class="text-blue-500 font-medium mr-1">{{ (productData.rating || 0).toFixed(1) }}分</text>
-						<view class="star-rating-container text-xs mr-2">
-							<view class="stars-background text-gray-300">
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
+
+						<!-- <view class="star-rating-container text-xs mr-2">
+						    <view class="stars-background text-gray-300">
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						    </view>
+						    <view class="stars-foreground text-yellow-400" :style="{ width: ((productData.rating || 0) / 5) * 100 + '%' }">
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						        <text class="fa fa-star"></text>
+						    </view>
+						</view> -->
+
+						<view class="star-rating-container mr-2">
+							<view class="stars-background">
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
 							</view>
-							<view class="stars-foreground text-yellow-400" :style="{ width: ((productData.rating || 0) / 5) * 100 + '%' }">
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
-								<text class="fa fa-star"></text>
+							<view class="stars-foreground" :style="{ width: ((productData.rating || 0) / 5) * 100 + '%' }">
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
 							</view>
 						</view>
 						<text class="text-gray-400 text-xs">({{ productData.review_count || 0 }}条评价)</text>
 					</view>
-					<text class="text-gray-400 text-xs">已售{{ productData.sales_count || 0 }}人</text>
+					<view class="flex items-center">
+						<text class="text-gray-400 text-xs">已售{{ productData.sales_count || 0 }}人</text>
+						<!-- <text class="fa fa-chevron-right ml-1 text-xs text-gray-400"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5 ml-1" mode="aspectFit" />
+					</view>
 				</view>
 				<view class="action-buttons">
 					<view class="action-button" @click="toggleFavorite">
-						<text class="fa fa-heart action-icon" :class="isFavorite ? 'action-icon-active' : ''"></text>
+						<!-- <text class="fa fa-heart action-icon" :class="isFavorite ? 'action-icon-active' : ''"></text> -->
+						<image :src="isFavorite ? '/static/icons/heart.svg' : '/static/icons/heart-gray.svg'" class="w-5 h-5 mb-1" mode="aspectFit" />
 						<text class="action-text" :class="isFavorite ? 'text-red-500' : ''">{{ isFavorite ? '已收藏' : '收藏' }}</text>
 					</view>
 					<!-- #ifdef MP-WEIXIN -->
 					<button class="action-button" open-type="share" plain="true">
-						<text class="fa fa-share-alt action-icon"></text>
+						<!-- <text class="fa fa-share-alt action-icon"></text> -->
+						<image src="/static/icons/share-alt.svg" class="w-5 h-5 mt-1" mode="aspectFit" />
 						<text class="action-text">分享</text>
 					</button>
 					<!-- #endif -->
 
 					<!-- #ifndef MP-WEIXIN -->
 					<view class="action-button" @click="shareProduct">
-						<text class="fa fa-share-alt action-icon"></text>
+						<!-- <text class="fa fa-share-alt action-icon"></text> -->
+						<image src="/static/icons/share-alt.svg" class="w-5 h-5" mode="aspectFit" />
 						<text class="action-text">分享</text>
 					</view>
 					<!-- #endif -->
@@ -96,23 +122,28 @@
 							<view class="route-price">¥{{ routeProduct.product.price || 'N/A' }}起</view>
 							<view class="route-overview">
 								<view v-if="routeProduct.product.route_overview?.transport" class="route-overview-item">
-									<text class="fa fa-plane route-icon"></text>
+									<!-- <text class="fa fa-plane route-icon"></text> -->
+									<image src="/static/icons/plane.svg" class="w-3 h-3 mt-1 mr-2" mode="aspectFit" />
 									{{ routeProduct.product.route_overview.transport }}
 								</view>
 								<view v-if="routeProduct.product.route_overview?.accommodation" class="route-overview-item">
-									<text class="fa fa-hotel route-icon"></text>
+									<!-- <text class="fa fa-hotel route-icon"></text> -->
+									<image src="/static/icons/hotel.svg" class="w-3 h-3 mt-1 mr-2" mode="aspectFit" />
 									{{ routeProduct.product.route_overview.accommodation }}
 								</view>
 								<view v-if="routeProduct.product.route_overview?.spots" class="route-overview-item">
-									<text class="fa fa-map-marker-alt route-icon"></text>
+									<!-- <text class="fa fa-map-marker-alt route-icon"></text> -->
+									<image src="/static/icons/map-marker-alt.svg" class="w-3 h-3 mt-1 mr-2" mode="aspectFit" />
 									{{ routeProduct.product.route_overview.spots }}
 								</view>
 								<view v-if="routeProduct.product.route_overview?.meals" class="route-overview-item">
-									<text class="fa fa-utensils route-icon"></text>
+									<!-- <text class="fa fa-utensils route-icon"></text> -->
+									<image src="/static/icons/utensils.svg" class="w-3 h-3 mt-1 mr-2" mode="aspectFit" />
 									{{ routeProduct.product.route_overview.meals }}
 								</view>
 								<view v-if="routeProduct.product.route_overview?.activities" class="route-overview-item">
-									<text class="fa fa-hiking route-icon"></text>
+									<!-- <text class="fa fa-hiking route-icon"></text> -->
+									<image src="/static/icons/hiking.svg" class="w-3 h-3 mt-1 mr-2" mode="aspectFit" />
 									{{ routeProduct.product.route_overview.activities }}
 								</view>
 							</view>
@@ -132,7 +163,7 @@
 					<view class="flex items-center">
 						<text class="section-title mb-0! mr-2">评价</text>
 						<text class="text-blue-500 font-medium mr-1">{{ (productData.rating || 0).toFixed(1) }}</text>
-						<view class="star-rating-container text-xs mr-1">
+						<!-- <view class="star-rating-container text-xs mr-1">
 							<view class="stars-background text-gray-300">
 								<text class="fa fa-star"></text>
 								<text class="fa fa-star"></text>
@@ -147,11 +178,29 @@
 								<text class="fa fa-star"></text>
 								<text class="fa fa-star"></text>
 							</view>
+						</view> -->
+
+						<view class="star-rating-container mr-1">
+							<view class="stars-background">
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star-inactive.svg" mode="aspectFit" />
+							</view>
+							<view class="stars-foreground" :style="{ width: ((productData.rating || 0) / 5) * 100 + '%' }">
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+								<image class="star-image" src="/static/icons/star.svg" mode="aspectFit" />
+							</view>
 						</view>
 					</view>
 					<view class="flex items-center text-sm cursor-pointer" @click="navigateToReviews">
 						<text>{{ productData.review_count || 0 }}条评价</text>
-						<text class="fa fa-chevron-right ml-1 text-xs"></text>
+						<!-- <text class="fa fa-chevron-right ml-1 text-xs"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5 ml-1" mode="aspectFit" />
 					</view>
 				</view>
 
@@ -216,9 +265,11 @@
 				</view>
 				<view class="text-center mt-4">
 					<button class="view-full-itinerary-btn" @click="viewFullItinerary">
-						<text class="fa fa-route mr-2"></text>
+						<!-- <text class="fa fa-route mr-2"></text> -->
+						<image src="/static/icons/route.svg" class="w-5 h-5 mr-2" mode="aspectFit" />
 						查看详细行程安排
-						<text class="fa fa-chevron-right ml-2"></text>
+						<!-- <text class="fa fa-chevron-right ml-2"></text> -->
+						<image src="/static/icons/chevron-right.svg" class="w-5 h-5 ml-2" mode="aspectFit" />
 					</button>
 				</view>
 			</view>
@@ -227,11 +278,15 @@
 				<view class="accordion-item" v-if="productData.features && productData.features.length > 0">
 					<view class="accordion-header p-4 flex justify-between items-center" @click="toggleAccordion('highlights')">
 						<text class="section-title mb-0 font-medium text-gray-800">行程亮点</text>
-						<text :class="accordionState.highlights ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text>
+						<!-- <text :class="accordionState.highlights ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text> -->
+						<image :src="accordionState.highlights ? '/static/icons/chevron-up.svg' : '/static/icons/chevron-down.svg'" class="w-5 h-5" mode="aspectFit" />
 					</view>
 					<view class="accordion-content p-4 pt-0" v-if="accordionState.highlights">
 						<view class="feature-item" v-for="(feature, index) in productData.features" :key="index">
-							<view class="feature-icon"><text class="fa fa-star"></text></view>
+							<view class="feature-icon">
+								<!-- <text class="fa fa-star"></text> -->
+								<image src="/static/icons/star.svg" class="w-3 h-3" mode="aspectFit" />
+							</view>
 							<view>
 								<text class="text-gray-800 block">{{ feature }}</text>
 							</view>
@@ -242,7 +297,8 @@
 				<view class="accordion-item" v-if="productData.overview && Object.keys(productData.overview).length > 0">
 					<view class="accordion-header p-4 flex justify-between items-center" @click="toggleAccordion('overview')">
 						<text class="section-title mb-0 font-medium text-gray-800">线路总览</text>
-						<text :class="accordionState.overview ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text>
+						<!-- <text :class="accordionState.overview ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text> -->
+						<image :src="accordionState.overview ? '/static/icons/chevron-up.svg' : '/static/icons/chevron-down.svg'" class="w-5 h-5" mode="aspectFit" />
 					</view>
 					<view class="accordion-content p-4 pt-0" v-if="accordionState.overview">
 						<view class="grid grid-cols-1 gap-3">
@@ -283,7 +339,8 @@
 				<view class="accordion-item" v-if="productData.cost_info && Object.keys(productData.cost_info).length > 0">
 					<view class="accordion-header p-4 flex justify-between items-center" @click="toggleAccordion('cost')">
 						<text class="section-title mb-0 font-medium text-gray-800">费用说明</text>
-						<text :class="accordionState.cost ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text>
+						<!-- <text :class="accordionState.cost ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text> -->
+						<image :src="accordionState.cost ? '/static/icons/chevron-up.svg' : '/static/icons/chevron-down.svg'" class="w-5 h-5" mode="aspectFit" />
 					</view>
 					<view class="accordion-content p-4 pt-0" v-if="accordionState.cost">
 						<view class="mb-3" v-if="productData.cost_info.transport">
@@ -312,70 +369,83 @@
 				<view class="accordion-item">
 					<view class="accordion-header p-4 flex justify-between items-center" @click="toggleAccordion('booking')">
 						<text class="section-title mb-0 font-medium text-gray-800">预订须知</text>
-						<text :class="accordionState.booking ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text>
+						<!-- <text :class="accordionState.booking ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" class="text-gray-400"></text> -->
+						<image :src="accordionState.booking ? '/static/icons/chevron-up.svg' : '/static/icons/chevron-down.svg'" class="w-5 h-5" mode="aspectFit" />
 					</view>
 					<view class="accordion-content p-0" v-if="accordionState.booking">
 						<view class="booking-note-item" @click="navigateToBookingPolicies()">
 							<view class="booking-note-icon-wrapper bg-blue-100">
-								<text class="fa fa-user-minus text-blue-500"></text>
+								<!-- <text class="fa fa-user-minus text-blue-500"></text> -->
+								<image src="/static/icons/user-minus.svg" class="w-5 h-5" mode="aspectFit" />
 							</view>
 							<view class="booking-note-content">
 								<text class="booking-note-title">预订限制</text>
 								<text class="booking-note-subtitle">年龄限制、人群限制、其他限制</text>
 							</view>
-							<text class="fa fa-chevron-right text-gray-400"></text>
+							<!-- <text class="fa fa-chevron-right text-gray-400"></text> -->
+							<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 
 						<view class="booking-note-item" @click="navigateToBookingPolicies()">
 							<view class="booking-note-icon-wrapper bg-teal-100">
-								<text class="fa fa-bed text-teal-500"></text>
+								<!-- <text class="fa fa-bed text-teal-500"></text> -->
+								<image src="/static/icons/bed.svg" class="w-5 h-5" mode="aspectFit" />
 							</view>
 							<view class="booking-note-content">
 								<text class="booking-note-title">单人/多人入住政策</text>
 								<text class="booking-note-subtitle">多人入住</text>
 							</view>
-							<text class="fa fa-chevron-right text-gray-400"></text>
+							<!-- <text class="fa fa-chevron-right text-gray-400"></text> -->
+							<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 
 						<view class="booking-note-item" @click="navigateToBookingPolicies()">
 							<view class="booking-note-icon-wrapper bg-indigo-100">
-								<text class="fa fa-users text-indigo-500"></text>
+								<!-- <text class="fa fa-users text-indigo-500"></text> -->
+								<image src="/static/icons/users.svg" class="w-5 h-5" mode="aspectFit" />
 							</view>
 							<view class="booking-note-content">
 								<text class="booking-note-title">成团说明</text>
 								<text class="booking-note-subtitle">成团说明、出团通知</text>
 							</view>
-							<text class="fa fa-chevron-right text-gray-400"></text>
+							<!-- <text class="fa fa-chevron-right text-gray-400"></text> -->
+							<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 
 						<view class="booking-note-item" @click="navigateToBookingPolicies()">
 							<view class="booking-note-icon-wrapper bg-orange-100">
-								<text class="fa fa-exclamation-circle text-orange-500"></text>
+								<!-- <text class="fa fa-exclamation-circle text-orange-500"></text> -->
+								<image src="/static/icons/exclamation-circle.svg" class="w-5 h-5" mode="aspectFit" />
 							</view>
 							<view class="booking-note-content">
 								<text class="booking-note-title">违约条款</text>
 							</view>
-							<text class="fa fa-chevron-right text-gray-400"></text>
+							<!-- <text class="fa fa-chevron-right text-gray-400"></text> -->
+							<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 
 						<view class="booking-note-item" @click="navigateToBookingPolicies()">
 							<view class="booking-note-icon-wrapper bg-purple-100">
-								<text class="fa fa-suitcase-rolling text-purple-500"></text>
+								<!-- <text class="fa fa-suitcase-rolling text-purple-500"></text> -->
+								<image src="/static/icons/suitcase-rolling-purple.svg" class="w-5 h-5" mode="aspectFit" />
 							</view>
 							<view class="booking-note-content">
 								<text class="booking-note-title">预订及出行须知</text>
 							</view>
-							<text class="fa fa-chevron-right text-gray-400"></text>
+							<!-- <text class="fa fa-chevron-right text-gray-400"></text> -->
+							<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 
 						<view class="booking-note-item" @click="navigateToBookingPolicies()">
 							<view class="booking-note-icon-wrapper bg-green-100">
-								<text class="fa fa-bell text-green-500"></text>
+								<!-- <text class="fa fa-bell text-green-500"></text> -->
+								<image src="/static/icons/bell.svg" class="w-5 h-5" mode="aspectFit" />
 							</view>
 							<view class="booking-note-content">
 								<text class="booking-note-title">保障提示</text>
 							</view>
-							<text class="fa fa-chevron-right text-gray-400"></text>
+							<!-- <text class="fa fa-chevron-right text-gray-400"></text> -->
+							<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 					</view>
 				</view>
@@ -414,7 +484,10 @@
 			<view class="price-modal" @click.stop>
 				<view class="modal-header">
 					<text class="modal-title">价格计算明细</text>
-					<view class="close-button" @click="hidePriceModal"><text class="fa fa-times"></text></view>
+					<view class="close-button" @click="hidePriceModal">
+						<!-- <text class="fa fa-times"></text> -->
+						<image src="/static/icons/times.png" class="w-5 h-5" mode="aspectFit" />
+					</view>
 				</view>
 				<view class="modal-content">
 					<view class="price-section">
@@ -444,7 +517,8 @@
 						</view>
 						<view class="coupon-selector" @click="selectCoupon" v-if="!selectedCoupon && availableCoupons.length > 0">
 							<text class="coupon-selector-text">选择优惠券</text>
-							<text class="fa fa-chevron-right coupon-selector-arrow"></text>
+							<!-- <text class="fa fa-chevron-right coupon-selector-arrow"></text> -->
+							<image src="/static/icons/chevron-right.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 					</view>
 					<view class="price-divider"></view>
@@ -466,6 +540,7 @@
 
 <script>
 import DatePicker from '@/components/date-picker/date-picker.vue';
+const favoriteObj = uniCloud.importObject('a-favorite-service');
 
 export default {
 	components: {
@@ -507,7 +582,9 @@ export default {
 				{ id: 'coupon1', name: '新用户专享', amount: 200, type: 'fixed' },
 				{ id: 'coupon2', name: '会员专享', amount: 0.88, type: 'percent' } // 88折
 			],
-			selectedCoupon: { id: 'coupon1', name: '新用户专享', amount: 200, type: 'fixed' }
+			selectedCoupon: { id: 'coupon1', name: '新用户专享', amount: 200, type: 'fixed' },
+			isFavorite: false,
+			favoriteId: ''
 		};
 	},
 
@@ -666,7 +743,7 @@ export default {
 				if (allRelatedProductIds.length > 0) {
 					const itineraryRes = await db
 						.collection('a-itineraries')
-						.where({ product_id: dbCmd.in(allRelatedProductIds) })
+						.where({ ctrip_id: dbCmd.in(allRelatedProductIds) })
 						.get();
 					if (itineraryRes.result?.data?.length > 0) {
 						itineraryRes.result.data.forEach((itin) => {
@@ -848,114 +925,104 @@ export default {
 		async checkFavoriteStatus() {
 			try {
 				if (!this.selectedProductId) return;
-				const db = uniCloud.database();
-				// 获取当前登录用户ID，如果未登录则不查询
-				const userInfo = uni.getStorageSync('uni-id-pages-userInfo');
-				if (!userInfo || !userInfo._id) {
-					this.isFavorite = false;
-					this.favoriteId = '';
-					console.log('[商品详情] 用户未登录，无法检查收藏状态');
-					return;
-				}
-				const userId = userInfo._id;
 
-				const result = await db.collection('a-favorites').where({ user_id: userId, product_id: this.selectedProductId }).field('_id').limit(1).get();
+				// 调用云对象方法，它会自动携带 token
+				const res = await favoriteObj.checkStatus(this.selectedProductId);
 
-				if (result.result?.data?.length > 0) {
-					this.isFavorite = true;
-					this.favoriteId = result.result.data[0]._id;
-				} else {
-					this.isFavorite = false;
-					this.favoriteId = '';
-				}
-				console.log(`[商品详情] 产品 ${this.selectedProductId} 收藏状态: ${this.isFavorite}`);
+				// res 总是会返回 { isFavorite: boolean, favoriteId: string | null }
+				this.isFavorite = res.isFavorite;
+				this.favoriteId = res.favoriteId;
+				console.log(`[商品详情] 收藏状态检查完成: ${this.isFavorite}`);
 			} catch (error) {
 				console.error('[商品详情] 检查收藏状态失败:', error);
-				this.isFavorite = false;
-				this.favoriteId = '';
+				// 如果错误是 "用户未登录" 或 "token无效"，
+				// _before 钩子会抛出错误，我们在这里捕获
+				if (error.message.includes('登录')) {
+					console.log('用户未登录，无需检查收藏');
+					this.isFavorite = false; // 明确设置为未登录状态
+					this.favoriteId = '';
+				} else {
+					// 其他网络或数据库错误
+					uni.showToast({ title: '检查失败，请重试', icon: 'none' });
+				}
 			}
 		},
 
 		// 切换收藏状态
 		async toggleFavorite() {
+			if (!this.selectedProductId) {
+				uni.showToast({ title: '商品信息错误', icon: 'none' });
+				return;
+			}
+
+			const userToken = uni.getStorageSync('uni_id_token');
+			if (!userToken) {
+				uni.navigateTo({
+					url: '/pages/login/login'
+				});
+				return;
+			}
+
 			try {
-				// 检查登录状态
-				const userInfo = uni.getStorageSync('uni-id-pages-userInfo');
-				if (!userInfo || !userInfo._id) {
-					uni.showToast({ title: '请先登录', icon: 'none' });
-					// 可以选择跳转到登录页
-					// uni.navigateTo({ url: '/uni_modules/uni-id-pages/pages/login/login-withpwd' });
-					return;
-				}
-				const userId = userInfo._id;
+				// 准备好添加收藏时需要的数据
+				const productInfo = {
+					product_title: this.productData.title || this.productData.product_title,
+					product_image: this.productData.product_images?.[0] || this.productData.product_image,
+					product_price: this.productData.price || this.productData.product_price,
+					product_rating: this.productData.rating || this.productData.product_rating,
+					product_sales: this.productData.sales_count || this.productData.product_sales
+				};
 
-				if (!this.selectedProductId) {
-					uni.showToast({ title: '商品信息错误', icon: 'none' });
-					return;
-				}
-				const db = uniCloud.database();
+				// 调用云对象，它会处理所有逻辑
+				const res = await favoriteObj.toggle(this.selectedProductId, productInfo);
 
-				if (this.isFavorite) {
-					// 取消收藏
-					if (!this.favoriteId) {
-						await this.checkFavoriteStatus();
-						if (!this.favoriteId) return;
-					}
-					const result = await db.collection('a-favorites').doc(this.favoriteId).remove();
-					if (result.result?.deleted > 0) {
-						this.isFavorite = false;
-						this.favoriteId = '';
-						uni.showToast({ title: '已取消收藏', icon: 'success' });
-					} else {
-						// 如果删除失败，可能记录已被删除，重新检查状态
-						await this.checkFavoriteStatus();
-						if (!this.isFavorite) uni.showToast({ title: '已取消收藏', icon: 'success' });
-					}
+				// res 将是 { status: 'added' | 'removed', favoriteId: ..., message: ... }
+
+				// 根据返回结果更新UI
+				if (res.status === 'added') {
+					this.isFavorite = true;
+					this.favoriteId = res.favoriteId;
 				} else {
-					// 添加收藏前再次检查
-					const checkResult = await db.collection('a-favorites').where({ user_id: userId, product_id: this.selectedProductId }).field('_id').limit(1).get();
-					if (checkResult.result?.data?.length > 0) {
-						this.isFavorite = true;
-						this.favoriteId = checkResult.result.data[0]._id;
-						uni.showToast({ title: '已在收藏列表', icon: 'success' });
-						return;
-					}
-
-					// 使用 this.productData (当前选中的)
-					const favoriteData = {
-						user_id: userId,
-						product_id: this.selectedProductId,
-						product_title: this.productData.title || '暂无标题',
-						product_image: this.productData.product_images?.[0] || '',
-						product_price: this.productData.price || 0,
-						product_rating: this.productData.rating || 0,
-						product_sales: this.productData.sales_count || 0
-					};
-					const result = await db.collection('a-favorites').add(favoriteData);
-					if (result.result?.id) {
-						this.isFavorite = true;
-						this.favoriteId = result.result.id;
-						uni.showToast({ title: '收藏成功', icon: 'success' });
-					} else {
-						throw new Error(result.result?.message || '添加收藏失败');
-					}
+					this.isFavorite = false;
+					this.favoriteId = '';
 				}
+
+				uni.showToast({
+					title: res.message, // "收藏成功" 或 "已取消收藏"
+					icon: 'success'
+				});
 			} catch (error) {
 				console.error('[商品详情] 切换收藏状态失败:', error);
-				// 处理可能的错误，例如唯一索引冲突
-				if (error.message?.includes('冲突') || error.message?.includes('duplicate key')) {
-					await this.checkFavoriteStatus(); // 重新检查确保状态正确
-					uni.showToast({ title: this.isFavorite ? '已在收藏列表' : '收藏状态异常', icon: this.isFavorite ? 'success' : 'none' });
+
+				// 捕获云对象抛出的错误
+				if (error.message.includes('登录') || error.message.includes('token无效')) {
+					// 如果是登录错误，则跳转到登录页
+					uni.navigateTo({
+						url: '/pages/login/login'
+					});
 				} else {
-					uni.showToast({ title: error.message || '操作失败', icon: 'none' });
+					// 其他业务错误，例如 "商品ID不能为空"
+					uni.showToast({
+						title: error.message || '操作失败',
+						icon: 'none'
+					});
 				}
 			}
 		},
 
 		// 分享产品
 		shareProduct() {
+			// 检查登录状态
+			const userToken = uni.getStorageSync('uni_id_token');
+			if (!userToken) {
+				uni.navigateTo({
+					url: '/pages/login/login'
+				});
+				return;
+			}
 			this.showShareOptions(); // 统一调用显示选项的方法
 		},
+
 		showShareOptions() {
 			const shareUrl = `${this.$config.h5.url}/#/pages/product/detail?id=${this.mainProductId}&route=${this.selectedProductId}`; // H5 地址
 			uni.showActionSheet({
@@ -1034,6 +1101,17 @@ export default {
 				uni.showToast({ title: '请先选择产品', icon: 'none' });
 				return;
 			}
+
+			// 检查登录状态
+			const token = uni.getStorageSync('uni_id_token');
+			if (!token) {
+				console.error('[商品详情] 用户未登录');
+				uni.navigateTo({
+					url: '/pages/login/login'
+				});
+				return;
+			}
+
 			this.showDatePicker();
 		},
 
@@ -1127,7 +1205,7 @@ export default {
 }
 
 .retry-button {
-	background-color: #3182ce;
+	background-color: #eb6d20;
 	color: white;
 	padding: 10px 20px;
 	border-radius: 6px;
@@ -1187,7 +1265,7 @@ export default {
 	display: block;
 	width: 4px;
 	height: 16px;
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	margin-right: 8px;
 	border-radius: 2px;
 }
@@ -1202,6 +1280,7 @@ export default {
 .stars-background {
 	display: flex;
 	white-space: nowrap;
+	gap: 2px;
 }
 
 .stars-foreground {
@@ -1211,6 +1290,13 @@ export default {
 	display: flex;
 	white-space: nowrap;
 	overflow: hidden;
+	gap: 2px;
+}
+
+.star-image {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
 }
 
 .star-rating-container .fa-star {
@@ -1232,7 +1318,7 @@ export default {
 	height: 20px;
 	border-radius: 50%;
 	background-color: #f0f9ff;
-	color: #0086f6;
+	color: #eb6d20;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1358,7 +1444,7 @@ export default {
 
 .date-picker-confirm {
 	font-size: 16px;
-	color: #0086f6;
+	color: #eb6d20;
 	font-weight: 600;
 	cursor: pointer;
 }
@@ -1369,7 +1455,7 @@ export default {
 }
 
 .date-picker-confirm:active:not(.disabled) {
-	color: #0074d9;
+	color: #eb6d20;
 }
 
 .date-picker-content {
@@ -1411,7 +1497,7 @@ export default {
 	align-items: center;
 	padding: 20px 20px 16px 20px;
 	border-bottom: 1px solid #f0f0f0;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
 	color: white;
 }
 
@@ -1501,7 +1587,7 @@ export default {
 
 .discount-badge {
 	background-color: #e3f2fd;
-	color: #1976d2;
+	color: #eb6d20;
 	font-size: 12px;
 	padding: 2px 8px;
 	border-radius: 12px;
@@ -1532,18 +1618,18 @@ export default {
 }
 
 .coupon-selector:active {
-	border-color: #2196f3;
+	border-color: #eb6d20;
 	background-color: #f5f5f5;
 }
 
 .coupon-selector-text {
-	color: #2196f3;
+	color: #eb6d20;
 	font-size: 14px;
 	font-weight: 500;
 }
 
 .coupon-selector-arrow {
-	color: #2196f3;
+	color: #eb6d20;
 	font-size: 12px;
 }
 
@@ -1687,7 +1773,7 @@ export default {
 	flex-shrink: 0;
 	width: 56px;
 	height: 32px;
-	background: linear-gradient(135deg, #0086f6 0%, #0074d9 100%);
+	background: linear-gradient(135deg, #ff9500 0%, #eb6d20 100%);
 	border-radius: 16px;
 	display: flex;
 	align-items: center;
@@ -1730,7 +1816,7 @@ export default {
 
 .view-full-itinerary-btn {
 	background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-	color: #0086f6;
+	color: #eb6d20;
 	border: 1px solid #b3e5fc;
 	border-radius: 24px;
 	padding: 10px 24px;
@@ -1784,7 +1870,7 @@ export default {
 }
 
 .route-option.selected {
-	border-color: #3b82f6; /* 选中边框颜色 */
+	border-color: #eb6d20; /* 选中边框颜色 */
 	background-color: #eff6ff; /* 选中背景色 */
 	box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
 }

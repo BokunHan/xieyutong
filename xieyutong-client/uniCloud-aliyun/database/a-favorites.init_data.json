@@ -1,29 +1,29 @@
-[
-  {
-    "user_id": "6860cd8509664cca9817872c",
-    "product_id": "product_001",
-    "product_title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍错+纳木措8日7晚私家团",
-    "product_image": "https://dimg04.c-ctrip.com/images/0305e12000l41e75x6C2B.webp",
-    "product_price": 5750,
-    "product_rating": 5.0,
-    "product_sales": 103
-  },
-  {
-    "user_id": "6860cd8509664cca9817872c", 
-    "product_id": "product_002",
-    "product_title": "九寨沟+黄龙 5日4晚私家团",
-    "product_image": "https://dimg04.c-ctrip.com/images/0302v12000b24twnp1711.webp",
-    "product_price": 4980,
-    "product_rating": 4.9,
-    "product_sales": 87
-  },
-  {
-    "user_id": "6860cd8509664cca9817872c",
-    "product_id": "product_003", 
-    "product_title": "拉萨布达拉宫+大昭寺+八廓街一日游",
-    "product_image": "https://dimg04.c-ctrip.com/images/fd/tg/g2/M03/8C/1D/Cghzf1Ww7L6AZtYSAByeusWtZyk737.webp",
-    "product_price": 1280,
-    "product_rating": 4.8,
-    "product_sales": 156
-  }
-] 
+// [
+//   {
+//     "user_id": "6860cd8509664cca9817872c",
+//     "product_id": "product_001",
+//     "product_title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍错+纳木措8日7晚私家团",
+//     "product_image": "https://dimg04.c-ctrip.com/images/0305e12000l41e75x6C2B.webp",
+//     "product_price": 5750,
+//     "product_rating": 5.0,
+//     "product_sales": 103
+//   },
+//   {
+//     "user_id": "6860cd8509664cca9817872c", 
+//     "product_id": "product_002",
+//     "product_title": "九寨沟+黄龙 5日4晚私家团",
+//     "product_image": "https://dimg04.c-ctrip.com/images/0302v12000b24twnp1711.webp",
+//     "product_price": 4980,
+//     "product_rating": 4.9,
+//     "product_sales": 87
+//   },
+//   {
+//     "user_id": "6860cd8509664cca9817872c",
+//     "product_id": "product_003", 
+//     "product_title": "拉萨布达拉宫+大昭寺+八廓街一日游",
+//     "product_image": "https://dimg04.c-ctrip.com/images/fd/tg/g2/M03/8C/1D/Cghzf1Ww7L6AZtYSAByeusWtZyk737.webp",
+//     "product_price": 1280,
+//     "product_rating": 4.8,
+//     "product_sales": 156
+//   }
+// ] 

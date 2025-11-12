@@ -170,7 +170,23 @@ async function checkApiHealth(event, context) {
 
 // 获取商品 Route IDs
 async function getProductRouteIds(event, context) {
-	const { productId } = event;
+	const { productId, uniIdToken } = event;
+	const uniIdInstance = uniIdCommon.createInstance({ context });
+	// 验证用户身份
+	const checkResult = await uniIdInstance.checkToken(uniIdToken);
+	if (checkResult.errCode !== 0) {
+		return {
+			errCode: checkResult.errCode,
+			errMsg: checkResult.errMsg || '身份验证失败'
+		};
+	}
+
+	if (!checkResult.role.includes('admin') && !checkResult.role.includes('super_admin') && !checkResult.permission.includes('MANAGE_PRODUCTS')) {
+		return {
+			errCode: 500,
+			errMsg: '无权限'
+		};
+	}
 
 	if (!productId) {
 		return {
@@ -557,7 +573,23 @@ async function getBookingNote(event, context) {
 
 // 获取并存储商品评论
 async function getProductReviews(event, context) {
-	let { productId } = event;
+	const { productId, uniIdToken } = event;
+	const uniIdInstance = uniIdCommon.createInstance({ context });
+	// 验证用户身份
+	const checkResult = await uniIdInstance.checkToken(uniIdToken);
+	if (checkResult.errCode !== 0) {
+		return {
+			errCode: checkResult.errCode,
+			errMsg: checkResult.errMsg || '身份验证失败'
+		};
+	}
+
+	if (!checkResult.role.includes('admin') && !checkResult.role.includes('super_admin') && !checkResult.permission.includes('MANAGE_PRODUCTS')) {
+		return {
+			errCode: 500,
+			errMsg: '无权限'
+		};
+	}
 
 	if (!productId) {
 		return {
@@ -777,6 +809,47 @@ async function getProductReviews(event, context) {
 async function syncSnapshot(event, context) {
 	let { snapshot_url, departure_date, uniIdToken } = event;
 
+	// 验证用户身份 - 管理端操作需要admin权限
+	const uniIdInstance = uniIdCommon.createInstance({ context });
+	let operatorId = 'system';
+	let userRole = [];
+	let userPermission = [];
+
+	if (uniIdToken) {
+		try {
+			const checkResult = await uniIdInstance.checkToken(uniIdToken);
+
+			if (checkResult.errCode !== 0) {
+				return {
+					errCode: 'TOKEN_INVALID',
+					errMsg: `身份验证失败: ${checkResult.errMsg || '无效token'}`
+				};
+			}
+
+			operatorId = checkResult.uid;
+			userRole = checkResult.role || [];
+			userPermission = checkResult.permission || [];
+
+			if (!userRole.includes('admin') && !userRole.includes('super_admin') && !userPermission.includes('MANAGE_ORDERS')) {
+				return {
+					errCode: 500,
+					errMsg: '无权限'
+				};
+			}
+
+			// 检查是否有admin权限（可选，根据业务需求决定）
+			console.log(`用户身份验证成功: uid=${operatorId}, role=${JSON.stringify(userRole)}`);
+		} catch (error) {
+			console.error('Token验证失败:', error);
+			return {
+				errCode: 'TOKEN_CHECK_ERROR',
+				errMsg: `Token验证异常: ${error.message}`
+			};
+		}
+	} else {
+		console.log('未提供token，使用系统身份执行同步操作');
+	}
+
 	if (!snapshot_url) {
 		return {
 			errCode: 'MISSING_SNAPSHOT_URL',
@@ -842,40 +915,6 @@ async function syncSnapshot(event, context) {
 	departure_date = departure_date.split('/')[0].trim();
 
 	console.log(`[订单快照同步] 开始同步订单快照，ctripId: ${ctripId}, orderId: ${orderId}, productId: ${productId}, departure_date: ${departure_date}`);
-
-	// 验证用户身份 - 管理端操作需要admin权限
-	const uniIdInstance = uniIdCommon.createInstance({ context });
-	let operatorId = 'system';
-	let userRole = [];
-
-	if (uniIdToken) {
-		try {
-			const checkResult = await uniIdInstance.checkToken(uniIdToken, {
-				autoRefresh: true
-			});
-
-			if (checkResult.errCode !== 0) {
-				return {
-					errCode: 'TOKEN_INVALID',
-					errMsg: `身份验证失败: ${checkResult.errMsg || '无效token'}`
-				};
-			}
-
-			operatorId = checkResult.uid;
-			userRole = checkResult.role || [];
-
-			// 检查是否有admin权限（可选，根据业务需求决定）
-			console.log(`用户身份验证成功: uid=${operatorId}, role=${JSON.stringify(userRole)}`);
-		} catch (error) {
-			console.error('Token验证失败:', error);
-			return {
-				errCode: 'TOKEN_CHECK_ERROR',
-				errMsg: `Token验证异常: ${error.message}`
-			};
-		}
-	} else {
-		console.log('未提供token，使用系统身份执行同步操作');
-	}
 
 	// 创建同步日志记录 - 包含 product_id 外键
 	const syncLogResult = await db.collection('a-ctrip-sync-logs').add({

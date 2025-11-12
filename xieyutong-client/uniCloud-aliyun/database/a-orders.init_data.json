@@ -1,371 +1,371 @@
-[
-  {
-    "_id": "order_41767537_001",
-    "order_no": "XYT202506260001234567890",
-    "user_id": "6860cd8509664cca9817872c", 
-    "product_id": "41767537",
-    "product_snapshot": {
-      "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
-      "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
-      "price": 8193,
-      "child_price": 6554,
-      "images": [
-        "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp",
-        "https://dimg04.c-ctrip.com/images/0305g12000cohaa4t763A.webp",
-        "https://dimg04.c-ctrip.com/images/100b11000000r48we269D.webp"
-      ],
-      "departure_date": 1751029349751,
-      "duration": 8
-    },
-    "status": "processing",
-    "quantity": 2,
-    "adult_count": 2,
-    "child_count": 0,
-    "total_amount": 16386,
-    "discount_amount": 0,
-    "coupon_discount": 500,
-    "member_discount": 819,
-    "final_amount": 15067,
-    "coupons_used": ["coupon_500_new_user"],
-    "member_level": "silver",
-    "contact_info": {
-      "name": "杜伟业",
-      "phone": "19102688475",
-      "email": "duweiey@example.com"
-    },
-    "travelers": [
-      {
-        "name": "杜伟业",
-        "id_card": "14242919981125541X",
-        "phone": "19102688475",
-        "passenger_type": "adult"
-      },
-      {
-        "name": "李梅",
-        "id_card": "110101199205151234",
-        "phone": "13800138002",
-        "passenger_type": "adult"
-      }
-    ],
-    "departure_date": 1751029349751,
-    "return_date": 1751634149751,
-    "duration_days": 8,
-    "special_requirements": "需要素食餐，希望安排靠窗座位，提供氧气瓶",
-    "payment_info": {
-      "pay_order_id": "pay_order_41767537_001",
-      "payment_method": "wxpay",
-      "paid_at": 1718726400000
-    },
-    "ctrip_sync": {
-      "is_synced": true,
-      "ctrip_order_id": "CTRIP202506260001",
-      "sync_time": 1718726400000,
-      "sync_status": "success"
-    },
-    "notes": "客户正在西藏旅行中，今天是第4天，行程进行顺利",
-    "created_at": 1718640000000,
-    "updated_at": 1719302400000,
-    "paid_at": 1718726400000,
-    "confirmed_at": 1718812800000
-  },
-  {
-    "_id": "order_41767537_002",
-    "order_no": "XYT202507150001234567891",
-    "user_id": "6860cd8509664cca9817872c",
-    "product_id": "41767537",
-    "product_snapshot": {
-      "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
-      "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
-      "price": 8193,
-      "child_price": 6554,
-      "images": [
-        "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp",
-        "https://dimg04.c-ctrip.com/images/0305g12000cohaa4t763A.webp"
-      ],
-      "departure_date": 1721001600000,
-      "duration": 8
-    },
-    "status": "confirmed",
-    "quantity": 3,
-    "adult_count": 2,
-    "child_count": 1,
-    "total_amount": 22940,
-    "discount_amount": 1000,
-    "coupon_discount": 0,
-    "member_discount": 1147,
-    "final_amount": 20793,
-    "coupons_used": [],
-    "member_level": "silver",
-    "contact_info": {
-      "name": "杜伟业",
-      "phone": "19102688475",
-      "email": "duweiey@example.com"
-    },
-    "travelers": [
-      {
-        "name": "杜伟业",
-        "id_card": "14242919981125541X",
-        "phone": "19102688475",
-        "passenger_type": "adult"
-      },
-      {
-        "name": "张丽华",
-        "id_card": "110101199103151234",
-        "phone": "13800138003",
-        "passenger_type": "adult"
-      },
-      {
-        "name": "杜小宝",
-        "id_card": "110101201505151234",
-        "phone": "19102688475",
-        "passenger_type": "child"
-      }
-    ],
-    "departure_date": 1721001600000,
-    "return_date": 1721606400000,
-    "duration_days": 8,
-    "special_requirements": "儿童需要安排儿童餐，家庭房间相邻",
-    "payment_info": {
-      "pay_order_id": "pay_order_41767537_002",
-      "payment_method": "wxpay",
-      "paid_at": 1719216000000
-    },
-    "ctrip_sync": {
-      "is_synced": true,
-      "ctrip_order_id": "CTRIP202507150001",
-      "sync_time": 1719216000000,
-      "sync_status": "success"
-    },
-    "notes": "暑假家庭出行，已确认酒店和用车安排",
-    "created_at": 1719129600000,
-    "updated_at": 1719216000000,
-    "paid_at": 1719216000000,
-    "confirmed_at": 1719302400000
-  },
-  {
-    "_id": "order_41767537_003",
-    "order_no": "XYT202412270001234567892",
-    "user_id": "6860cd8509664cca9817872c",
-    "product_id": "41767537",
-    "product_snapshot": {
-      "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
-      "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
-      "price": 8193,
-      "child_price": 6554,
-      "images": [
-        "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp"
-      ],
-      "departure_date": 1715299200000,
-      "duration": 8
-    },
-    "status": "completed",
-    "quantity": 1,
-    "adult_count": 1,
-    "child_count": 0,
-    "total_amount": 8193,
-    "discount_amount": 500,
-    "coupon_discount": 300,
-    "member_discount": 410,
-    "final_amount": 6983,
-    "coupons_used": ["coupon_300_return_user"],
-    "member_level": "silver",
-    "contact_info": {
-      "name": "杜伟业",
-      "phone": "19102688475",
-      "email": "duweiey@example.com"
-    },
-    "travelers": [
-      {
-        "name": "杜伟业",
-        "id_card": "14242919981125541X",
-        "phone": "19102688475",
-        "passenger_type": "adult"
-      }
-    ],
-    "departure_date": 1715299200000,
-    "return_date": 1715904000000,
-    "duration_days": 8,
-    "special_requirements": "单人出行，希望安排摄影指导",
-    "payment_info": {
-      "pay_order_id": "pay_order_41767537_003",
-      "payment_method": "wxpay",
-      "paid_at": 1734624000000
-    },
-    "ctrip_sync": {
-      "is_synced": true,
-      "ctrip_order_id": "CTRIP202412200001",
-      "sync_time": 1734624000000,
-      "sync_status": "success"
-    },
-    "review": {
-      "rating": 5,
-      "comment": "西藏之行非常棒！导游专业，风景绝美，酒店服务很好，特别是南迦巴瓦峰的日出太震撼了！",
-      "images": [
-        "https://mp-ac0bab20-2d7b-45a4-84f6-a33db303fb31.cdn.bspapp.com/review/review_001.jpg",
-        "https://mp-ac0bab20-2d7b-45a4-84f6-a33db303fb31.cdn.bspapp.com/review/review_002.jpg"
-      ],
-      "reviewed_at": 1734710400000
-    },
-    "notes": "客户对行程非常满意，已推荐朋友报名",
-    "created_at": 1734624000000,
-    "updated_at": 1734710400000,
-    "paid_at": 1734624000000,
-    "confirmed_at": 1734624000000,
-    "completed_at": 1734710400000
-  },
-  {
-    "_id": "order_41767537_004",
-    "order_no": "XYT202412260001234567893",
-    "user_id": "6860cd8509664cca9817872c",
-    "product_id": "41767537",
-    "product_snapshot": {
-      "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
-      "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
-      "price": 8193,
-      "child_price": 6554,
-      "images": [
-        "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp",
-        "https://dimg04.c-ctrip.com/images/0305g12000cohaa4t763A.webp"
-      ],
-      "departure_date": 1736294400000,
-      "duration": 8
-    },
-    "status": "cancelled",
-    "quantity": 2,
-    "adult_count": 2,
-    "child_count": 0,
-    "total_amount": 16386,
-    "discount_amount": 0,
-    "coupon_discount": 800,
-    "member_discount": 819,
-    "final_amount": 14767,
-    "coupons_used": ["coupon_800_vip"],
-    "member_level": "silver",
-    "contact_info": {
-      "name": "杜伟业",
-      "phone": "19102688475",
-      "email": "duweiey@example.com"
-    },
-    "travelers": [
-      {
-        "name": "杜伟业",
-        "id_card": "14242919981125541X",
-        "phone": "19102688475",
-        "passenger_type": "adult"
-      },
-      {
-        "name": "王小红",
-        "id_card": "110101199408151234",
-        "phone": "13800138004",
-        "passenger_type": "adult"
-      }
-    ],
-    "departure_date": 1736294400000,
-    "return_date": 1736899200000,
-    "duration_days": 8,
-    "special_requirements": "蜜月旅行，希望安排浪漫布置",
-    "payment_info": {
-      "pay_order_id": "pay_order_41767537_004",
-      "payment_method": "alipay",
-      "paid_at": 1735286400000
-    },
-    "ctrip_sync": {
-      "is_synced": true,
-      "ctrip_order_id": "CTRIP202501080001",
-      "sync_time": 1735286400000,
-      "sync_status": "cancelled"
-    },
-    "cancellation": {
-      "reason": "客户临时有事无法出行",
-      "cancelled_at": 1735372800000,
-      "refund_amount": 13000,
-      "refund_status": "completed",
-      "refund_time": 1735459200000,
-      "cancellation_fee": 1767
-    },
-    "notes": "客户因工作原因取消行程，已按政策退款",
-    "created_at": 1735200000000,
-    "updated_at": 1735459200000,
-    "paid_at": 1735286400000,
-    "cancelled_at": 1735372800000
-  },
-  {
-    "_id": "order_41767537_005",
-    "order_no": "XYT202412250001234567894",
-    "user_id": "6860cd8509664cca9817872c",
-    "product_id": "41767537",
-    "product_snapshot": {
-      "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
-      "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
-      "price": 8193,
-      "child_price": 6554,
-      "images": [
-        "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp"
-      ],
-      "departure_date": 1742169600000,
-      "duration": 8
-    },
-    "status": "confirmed",
-    "quantity": 4,
-    "adult_count": 3,
-    "child_count": 1,
-    "total_amount": 31133,
-    "discount_amount": 2000,
-    "coupon_discount": 1000,
-    "member_discount": 1557,
-    "final_amount": 26576,
-    "coupons_used": ["coupon_1000_group"],
-    "member_level": "gold",
-    "contact_info": {
-      "name": "杜伟业",
-      "phone": "19102688475",
-      "email": "duweiey@example.com"
-    },
-    "travelers": [
-      {
-        "name": "杜伟业",
-        "id_card": "14242919981125541X",
-        "phone": "19102688475",
-        "passenger_type": "adult"
-      },
-      {
-        "name": "杜妈妈",
-        "id_card": "110101196505151234",
-        "phone": "13800138005",
-        "passenger_type": "adult"
-      },
-      {
-        "name": "杜爸爸",
-        "id_card": "110101196203151234",
-        "phone": "13800138006",
-        "passenger_type": "adult"
-      },
-      {
-        "name": "杜小宝",
-        "id_card": "110101201505151234",
-        "phone": "19102688475",
-        "passenger_type": "child"
-      }
-    ],
-    "departure_date": 1742169600000,
-    "return_date": 1742774400000,
-    "duration_days": 8,
-    "special_requirements": "家庭出行，老人需要轮椅服务，儿童需要儿童餐",
-    "payment_info": {
-      "pay_order_id": "pay_order_41767537_005",
-      "payment_method": "wxpay",
-      "paid_at": 1735113600000
-    },
-    "ctrip_sync": {
-      "is_synced": true,
-      "ctrip_order_id": "CTRIP202503150001",
-      "sync_time": 1735113600000,
-      "sync_status": "success"
-    },
-    "notes": "三代同堂旅行，需要特别关照老人和孩子",
-    "created_at": 1735113600000,
-    "updated_at": 1735113600000,
-    "paid_at": 1735113600000,
-    "confirmed_at": 1735113600000
-  }
-] 
+// [
+//   {
+//     "_id": "order_41767537_001",
+//     "order_no": "XYT202506260001234567890",
+//     "user_id": "6860cd8509664cca9817872c", 
+//     "product_id": "41767537",
+//     "product_snapshot": {
+//       "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
+//       "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
+//       "price": 8193,
+//       "child_price": 6554,
+//       "images": [
+//         "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp",
+//         "https://dimg04.c-ctrip.com/images/0305g12000cohaa4t763A.webp",
+//         "https://dimg04.c-ctrip.com/images/100b11000000r48we269D.webp"
+//       ],
+//       "departure_date": 1751029349751,
+//       "duration": 8
+//     },
+//     "status": "processing",
+//     "quantity": 2,
+//     "adult_count": 2,
+//     "child_count": 0,
+//     "total_amount": 16386,
+//     "discount_amount": 0,
+//     "coupon_discount": 500,
+//     "member_discount": 819,
+//     "final_amount": 15067,
+//     "coupons_used": ["coupon_500_new_user"],
+//     "member_level": "silver",
+//     "contact_info": {
+//       "name": "杜伟业",
+//       "phone": "19102688475",
+//       "email": "duweiey@example.com"
+//     },
+//     "travelers": [
+//       {
+//         "name": "杜伟业",
+//         "id_card": "14242919981125541X",
+//         "phone": "19102688475",
+//         "passenger_type": "adult"
+//       },
+//       {
+//         "name": "李梅",
+//         "id_card": "110101199205151234",
+//         "phone": "13800138002",
+//         "passenger_type": "adult"
+//       }
+//     ],
+//     "departure_date": 1751029349751,
+//     "return_date": 1751634149751,
+//     "duration_days": 8,
+//     "special_requirements": "需要素食餐，希望安排靠窗座位，提供氧气瓶",
+//     "payment_info": {
+//       "pay_order_id": "pay_order_41767537_001",
+//       "payment_method": "wxpay",
+//       "paid_at": 1718726400000
+//     },
+//     "ctrip_sync": {
+//       "is_synced": true,
+//       "ctrip_order_id": "CTRIP202506260001",
+//       "sync_time": 1718726400000,
+//       "sync_status": "success"
+//     },
+//     "notes": "客户正在西藏旅行中，今天是第4天，行程进行顺利",
+//     "created_at": 1718640000000,
+//     "updated_at": 1719302400000,
+//     "paid_at": 1718726400000,
+//     "confirmed_at": 1718812800000
+//   },
+//   {
+//     "_id": "order_41767537_002",
+//     "order_no": "XYT202507150001234567891",
+//     "user_id": "6860cd8509664cca9817872c",
+//     "product_id": "41767537",
+//     "product_snapshot": {
+//       "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
+//       "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
+//       "price": 8193,
+//       "child_price": 6554,
+//       "images": [
+//         "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp",
+//         "https://dimg04.c-ctrip.com/images/0305g12000cohaa4t763A.webp"
+//       ],
+//       "departure_date": 1721001600000,
+//       "duration": 8
+//     },
+//     "status": "confirmed",
+//     "quantity": 3,
+//     "adult_count": 2,
+//     "child_count": 1,
+//     "total_amount": 22940,
+//     "discount_amount": 1000,
+//     "coupon_discount": 0,
+//     "member_discount": 1147,
+//     "final_amount": 20793,
+//     "coupons_used": [],
+//     "member_level": "silver",
+//     "contact_info": {
+//       "name": "杜伟业",
+//       "phone": "19102688475",
+//       "email": "duweiey@example.com"
+//     },
+//     "travelers": [
+//       {
+//         "name": "杜伟业",
+//         "id_card": "14242919981125541X",
+//         "phone": "19102688475",
+//         "passenger_type": "adult"
+//       },
+//       {
+//         "name": "张丽华",
+//         "id_card": "110101199103151234",
+//         "phone": "13800138003",
+//         "passenger_type": "adult"
+//       },
+//       {
+//         "name": "杜小宝",
+//         "id_card": "110101201505151234",
+//         "phone": "19102688475",
+//         "passenger_type": "child"
+//       }
+//     ],
+//     "departure_date": 1721001600000,
+//     "return_date": 1721606400000,
+//     "duration_days": 8,
+//     "special_requirements": "儿童需要安排儿童餐，家庭房间相邻",
+//     "payment_info": {
+//       "pay_order_id": "pay_order_41767537_002",
+//       "payment_method": "wxpay",
+//       "paid_at": 1719216000000
+//     },
+//     "ctrip_sync": {
+//       "is_synced": true,
+//       "ctrip_order_id": "CTRIP202507150001",
+//       "sync_time": 1719216000000,
+//       "sync_status": "success"
+//     },
+//     "notes": "暑假家庭出行，已确认酒店和用车安排",
+//     "created_at": 1719129600000,
+//     "updated_at": 1719216000000,
+//     "paid_at": 1719216000000,
+//     "confirmed_at": 1719302400000
+//   },
+//   {
+//     "_id": "order_41767537_003",
+//     "order_no": "XYT202412270001234567892",
+//     "user_id": "6860cd8509664cca9817872c",
+//     "product_id": "41767537",
+//     "product_snapshot": {
+//       "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
+//       "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
+//       "price": 8193,
+//       "child_price": 6554,
+//       "images": [
+//         "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp"
+//       ],
+//       "departure_date": 1715299200000,
+//       "duration": 8
+//     },
+//     "status": "completed",
+//     "quantity": 1,
+//     "adult_count": 1,
+//     "child_count": 0,
+//     "total_amount": 8193,
+//     "discount_amount": 500,
+//     "coupon_discount": 300,
+//     "member_discount": 410,
+//     "final_amount": 6983,
+//     "coupons_used": ["coupon_300_return_user"],
+//     "member_level": "silver",
+//     "contact_info": {
+//       "name": "杜伟业",
+//       "phone": "19102688475",
+//       "email": "duweiey@example.com"
+//     },
+//     "travelers": [
+//       {
+//         "name": "杜伟业",
+//         "id_card": "14242919981125541X",
+//         "phone": "19102688475",
+//         "passenger_type": "adult"
+//       }
+//     ],
+//     "departure_date": 1715299200000,
+//     "return_date": 1715904000000,
+//     "duration_days": 8,
+//     "special_requirements": "单人出行，希望安排摄影指导",
+//     "payment_info": {
+//       "pay_order_id": "pay_order_41767537_003",
+//       "payment_method": "wxpay",
+//       "paid_at": 1734624000000
+//     },
+//     "ctrip_sync": {
+//       "is_synced": true,
+//       "ctrip_order_id": "CTRIP202412200001",
+//       "sync_time": 1734624000000,
+//       "sync_status": "success"
+//     },
+//     "review": {
+//       "rating": 5,
+//       "comment": "西藏之行非常棒！导游专业，风景绝美，酒店服务很好，特别是南迦巴瓦峰的日出太震撼了！",
+//       "images": [
+//         "https://mp-ac0bab20-2d7b-45a4-84f6-a33db303fb31.cdn.bspapp.com/review/review_001.jpg",
+//         "https://mp-ac0bab20-2d7b-45a4-84f6-a33db303fb31.cdn.bspapp.com/review/review_002.jpg"
+//       ],
+//       "reviewed_at": 1734710400000
+//     },
+//     "notes": "客户对行程非常满意，已推荐朋友报名",
+//     "created_at": 1734624000000,
+//     "updated_at": 1734710400000,
+//     "paid_at": 1734624000000,
+//     "confirmed_at": 1734624000000,
+//     "completed_at": 1734710400000
+//   },
+//   {
+//     "_id": "order_41767537_004",
+//     "order_no": "XYT202412260001234567893",
+//     "user_id": "6860cd8509664cca9817872c",
+//     "product_id": "41767537",
+//     "product_snapshot": {
+//       "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
+//       "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
+//       "price": 8193,
+//       "child_price": 6554,
+//       "images": [
+//         "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp",
+//         "https://dimg04.c-ctrip.com/images/0305g12000cohaa4t763A.webp"
+//       ],
+//       "departure_date": 1736294400000,
+//       "duration": 8
+//     },
+//     "status": "cancelled",
+//     "quantity": 2,
+//     "adult_count": 2,
+//     "child_count": 0,
+//     "total_amount": 16386,
+//     "discount_amount": 0,
+//     "coupon_discount": 800,
+//     "member_discount": 819,
+//     "final_amount": 14767,
+//     "coupons_used": ["coupon_800_vip"],
+//     "member_level": "silver",
+//     "contact_info": {
+//       "name": "杜伟业",
+//       "phone": "19102688475",
+//       "email": "duweiey@example.com"
+//     },
+//     "travelers": [
+//       {
+//         "name": "杜伟业",
+//         "id_card": "14242919981125541X",
+//         "phone": "19102688475",
+//         "passenger_type": "adult"
+//       },
+//       {
+//         "name": "王小红",
+//         "id_card": "110101199408151234",
+//         "phone": "13800138004",
+//         "passenger_type": "adult"
+//       }
+//     ],
+//     "departure_date": 1736294400000,
+//     "return_date": 1736899200000,
+//     "duration_days": 8,
+//     "special_requirements": "蜜月旅行，希望安排浪漫布置",
+//     "payment_info": {
+//       "pay_order_id": "pay_order_41767537_004",
+//       "payment_method": "alipay",
+//       "paid_at": 1735286400000
+//     },
+//     "ctrip_sync": {
+//       "is_synced": true,
+//       "ctrip_order_id": "CTRIP202501080001",
+//       "sync_time": 1735286400000,
+//       "sync_status": "cancelled"
+//     },
+//     "cancellation": {
+//       "reason": "客户临时有事无法出行",
+//       "cancelled_at": 1735372800000,
+//       "refund_amount": 13000,
+//       "refund_status": "completed",
+//       "refund_time": 1735459200000,
+//       "cancellation_fee": 1767
+//     },
+//     "notes": "客户因工作原因取消行程，已按政策退款",
+//     "created_at": 1735200000000,
+//     "updated_at": 1735459200000,
+//     "paid_at": 1735286400000,
+//     "cancelled_at": 1735372800000
+//   },
+//   {
+//     "_id": "order_41767537_005",
+//     "order_no": "XYT202412250001234567894",
+//     "user_id": "6860cd8509664cca9817872c",
+//     "product_id": "41767537",
+//     "product_snapshot": {
+//       "title": "拉萨+林芝+雅鲁藏布大峡谷+南迦巴瓦峰+巴松措+羊卓雍措+纳木措8日7晚私家团",
+//       "subtitle": "雅鲁藏布大峡谷·鲁朗景区·巴松措·拉萨河·羊卓雍错·卡若拉冰川·纳木措·那根拉山口·布达拉宫·八廓街",
+//       "price": 8193,
+//       "child_price": 6554,
+//       "images": [
+//         "https://dimg04.c-ctrip.com/images/0301o12000cohado01331.webp"
+//       ],
+//       "departure_date": 1742169600000,
+//       "duration": 8
+//     },
+//     "status": "confirmed",
+//     "quantity": 4,
+//     "adult_count": 3,
+//     "child_count": 1,
+//     "total_amount": 31133,
+//     "discount_amount": 2000,
+//     "coupon_discount": 1000,
+//     "member_discount": 1557,
+//     "final_amount": 26576,
+//     "coupons_used": ["coupon_1000_group"],
+//     "member_level": "gold",
+//     "contact_info": {
+//       "name": "杜伟业",
+//       "phone": "19102688475",
+//       "email": "duweiey@example.com"
+//     },
+//     "travelers": [
+//       {
+//         "name": "杜伟业",
+//         "id_card": "14242919981125541X",
+//         "phone": "19102688475",
+//         "passenger_type": "adult"
+//       },
+//       {
+//         "name": "杜妈妈",
+//         "id_card": "110101196505151234",
+//         "phone": "13800138005",
+//         "passenger_type": "adult"
+//       },
+//       {
+//         "name": "杜爸爸",
+//         "id_card": "110101196203151234",
+//         "phone": "13800138006",
+//         "passenger_type": "adult"
+//       },
+//       {
+//         "name": "杜小宝",
+//         "id_card": "110101201505151234",
+//         "phone": "19102688475",
+//         "passenger_type": "child"
+//       }
+//     ],
+//     "departure_date": 1742169600000,
+//     "return_date": 1742774400000,
+//     "duration_days": 8,
+//     "special_requirements": "家庭出行，老人需要轮椅服务，儿童需要儿童餐",
+//     "payment_info": {
+//       "pay_order_id": "pay_order_41767537_005",
+//       "payment_method": "wxpay",
+//       "paid_at": 1735113600000
+//     },
+//     "ctrip_sync": {
+//       "is_synced": true,
+//       "ctrip_order_id": "CTRIP202503150001",
+//       "sync_time": 1735113600000,
+//       "sync_status": "success"
+//     },
+//     "notes": "三代同堂旅行，需要特别关照老人和孩子",
+//     "created_at": 1735113600000,
+//     "updated_at": 1735113600000,
+//     "paid_at": 1735113600000,
+//     "confirmed_at": 1735113600000
+//   }
+// ] 

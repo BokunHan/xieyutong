@@ -4,9 +4,9 @@
 	"required": ["product_id"],
 	"permission": {
 		"read": true,
-		"create": true,
-		"update": true,
-		"delete": "'admin' in auth.role || 'super_admin' in auth.role",
+		"create": "auth.uid != null && ('MANAGE_PRODUCTS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"update": "auth.uid != null && ('MANAGE_PRODUCTS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"delete": "auth.uid != null && ('MANAGE_PRODUCTS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
 		"count": true
 	},
 	"properties": {

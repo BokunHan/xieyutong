@@ -1,10 +1,10 @@
 {
 	"bsonType": "object",
 	"permission": {
-		"read": true,
-		"create": "'CREATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
-		"update": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
-		"delete": "'DELETE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
+		"read": "doc._id == auth.uid || 'VIEW_USERS' in auth.permission || 'MANAGE_USERS' in auth.permission || 'super_admin' in auth.role",
+		"create": "auth.uid != null && ('MANAGE_USERS' in auth.permission || 'super_admin' in auth.role)",
+		"update": "doc._id == auth.uid || 'MANAGE_USERS' in auth.permission || 'super_admin' in auth.role",
+		"delete": "doc._id == auth.uid || 'MANAGE_USERS' in auth.permission || 'super_admin' in auth.role",
 		"count": true
 	},
 	"properties": {
@@ -164,7 +164,7 @@
 			"title": "手机号码",
 			"trim": "both",
 			"permission": {
-				"read": "doc._id == auth.uid || 'READ_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
+				"read": "doc._id == auth.uid || 'MANAGE_USERS' in auth.permission || 'VIEW_USERS' in auth.permission || 'super_admin' in auth.role",
 				"write": "doc._id == auth.uid || 'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
 			}
 		},
@@ -510,7 +510,7 @@
 			"title": "更新时间",
 			"permission": {
 				"read": "doc._id == auth.uid || 'READ_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role",
-				"write": "doc._id == auth.uid ||  'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
+				"write": "doc._id == auth.uid || 'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission || 'super_admin' in auth.role"
 			}
 		}
 	},

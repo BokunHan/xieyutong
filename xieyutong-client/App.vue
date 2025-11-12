@@ -1,13 +1,18 @@
 <script>
 export default {
+	globalData: {
+		isModalShowing: false
+	},
 	onLaunch: function () {
 		console.log('App Launch');
 
 		// 全局加载FontAwesome字体
-		this.loadFontAwesome();
+		// this.loadFontAwesome();
 
 		// 检查并设置默认启动页面
 		this.checkDefaultPage();
+
+		this.globalData.isModalShowing = false;
 	},
 	onShow: function () {
 		console.log('App Show');
@@ -43,8 +48,21 @@ export default {
 					// 存储行程信息到本地，供行程页面使用
 					uni.setStorageSync('current_itinerary', result.data);
 
+					// 在设置定时器之前，检查首页是否已经（通过onLoad）设置了弹窗标志
+					if (this.globalData.isModalShowing) {
+						console.log('[App] 首页有弹窗，取消本次行程跳转');
+						return; // 阻止设置定时器
+					}
+
 					// 延迟跳转，确保应用初始化完成
 					setTimeout(() => {
+						// 在 500ms 后，执行跳转前，再次检查
+						// 防止首页的异步请求（checkNewCouponModal）比这里的异步（getCurrentItinerary）慢
+						if (this.globalData.isModalShowing) {
+							console.log('[App] 500ms后检查：首页弹窗已显示，取消跳转');
+							return;
+						}
+
 						uni.switchTab({
 							url: '/pages/itinerary/itinerary',
 							success: () => {
@@ -64,48 +82,48 @@ export default {
 				console.error('[App] 检查默认启动页面失败:', error);
 				// 发生错误时，使用默认首页
 			}
-		},
-
-		loadFontAwesome() {
-			const fontList = [
-				{
-					family: 'Font Awesome 6 Free',
-					path: 'url("https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/webfonts/fa-solid-900.ttf")'
-				},
-				{
-					family: 'Font Awesome 6 Free Regular',
-					path: 'url("https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/webfonts/fa-regular-400.ttf")'
-				},
-				{
-					family: 'Font Awesome 6 Brands',
-					path: 'url("https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/webfonts/fa-brands-400.ttf")'
-				}
-			];
-
-			fontList.forEach((font) => {
-				// #ifdef MP-WEIXIN
-				// --- 只在微信小程序平台执行的代码 ---
-				wx.loadFontFace({
-					family: font.family,
-					global: true,
-					source: font.path,
-					success: () => console.log(`[字体加载]wx: ${font.family} 加载成功`),
-					fail: (err) => console.error(`[字体加载]wx: ${font.family} 加载失败:`, err)
-				});
-				// #endif
-
-				// #ifndef MP-WEIXIN
-				// --- 在除微信小程序以外的所有其他平台执行的代码 ---
-				uni.loadFontFace({
-					family: font.family,
-					global: true,
-					source: font.path,
-					success: () => console.log(`[字体加载]uni: ${font.family} 加载成功`),
-					fail: (err) => console.error(`[字体加载]uni: ${font.family} 加载失败:`, err)
-				});
-				// #endif
-			});
 		}
+
+		// loadFontAwesome() {
+		// 	const fontList = [
+		// 		{
+		// 			family: 'Font Awesome 6 Free',
+		// 			path: 'url("https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/webfonts/fa-solid-900.ttf")'
+		// 		},
+		// 		{
+		// 			family: 'Font Awesome 6 Free Regular',
+		// 			path: 'url("https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/webfonts/fa-regular-400.ttf")'
+		// 		},
+		// 		{
+		// 			family: 'Font Awesome 6 Brands',
+		// 			path: 'url("https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/webfonts/fa-brands-400.ttf")'
+		// 		}
+		// 	];
+
+		// 	fontList.forEach((font) => {
+		// 		// #ifdef MP-WEIXIN
+		// 		// --- 只在微信小程序平台执行的代码 ---
+		// 		wx.loadFontFace({
+		// 			family: font.family,
+		// 			global: true,
+		// 			source: font.path,
+		// 			success: () => console.log(`[字体加载]wx: ${font.family} 加载成功`),
+		// 			fail: (err) => console.error(`[字体加载]wx: ${font.family} 加载失败:`, err)
+		// 		});
+		// 		// #endif
+
+		// 		// #ifndef MP-WEIXIN
+		// 		// --- 在除微信小程序以外的所有其他平台执行的代码 ---
+		// 		uni.loadFontFace({
+		// 			family: font.family,
+		// 			global: true,
+		// 			source: font.path,
+		// 			success: () => console.log(`[字体加载]uni: ${font.family} 加载成功`),
+		// 			fail: (err) => console.error(`[字体加载]uni: ${font.family} 加载失败:`, err)
+		// 		});
+		// 		// #endif
+		// 	});
+		// }
 	}
 };
 </script>
@@ -113,5 +131,14 @@ export default {
 <style>
 /*每个页面公共css */
 @import './static/css/tailwind.css';
-@import './static/css/awesome-font.css';
+/* @import './static/css/awesome-font.css'; */
+
+::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+	-webkit-appearance: none;
+	background: transparent;
+	color: transparent;
+}
 </style>

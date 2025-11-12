@@ -1,132 +1,142 @@
-[
-  {
-    "_id": "config_member_upgrade",
-    "config_key": "member_upgrade_rules",
-    "config_type": "member_upgrade",
-    "config_value": {
-      "silver": {
-        "required_consumption": 5000,
-        "discount_rate": 0.95
-      },
-      "gold": {
-        "required_consumption": 20000,
-        "discount_rate": 0.90
-      },
-      "diamond": {
-        "required_consumption": 50000,
-        "discount_rate": 0.85
-      }
-    },
-    "description": "会员等级升级规则：银卡需累计消费5000元，金卡需20000元，钻石需50000元",
-    "status": "active",
-    "version": "1.0",
-    "effective_date": 1735660800000,
-    "created_by": "system",
-    "created_at": 1735660800000,
-    "updated_at": 1735660800000
-  },
-  {
-    "_id": "config_coupon_auto_issue",
-    "config_key": "coupon_auto_issue_rules",
-    "config_type": "coupon_rules",
-    "config_value": {
-      "new_user": {
-        "enabled": false
-      },
-      "member_upgrade": {
-        "enabled": false
-      },
-      "referral": {
-        "enabled": true,
-        "referrer_amount": 500,
-        "referee_amount": 500,
-        "min_amount": 100,
-        "valid_days": 180,
-        "title": "推荐奖励券",
-        "require_order": true
-      }
-    },
-    "description": "自动发券规则配置，只有分享并被分享人下单后，才会给双方发放优惠券",
-    "status": "active",
-    "version": "1.0",
-    "effective_date": 1735660800000,
-    "created_by": "system",
-    "created_at": 1735660800000,
-    "updated_at": 1735660800000
-  },
-  {
-    "_id": "config_service_agreement",
-    "config_key": "service_agreement",
-    "config_type": "legal_docs",
-    "config_value": {
-      "content": "<h1>携域通旅行服务协议</h1><p>欢迎使用携域通旅行服务...</p><h2>服务内容</h2><p>我们为您提供旅游产品预订服务...</p><h2>用户权利和义务</h2><p>用户有权享受我们提供的服务...</p><h2>平台责任</h2><p>我们承诺为用户提供优质服务...</p><h2>免责声明</h2><p>在法律允许的范围内...</p><h2>协议修改</h2><p>我们保留随时修改本协议的权利...</p><h2>联系方式</h2><p>如有疑问，请联系客服...</p>"
-    },
-    "description": "携域通旅行服务协议内容",
-    "status": "active",
-    "version": "1.0",
-    "effective_date": 1735660800000,
-    "created_by": "system",
-    "created_at": 1735660800000,
-    "updated_at": 1735660800000
-  },
-  {
-    "_id": "config_privacy_policy",
-    "config_key": "privacy_policy",
-    "config_type": "legal_docs",
-    "config_value": {
-      "content": "<h1>携域通旅行隐私政策</h1><p>我们非常重视您的隐私保护...</p><h2>信息收集</h2><p>我们会收集您主动提供的信息...</p><h2>信息使用</h2><p>我们使用收集的信息来...</p><h2>信息保护</h2><p>我们采取合理的安全措施...</p><h2>联系我们</h2><p>如有任何疑问，请联系我们...</p>"
-    },
-    "description": "携域通旅行隐私政策内容",
-    "status": "active",
-    "version": "1.0",
-    "effective_date": 1735660800000,
-    "created_by": "system",
-    "created_at": 1735660800000,
-    "updated_at": 1735660800000
-  },
-  {
-    "_id": "config_app_logo",
-    "config_key": "app_logo",
-    "config_type": "app_settings",
-    "config_value": {
-      "logo_url": "https://example.com/logo.png"
-    },
-    "description": "应用Logo图片地址",
-    "status": "active",
-    "version": "1.0",
-    "effective_date": 1735660800000,
-    "created_by": "system",
-    "created_at": 1735660800000,
-    "updated_at": 1735660800000
-  },
-  {
-    "_id": "config_app_title",
-    "config_key": "app_title",
-    "config_type": "app_settings",
-    "config_value": {
-      "title": "携域通旅行"
-    },
-    "description": "应用标题名称",
-    "status": "active",
-    "version": "1.0",
-    "effective_date": 1735660800000,
-    "created_by": "system",
-    "created_at": 1735660800000,
-    "updated_at": 1735660800000
-  },
-  {
-    "_id": "config_app_slogan",
-    "config_key": "app_slogan",
-    "config_type": "app_settings",
-    "config_value": {
-      "slogan": "把平台的客户变成你的客户"
-    },
-    "description": "应用标语口号",
-    "status": "active",
-    "version": "1.0",
-    "effective_date": 1735660800000,
-    "created_by": "system",
-    "created_at": 1735660800000,
-    "updated_at": 1735660800000
-  }
-] 
+[{
+		"_id": "config_member_upgrade",
+		"config_key": "member_upgrade_rules",
+		"config_type": "member_upgrade",
+		"config_value": [{
+				"key": "normal",
+				"title": "普通会员",
+				"required_consumption": 0,
+				"discount_rate": 0.95
+			},
+			{
+				"key": "silver",
+				"title": "银卡会员",
+				"required_consumption": 5000,
+				"discount_rate": 0.92
+			},
+			{
+				"key": "gold",
+				"title": "金卡会员",
+				"required_consumption": 20000,
+				"discount_rate": 0.88
+			},
+			{
+				"key": "diamond",
+				"title": "钻石会员",
+				"required_consumption": 50000,
+				"discount_rate": 0.85
+			}
+		],
+		"description": "会员等级升级规则：银卡需累计消费5000元，金卡需20000元，钻石需50000元",
+		"status": "active",
+		"version": "1.0",
+		"effective_date": 1735660800000,
+		"created_by": "system",
+		"created_at": 1735660800000,
+		"updated_at": 1735660800000
+	},
+	{
+		"_id": "config_coupon_auto_issue",
+		"config_key": "coupon_auto_issue_rules",
+		"config_type": "coupon_rules",
+		"config_value": {
+			"new_user": {
+				"enabled": false
+			},
+			"member_upgrade": {
+				"enabled": false
+			},
+			"referral": {
+				"enabled": true,
+				"referrer_amount": 500,
+				"referee_amount": 500,
+				"min_amount": 100,
+				"valid_days": 180,
+				"title": "推荐奖励券",
+				"require_order": true
+			}
+		},
+		"description": "自动发券规则配置，只有分享并被分享人下单后，才会给双方发放优惠券",
+		"status": "active",
+		"version": "1.0",
+		"effective_date": 1735660800000,
+		"created_by": "system",
+		"created_at": 1735660800000,
+		"updated_at": 1735660800000
+	},
+	{
+		"_id": "config_service_agreement",
+		"config_key": "service_agreement",
+		"config_type": "legal_docs",
+		"config_value": {
+			"content": "<h1>携域通旅行服务协议</h1><p>欢迎使用携域通旅行服务...</p><h2>服务内容</h2><p>我们为您提供旅游产品预订服务...</p><h2>用户权利和义务</h2><p>用户有权享受我们提供的服务...</p><h2>平台责任</h2><p>我们承诺为用户提供优质服务...</p><h2>免责声明</h2><p>在法律允许的范围内...</p><h2>协议修改</h2><p>我们保留随时修改本协议的权利...</p><h2>联系方式</h2><p>如有疑问，请联系客服...</p>"
+		},
+		"description": "携域通旅行服务协议内容",
+		"status": "active",
+		"version": "1.0",
+		"effective_date": 1735660800000,
+		"created_by": "system",
+		"created_at": 1735660800000,
+		"updated_at": 1735660800000
+	},
+	{
+		"_id": "config_privacy_policy",
+		"config_key": "privacy_policy",
+		"config_type": "legal_docs",
+		"config_value": {
+			"content": "<h1>携域通旅行隐私政策</h1><p>我们非常重视您的隐私保护...</p><h2>信息收集</h2><p>我们会收集您主动提供的信息...</p><h2>信息使用</h2><p>我们使用收集的信息来...</p><h2>信息保护</h2><p>我们采取合理的安全措施...</p><h2>联系我们</h2><p>如有任何疑问，请联系我们...</p>"
+		},
+		"description": "携域通旅行隐私政策内容",
+		"status": "active",
+		"version": "1.0",
+		"effective_date": 1735660800000,
+		"created_by": "system",
+		"created_at": 1735660800000,
+		"updated_at": 1735660800000
+	},
+	{
+		"_id": "config_app_logo",
+		"config_key": "app_logo",
+		"config_type": "app_settings",
+		"config_value": {
+			"logo_url": "/static/logo.jpg"
+		},
+		"description": "应用Logo图片地址",
+		"status": "active",
+		"version": "1.0",
+		"effective_date": 1735660800000,
+		"created_by": "system",
+		"created_at": 1735660800000,
+		"updated_at": 1735660800000
+	},
+	{
+		"_id": "config_app_title",
+		"config_key": "app_title",
+		"config_type": "app_settings",
+		"config_value": {
+			"title": "美丽华旅行"
+		},
+		"description": "应用标题名称",
+		"status": "active",
+		"version": "1.0",
+		"effective_date": 1735660800000,
+		"created_by": "system",
+		"created_at": 1735660800000,
+		"updated_at": 1735660800000
+	},
+	{
+		"_id": "config_app_slogan",
+		"config_key": "app_slogan",
+		"config_type": "app_settings",
+		"config_value": {
+			"slogan": "随风漫行 × 向心而生\n全国旅行品牌，海量目的地待您探索\nTRAVEL ACROSS CHINA"
+		},
+		"description": "应用标语口号",
+		"status": "active",
+		"version": "1.0",
+		"effective_date": 1735660800000,
+		"created_by": "system",
+		"created_at": 1735660800000,
+		"updated_at": 1735660800000
+	}
+]

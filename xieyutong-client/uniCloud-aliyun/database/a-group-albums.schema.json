@@ -2,10 +2,10 @@
 	"bsonType": "object",
 	"required": ["order_id", "product_id", "departure_date", "total_days", "status"],
 	"permission": {
-		"read": "doc.user_id == auth.uid || doc.members.user_id==auth.uid || 'admin' in auth.role || 'super_admin' in auth.role",
-		"create": "auth.uid != null || 'admin' in auth.role || 'super_admin' in auth.role",
-		"update": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role",
-		"delete": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role"
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "doc.user_id == auth.uid || 'MANAGE_ALBUMS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "doc.user_id == auth.uid || 'MANAGE_ALBUMS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role"
 	},
 	"properties": {
 		"_id": {
@@ -52,9 +52,12 @@
 			"items": {
 				"bsonType": "object",
 				"properties": {
-					"user_id": {
+					"id": {
 						"bsonType": "string",
 						"foreignKey": "uni-id-users._id"
+					},
+					"mobile": {
+						"bsonType": "string"
 					}
 				}
 			}

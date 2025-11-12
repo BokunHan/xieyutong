@@ -318,6 +318,15 @@
 														@blur="saveActivityDetail({ dayIndex, actIndex, field: 'driving_duration_hours', value: activity.driving_duration_hours })"></uni-easyinput>
 												</div>
 											</div>
+											<div class="detail-row">
+												<label class="detail-label">内容</label>
+												<uni-easyinput
+													v-model="activity.elementData.content"
+													placeholder="请输入交通相关内容"
+													type="textarea"
+													:styles="detailTextareaStyles"
+													@blur="saveActivityDetail({ dayIndex, actIndex, field: 'elementData.content', value: activity.elementData.content })"></uni-easyinput>
+											</div>
 										</div>
 
 										<!-- 餐厅活动 -->
@@ -355,6 +364,45 @@
 													placeholder="请输入菜系"
 													:styles="detailInputStyles"
 													@blur="saveActivityDetail({ dayIndex, actIndex, field: 'elementData.cuisine', value: activity.elementData.cuisine })"></uni-easyinput>
+											</div>
+											<div class="detail-row">
+												<label class="detail-label">餐标</label>
+												<uni-easyinput
+													v-model="activity.elementData.standard"
+													placeholder="请输入餐标"
+													:styles="detailInputStyles"
+													@blur="saveActivityDetail({ dayIndex, actIndex, field: 'elementData.standard', value: activity.elementData.standard })"></uni-easyinput>
+											</div>
+
+											<div class="detail-row">
+												<label class="detail-label">注意</label>
+												<uni-easyinput
+													v-model="activity.elementData.remark"
+													placeholder="请输入注意事项"
+													type="textarea"
+													:styles="detailTextareaStyles"
+													@blur="saveActivityDetail({ dayIndex, actIndex, field: 'elementData.remark', value: activity.elementData.remark })"></uni-easyinput>
+											</div>
+
+											<div class="detail-row">
+												<label class="detail-label">餐厅图片</label>
+												<div class="scenic-images">
+													<div v-for="(image, imgIndex) in activity.elementData.images" :key="imgIndex" class="scenic-image-item">
+														<img :src="image" :alt="activity.elementData.name" class="scenic-image" @error="handleImageError" />
+														<div class="image-overlay">
+															<button class="image-action-btn" @click="previewImage(image)">
+																<i class="fas fa-eye"></i>
+															</button>
+															<button class="image-action-btn delete" @click="removeRestaurantImage(dayIndex, actIndex, imgIndex)">
+																<i class="fas fa-trash"></i>
+															</button>
+														</div>
+													</div>
+													<div class="add-image-btn" @click="addRestaurantImage(dayIndex, actIndex)">
+														<i class="fas fa-plus"></i>
+														<span>添加图片</span>
+													</div>
+												</div>
 											</div>
 										</div>
 
@@ -476,6 +524,15 @@
 														</div>
 													</div>
 												</div>
+											</div>
+											<div class="detail-row">
+												<label class="detail-label">注意</label>
+												<uni-easyinput
+													v-model="activity.remark"
+													placeholder="请输入景点活动注意事项"
+													type="textarea"
+													:styles="detailTextareaStyles"
+													@blur="saveActivityDetail({ dayIndex, actIndex, field: 'elementData.remark', value: activity.remark })"></uni-easyinput>
 											</div>
 										</div>
 
@@ -1248,18 +1305,23 @@ export default {
 					return {
 						transport_type: '',
 						departure: '',
-						destination: ''
+						destination: '',
+						content: ''
 					};
 				case 'restaurant':
 					return {
 						name: '',
 						meal_type: '',
 						adult_fee_type: '',
-						cuisine: ''
+						cuisine: '',
+						standard: '',
+						remark: '',
+						images: []
 					};
 				case 'scenic':
 					return {
-						scenic_spots: []
+						scenic_spots: [],
+						remark: ''
 					};
 				case 'hotel':
 					return {
@@ -1388,6 +1450,44 @@ export default {
 						value: this.editableData.itinerary[dayIndex].activities[actIndex].elementData.images
 					});
 				}
+			});
+		},
+
+		addRestaurantImage(dayIndex, actIndex) {
+			console.log(`➕ 添加餐厅图片: 第${dayIndex + 1}天第${actIndex + 1}个活动`);
+			uni.chooseImage({
+				count: 1, // 每次只选一张，可以改成多张
+				sizeType: ['compressed'],
+				sourceType: ['album', 'camera'],
+				success: (res) => {
+					// 假设您未来会实现上传到云存储
+					// 目前我们暂时使用临时路径，或者您可以替换为上传逻辑
+					const tempFilePath = res.tempFilePaths[0];
+
+					if (!this.editableData.itinerary[dayIndex].activities[actIndex].elementData.images) {
+						this.editableData.itinerary[dayIndex].activities[actIndex].elementData.images = [];
+					}
+					this.editableData.itinerary[dayIndex].activities[actIndex].elementData.images.push(tempFilePath);
+
+					this.saveActivityDetail({
+						dayIndex,
+						actIndex,
+						field: 'elementData.images',
+						value: this.editableData.itinerary[dayIndex].activities[actIndex].elementData.images
+					});
+				}
+			});
+		},
+
+		removeRestaurantImage(dayIndex, actIndex, imgIndex) {
+			console.log(`🗑️ 删除餐厅图片: 第${dayIndex + 1}天第${actIndex + 1}个活动第${imgIndex + 1}张图片`);
+			this.editableData.itinerary[dayIndex].activities[actIndex].elementData.images.splice(imgIndex, 1);
+
+			this.saveActivityDetail({
+				dayIndex,
+				actIndex,
+				field: 'elementData.images',
+				value: this.editableData.itinerary[dayIndex].activities[actIndex].elementData.images
 			});
 		},
 

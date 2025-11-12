@@ -1,0 +1,87 @@
+{
+	"bsonType": "object",
+	"required": ["region_id", "title", "type"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null && (auth.role.includes('admin') || auth.role.includes('super_admin'))",
+		"update": "auth.uid != null && (auth.role.includes('admin') || auth.role.includes('super_admin'))",
+		"delete": "auth.uid != null && (auth.role.includes('admin') || auth.role.includes('super_admin'))"
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID（用户 ID），系统自动生成"
+		},
+		"region_id": {
+			"bsonType": "string",
+			"title": "所属区域",
+			"description": "选择该内容属于哪个大区",
+			"order": 1,
+			"foreignKey": "a-regions._id",
+			"enumType": "tree",
+			"componentForEdit": {
+				"name": "uni-data-picker"
+			},
+			"enum": {
+				"collection": "a-regions",
+				"field": "_id as value, name as text",
+				"where": "status == true",
+				"orderby": "order asc"
+			}
+		},
+		"type": {
+			"bsonType": "string",
+			"title": "内容类型",
+			"description": "标识内容的种类",
+			"order": 2,
+			"enum": [{
+					"value": "tips",
+					"text": "出行提示"
+				},
+				{
+					"value": "precautions",
+					"text": "注意事项"
+				},
+				{
+					"value": "must_read",
+					"text": "出行前必读"
+				}
+			]
+		},
+		"title": {
+			"bsonType": "string",
+			"title": "标题",
+			"description": "文章显示的标题",
+			"order": 3,
+			"trim": "both"
+		},
+		"content": {
+			"bsonType": "string",
+			"title": "详细内容",
+			"description": "富文本内容，支持图文视频",
+			"order": 5,
+			"componentForEdit": {
+				"name": "editor"
+			}
+		},
+		"order": {
+			"bsonType": "int",
+			"title": "排序",
+			"description": "同类型内容间的排序",
+			"defaultValue": 0,
+			"order": 6
+		},
+		"status": {
+			"bsonType": "bool",
+			"title": "发布状态",
+			"defaultValue": true,
+			"order": 7
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"title": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

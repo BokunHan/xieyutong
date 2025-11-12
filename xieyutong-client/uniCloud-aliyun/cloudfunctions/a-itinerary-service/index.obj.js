@@ -14,186 +14,186 @@ const numericFields = new Set([
 const requiredFields = new Set(['total_days', 'day']);
 
 // 获取用户当前进行中的行程
-async function getCurrentItinerary(userId) {
-	const db = uniCloud.databaseForJQL({
-		clientInfo: this.getClientInfo()
-	});
+// async function getCurrentItinerary(userId) {
+// 	const db = uniCloud.databaseForJQL({
+// 		clientInfo: this.getClientInfo()
+// 	});
 
-	console.log('[行程服务] 查询用户当前行程，用户ID:', userId);
+// 	console.log('[行程服务] 查询用户当前行程，用户ID:', userId);
 
-	// 1. 查询用户所有已支付且未完成的订单
-	const ordersResult = await db
-		.collection('a-orders')
-		.where({
-			user_id: userId,
-			status: db.command.in(['paid', 'confirmed', 'processing'])
-		})
-		.field('_id, product_id, departure_date, return_date, duration_days, product_snapshot')
-		.orderBy('departure_date', 'asc')
-		.get();
+// 	// 1. 查询用户所有已支付且未完成的订单
+// 	const ordersResult = await db
+// 		.collection('a-orders')
+// 		.where({
+// 			user_id: userId,
+// 			status: db.command.in(['paid', 'confirmed', 'processing'])
+// 		})
+// 		.field('_id, product_id, departure_date, return_date, duration_days, product_snapshot')
+// 		.orderBy('departure_date', 'asc')
+// 		.get();
 
-	if (!ordersResult.data || ordersResult.data.length === 0) {
-		console.log('[行程服务] 用户没有进行中的订单');
-		return null;
-	}
+// 	if (!ordersResult.data || ordersResult.data.length === 0) {
+// 		console.log('[行程服务] 用户没有进行中的订单');
+// 		return null;
+// 	}
 
-	console.log('[行程服务] 找到进行中的订单:', ordersResult.data.length, '个');
+// 	console.log('[行程服务] 找到进行中的订单:', ordersResult.data.length, '个');
 
-	// 2. 检查订单是否在行程期间（当前时间 <= 行程结束时间）
-	const currentTime = Date.now();
+// 	// 2. 检查订单是否在行程期间（当前时间 <= 行程结束时间）
+// 	const currentTime = Date.now();
 
-	for (const order of ordersResult.data) {
-		if (!order.departure_date) {
-			console.log('[行程服务] 订单缺少出发日期，跳过:', order.order_no);
-			continue;
-		}
+// 	for (const order of ordersResult.data) {
+// 		if (!order.departure_date) {
+// 			console.log('[行程服务] 订单缺少出发日期，跳过:', order.order_no);
+// 			continue;
+// 		}
 
-		// 安全地处理时间戳格式的出发日期
-		let rawTime;
-		if (order.departure_date instanceof Date) {
-			rawTime = order.departure_date.getTime();
-		} else if (typeof order.departure_date === 'number') {
-			rawTime = order.departure_date;
-		} else if (typeof order.departure_date === 'string') {
-			rawTime = parseInt(order.departure_date);
-			if (isNaN(rawTime)) {
-				console.log('[行程服务] 无效的出发日期格式，跳过:', order.order_no, order.departure_date);
-				continue;
-			}
-		} else {
-			console.log('[行程服务] 未知的出发日期格式，跳过:', order.order_no, order.departure_date);
-			continue;
-		}
+// 		// 安全地处理时间戳格式的出发日期
+// 		let rawTime;
+// 		if (order.departure_date instanceof Date) {
+// 			rawTime = order.departure_date.getTime();
+// 		} else if (typeof order.departure_date === 'number') {
+// 			rawTime = order.departure_date;
+// 		} else if (typeof order.departure_date === 'string') {
+// 			rawTime = parseInt(order.departure_date);
+// 			if (isNaN(rawTime)) {
+// 				console.log('[行程服务] 无效的出发日期格式，跳过:', order.order_no, order.departure_date);
+// 				continue;
+// 			}
+// 		} else {
+// 			console.log('[行程服务] 未知的出发日期格式，跳过:', order.order_no, order.departure_date);
+// 			continue;
+// 		}
 
-		const dateobj = new Date(rawTime);
-		dateobj.setHours(0, 0, 0, 0);
-		let departureTime = dateobj.getTime();
+// 		const dateobj = new Date(rawTime);
+// 		dateobj.setHours(0, 0, 0, 0);
+// 		let departureTime = dateobj.getTime();
 
-		// 获取行程天数，优先级：订单中的duration_days > 行程表中的total_days > 默认1天
-		let totalDays = 0;
+// 		// 获取行程天数，优先级：订单中的duration_days > 行程表中的total_days > 默认1天
+// 		let totalDays = 0;
 
-		// 1. 首先尝试从订单中获取天数
-		if (order.duration_days && typeof order.duration_days === 'number' && order.duration_days > 0) {
-			totalDays = order.duration_days;
-		} else {
-			// 2. 从行程表中查询天数
-			try {
-				const itineraryResult = await db
-					.collection('a-itineraries')
-					.where({
-						product_id: order.product_id
-					})
-					.field('total_days')
-					.get();
+// 		// 1. 首先尝试从订单中获取天数
+// 		if (order.duration_days && typeof order.duration_days === 'number' && order.duration_days > 0) {
+// 			totalDays = order.duration_days;
+// 		} else {
+// 			// 2. 从行程表中查询天数
+// 			try {
+// 				const itineraryResult = await db
+// 					.collection('a-itineraries')
+// 					.where({
+// 						product_id: order.product_id
+// 					})
+// 					.field('total_days')
+// 					.get();
 
-				if (itineraryResult.data && itineraryResult.data[0] && itineraryResult.data[0].total_days) {
-					totalDays = itineraryResult.data[0].total_days;
-				}
-			} catch (error) {
-				console.log('[行程服务] 查询行程表失败:', error.message);
-			}
+// 				if (itineraryResult.data && itineraryResult.data[0] && itineraryResult.data[0].total_days) {
+// 					totalDays = itineraryResult.data[0].total_days;
+// 				}
+// 			} catch (error) {
+// 				console.log('[行程服务] 查询行程表失败:', error.message);
+// 			}
 
-			// 3. 默认值
-			if (totalDays <= 0) {
-				totalDays = 1;
-				console.log('[行程服务] 使用默认行程天数1天，订单:', order.order_no);
-			}
-		}
+// 			// 3. 默认值
+// 			if (totalDays <= 0) {
+// 				totalDays = 1;
+// 				console.log('[行程服务] 使用默认行程天数1天，订单:', order.order_no);
+// 			}
+// 		}
 
-		// 计算行程结束时间
-		let itineraryEndTime;
+// 		// 计算行程结束时间
+// 		let itineraryEndTime;
 
-		// 如果有明确的返回日期且有效，优先使用
-		if (order.return_date) {
-			if (order.return_date instanceof Date) {
-				itineraryEndTime = order.return_date.getTime();
-			} else if (typeof order.return_date === 'number') {
-				itineraryEndTime = order.return_date;
-			} else if (typeof order.return_date === 'string') {
-				itineraryEndTime = parseInt(order.return_date);
-				if (isNaN(itineraryEndTime)) {
-					itineraryEndTime = null;
-				}
-			}
-		}
+// 		// 如果有明确的返回日期且有效，优先使用
+// 		if (order.return_date) {
+// 			if (order.return_date instanceof Date) {
+// 				itineraryEndTime = order.return_date.getTime();
+// 			} else if (typeof order.return_date === 'number') {
+// 				itineraryEndTime = order.return_date;
+// 			} else if (typeof order.return_date === 'string') {
+// 				itineraryEndTime = parseInt(order.return_date);
+// 				if (isNaN(itineraryEndTime)) {
+// 					itineraryEndTime = null;
+// 				}
+// 			}
+// 		}
 
-		// 如果没有有效的返回日期，使用出发时间 + 行程天数计算
-		if (!itineraryEndTime || itineraryEndTime <= departureTime) {
-			// 计算行程结束时间：出发日期 + (行程天数-1) * 24小时
-			// 注意：8天行程实际上是从第1天到第8天，所以结束时间是出发时间 + 7*24小时 + 23小时59分59秒
-			const daysToAdd = totalDays - 1; // 减1是因为出发当天算第1天
-			const hoursToAdd = 23; // 添加23小时59分59秒，表示行程最后一天的结束
-			const minutesToAdd = 59;
-			const secondsToAdd = 59;
+// 		// 如果没有有效的返回日期，使用出发时间 + 行程天数计算
+// 		if (!itineraryEndTime || itineraryEndTime <= departureTime) {
+// 			// 计算行程结束时间：出发日期 + (行程天数-1) * 24小时
+// 			// 注意：8天行程实际上是从第1天到第8天，所以结束时间是出发时间 + 7*24小时 + 23小时59分59秒
+// 			const daysToAdd = totalDays - 1; // 减1是因为出发当天算第1天
+// 			const hoursToAdd = 23; // 添加23小时59分59秒，表示行程最后一天的结束
+// 			const minutesToAdd = 59;
+// 			const secondsToAdd = 59;
 
-			itineraryEndTime = departureTime + daysToAdd * 24 * 60 * 60 * 1000 + hoursToAdd * 60 * 60 * 1000 + minutesToAdd * 60 * 1000 + secondsToAdd * 1000;
-		}
+// 			itineraryEndTime = departureTime + daysToAdd * 24 * 60 * 60 * 1000 + hoursToAdd * 60 * 60 * 1000 + minutesToAdd * 60 * 1000 + secondsToAdd * 1000;
+// 		}
 
-		console.log('[行程服务] 检查订单:', {
-			orderId: order.order_no,
-			productId: order.product_id,
-			departureTime: new Date(departureTime).toISOString(),
-			itineraryEndTime: new Date(itineraryEndTime).toISOString(),
-			totalDays,
-			currentTime: new Date(currentTime).toISOString(),
-			isActive: currentTime <= itineraryEndTime,
-			hasReturnDate: !!order.return_date,
-			durationDays: order.duration_days
-		});
+// 		console.log('[行程服务] 检查订单:', {
+// 			orderId: order.order_no,
+// 			productId: order.product_id,
+// 			departureTime: new Date(departureTime).toISOString(),
+// 			itineraryEndTime: new Date(itineraryEndTime).toISOString(),
+// 			totalDays,
+// 			currentTime: new Date(currentTime).toISOString(),
+// 			isActive: currentTime <= itineraryEndTime,
+// 			hasReturnDate: !!order.return_date,
+// 			durationDays: order.duration_days
+// 		});
 
-		// 如果当前时间 <= 行程结束时间，说明行程还在进行中
-		if (currentTime <= itineraryEndTime) {
-			// 查询商品和行程详细信息
-			const [productResult, itineraryResult] = await Promise.all([
-				db.collection('a-products').where({ _id: order.product_id }).field('title, product_images').get(),
-				db.collection('a-itineraries').where({ product_id: order.product_id }).field('title, total_days, itinerary').get()
-			]);
+// 		// 如果当前时间 <= 行程结束时间，说明行程还在进行中
+// 		if (currentTime <= itineraryEndTime) {
+// 			// 查询商品和行程详细信息
+// 			const [productResult, itineraryResult] = await Promise.all([
+// 				db.collection('a-products').where({ _id: order.product_id }).field('title, product_images').get(),
+// 				db.collection('a-itineraries').where({ product_id: order.product_id }).field('title, total_days, itinerary').get()
+// 			]);
 
-			if (!productResult.data || productResult.data.length === 0) {
-				console.log('[行程服务] 未找到商品信息，跳过订单:', order.order_no);
-				continue;
-			}
+// 			if (!productResult.data || productResult.data.length === 0) {
+// 				console.log('[行程服务] 未找到商品信息，跳过订单:', order.order_no);
+// 				continue;
+// 			}
 
-			if (!itineraryResult.data || itineraryResult.data.length === 0) {
-				console.log('[行程服务] 未找到行程信息，跳过订单:', order.order_no);
-				continue;
-			}
+// 			if (!itineraryResult.data || itineraryResult.data.length === 0) {
+// 				console.log('[行程服务] 未找到行程信息，跳过订单:', order.order_no);
+// 				continue;
+// 			}
 
-			// 计算当前是第几天（从出发日期开始算）
-			const daysPassed = Math.floor((currentTime - departureTime) / (24 * 60 * 60 * 1000)) + 1;
-			const currentDay = Math.max(1, Math.min(daysPassed, totalDays));
+// 			// 计算当前是第几天（从出发日期开始算）
+// 			const daysPassed = Math.floor((currentTime - departureTime) / (24 * 60 * 60 * 1000)) + 1;
+// 			const currentDay = Math.max(1, Math.min(daysPassed, totalDays));
 
-			console.log('[行程服务] 找到进行中的行程:', {
-				orderId: order.order_no,
-				productId: order.product_id,
-				currentDay,
-				totalDays,
-				daysPassed
-			});
+// 			console.log('[行程服务] 找到进行中的行程:', {
+// 				orderId: order.order_no,
+// 				productId: order.product_id,
+// 				currentDay,
+// 				totalDays,
+// 				daysPassed
+// 			});
 
-			// 格式化日期字符串
-			const formatDate = (timestamp) => {
-				const date = new Date(timestamp);
-				return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
-			};
+// 			// 格式化日期字符串
+// 			const formatDate = (timestamp) => {
+// 				const date = new Date(timestamp);
+// 				return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+// 			};
 
-			order.order_id = order.order_no; // 与snapshot中的order_id字段保持一致
+// 			order.order_id = order.order_no; // 与snapshot中的order_id字段保持一致
 
-			return {
-				order,
-				product: productResult.data[0],
-				itinerary: itineraryResult.data[0],
-				currentDay,
-				totalDays,
-				departureDate: formatDate(departureTime),
-				endDate: formatDate(itineraryEndTime)
-			};
-		}
-	}
+// 			return {
+// 				order,
+// 				product: productResult.data[0],
+// 				itinerary: itineraryResult.data[0],
+// 				currentDay,
+// 				totalDays,
+// 				departureDate: formatDate(departureTime),
+// 				endDate: formatDate(itineraryEndTime)
+// 			};
+// 		}
+// 	}
 
-	console.log('[行程服务] 没有找到进行中的行程');
-	return null;
-}
+// 	console.log('[行程服务] 没有找到进行中的行程');
+// 	return null;
+// }
 
 // 绑定并获取当前行程（通过订单号输入）
 async function getItineraryByOrderId(userId, orderId) {
@@ -205,10 +205,14 @@ async function getItineraryByOrderId(userId, orderId) {
 	}
 
 	const db = uniCloud.database();
+	const cmd = db.command;
+	const $ = db.command.aggregate;
+	let orderType = 'mp';
+	let orderResult;
 
 	if (orderId) {
 		console.log(`[行程服务] 将orderId存入用户数据，用户ID: ${userId}, 订单号:${orderId}`);
-		const result = await db
+		let result = await db
 			.collection('uni-id-users')
 			.doc(userId)
 			.update({ $set: { user_input_order_id: orderId } });
@@ -218,36 +222,88 @@ async function getItineraryByOrderId(userId, orderId) {
 		} else {
 			console.log('[行程服务] 订单号存入失败或无需更新');
 		}
-	} else {
-		console.log('[行程服务] 在用户数据中查询当前行程订单号');
-		const result = await db.collection('uni-id-users').where({ _id: userId }).field({ user_input_order_id: true }).get();
 
-		if (result.data && result.data.length > 0 && result.data[0].user_input_order_id) {
-			orderId = result.data[0].user_input_order_id;
-			console.log('[行程服务] 成功获取当前行程订单号：', orderId);
-		} else {
-			console.log('[行程服务] 获取当前行程订单号失败，用户ID: ', userId);
-			return null;
-		}
-	}
+		// let mobile = '';
+		// result = await db.collection('uni-id-users').doc(userId).field({ mobile: true }).get();
+		// if (result && result.data && result.data.length > 0) {
+		// 	mobile.result.data[0].mobile;
+		// }
 
-	console.log('[行程服务] 查询当前订单行程，订单号:', orderId);
-
-	// 1. 查询该订单，mp代表在小程序中下单的行程，snapshot代表在v-booking同步来的行程
-	let orderType = 'mp';
-	let orderResult = await db.collection('a-orders').where({ order_no: orderId }).get();
-	if (!orderResult.data || orderResult.data.length === 0) {
-		orderType = 'snapshot';
-		orderResult = await db
-			.collection('a-snapshots')
-			.where({
-				order_id: orderId
-			})
-			.get();
-
+		orderResult = await db.collection('a-orders').where({ order_no: orderId }).get();
 		if (!orderResult.data || orderResult.data.length === 0) {
-			console.log(`[行程服务] 未查询到订单号为${orderId}的行程`);
-			return null;
+			orderType = 'snapshot';
+			orderResult = await db
+				.collection('a-snapshots')
+				.where({
+					order_id: orderId
+				})
+				.get();
+
+			if (!orderResult.data || orderResult.data.length === 0) {
+				console.log(`[行程服务] 未查询到订单号为${orderId}的行程`);
+				return null;
+			}
+			// } else if (mobile) {
+			// 	const newTraveler = { id: userId, mobile: mobile };
+			// 	result = await db
+			// 		.collection('a-snapshots')
+			// 		.where({ order_id: orderId, 'travel_users.id': cmd.neq(userId) })
+			// 		.update({ travel_users: cmd.push(newTraveler) });
+			// 	if (result && result.updated > 0) {
+			// 		console.log('[行程服务] 成功将用户加入snapshots出行用户');
+			// 	} else {
+			// 		console.log('[行程服务] 用户加入snapshots出行用户失败');
+			// 	}
+			// }
+		}
+		// } else if (mobile) {
+		// 	const newTraveler = { id: userId, mobile: mobile };
+		// 	result = await db
+		// 		.collection('a-orders')
+		// 		.where({ order_no: orderId, 'travel_users.id': cmd.neq(userId) })
+		// 		.update({ travel_users: cmd.push(newTraveler) });
+		// 	if (result && result.updated > 0) {
+		// 		console.log('[行程服务] 成功将用户加入orders出行用户');
+		// 	} else {
+		// 		console.log('[行程服务] 用户加入orders出行用户失败');
+		// 	}
+		// }
+	} else {
+		// console.log('[行程服务] 在用户数据中查询当前行程订单号');
+		// const result = await db.collection('uni-id-users').where({ _id: userId }).field({ user_input_order_id: true }).get();
+
+		// if (result.data && result.data.length > 0 && result.data[0].user_input_order_id) {
+		// 	orderId = result.data[0].user_input_order_id;
+		// 	console.log('[行程服务] 成功获取当前行程订单号：', orderId);
+		// } else {
+		// 	console.log('[行程服务] 获取当前行程订单号失败，用户ID: ', userId);
+		// 	return null;
+		// }
+		console.log('[行程服务] 在orders和snapshots数据表中查询当前行程订单号');
+		const now = Date.now();
+		const ordersWhere = cmd.and([
+			{ 'travel_users.id': userId },
+			// { departure_date: cmd.lte(now) },
+			cmd.expr($.gte([$.add(['$departure_date', $.multiply(['$duration_days', 24 * 60 * 60 * 1000])]), now]))
+		]);
+
+		orderResult = await db.collection('a-orders').where(ordersWhere).get();
+		if (!orderResult || !orderResult.data || orderResult.data.length === 0) {
+			const snapshotsWhere = cmd.and([
+				{ 'travel_users.id': userId },
+				// { departure_date: cmd.lte(now) },
+				cmd.expr($.gte([$.add(['$departure_date', $.multiply(['$total_days', 24 * 60 * 60 * 1000])]), now]))
+			]);
+			console.log('[行程服务] snapshotsWhere: ', snapshotsWhere);
+			orderResult = await db.collection('a-snapshots').where(snapshotsWhere).get();
+			if (!orderResult || !orderResult.data || orderResult.data.length === 0) {
+				console.log(`[行程服务] 未查询到当前有正在进行的订单`);
+				return null;
+			} else {
+				orderId = orderResult.data[0].order_id;
+			}
+		} else {
+			orderId = orderResult.data[0].order_no;
 		}
 	}
 
@@ -256,6 +312,7 @@ async function getItineraryByOrderId(userId, orderId) {
 	// 2. 检查订单是否在行程期间（当前时间 <= 行程结束时间）
 	const currentTime = Date.now();
 	const order = orderResult.data[0];
+	order.orderType = orderType;
 
 	if (!order.departure_date) {
 		console.log('[行程服务] 订单缺少出发日期，订单号：', orderId);
@@ -362,23 +419,37 @@ module.exports = {
 			// 验证用户身份
 			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
 			if (checkResult.errCode !== 0) {
-				throw new Error('身份验证失败');
+				console.warn('[行程服务] 用户身份验证失败:', checkResult.errMsg);
+				return {
+					errCode: 0,
+					data: null
+				};
 			}
 
 			const userId = checkResult.uid;
 			console.log('[行程服务] 获取当前行程，用户ID:', userId);
 
-			let orderType = 'snapshot'; // 行程所属订单的类型，目前有两种：1. 小程序上下单(mp)，2.从vbooking平台同步过来的订单快照(snapshot)
+			// let orderType = 'snapshot'; // 行程所属订单的类型，目前有两种：1. 小程序上下单(mp)，2.从vbooking平台同步过来的订单快照(snapshot)
+			// let itineraryInfo = await getItineraryByOrderId.call(this, userId, null);
+			// if (!itineraryInfo) {
+			// 	itineraryInfo = await getCurrentItinerary.call(this, userId);
+			// 	if (!itineraryInfo) {
+			// 		console.error('[行程服务] 未能获取到快照行程');
+			// 		return null;
+			// 	}
+			// 	orderType = 'mp';
+			// }
+			// itineraryInfo.orderType = orderType;
+
 			let itineraryInfo = await getItineraryByOrderId.call(this, userId, null);
 			if (!itineraryInfo) {
-				itineraryInfo = await getCurrentItinerary.call(this, userId);
-				if (!itineraryInfo) {
-					console.error('[行程服务] 未能获取到快照行程');
-					return null;
-				}
-				orderType = 'mp';
+				console.error('[行程服务] 未能获取到快照行程');
+				return {
+					errCode: 0,
+					data: null
+				};
 			}
-			itineraryInfo.orderType = orderType;
+			itineraryInfo.orderType = itineraryInfo.order.orderType;
 
 			return {
 				errCode: 0,
@@ -400,79 +471,100 @@ module.exports = {
 	async getCurrentItineraryOrderId() {
 		const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
 		if (checkResult.errCode !== 0) {
-			return { errCode: '401', errMsg: '用户未登录' };
+			console.warn('[行程服务] 用户身份验证失败:', checkResult.errMsg);
+			return {
+				errCode: 0,
+				data: null
+			};
 		}
 		const userId = checkResult.uid;
 		const db = uniCloud.database();
-		const dbCmd = db.command;
+		const cmd = db.command;
+		const $ = db.command.aggregate;
 		const now = Date.now();
 
 		console.log('[行程服务] 开始为用户查询当前行程的订单ID:', userId);
 
-		const { data: user } = await db.collection('uni-id-users').where({ _id: userId }).field({ user_input_order_id: 1 }).limit(1).get();
+		// const { data: user } = await db.collection('uni-id-users').where({ _id: userId }).field({ user_input_order_id: 1 }).limit(1).get();
 
-		if (user && user.length > 0) {
-			const orderId = user[0].user_input_order_id;
-			console.log('[行程服务] 找到当前绑定的订单:', orderId);
+		// if (user && user.length > 0) {
+		// 	const orderId = user[0].user_input_order_id;
+		// 	console.log('[行程服务] 找到当前绑定的订单:', orderId);
+
+		// 	let product_image = '';
+		// 	const { data: orderRes } = await db.collection('a-orders').where({ order_no: orderId }).field({ product_snapshot: 1 }).limit(1).get();
+
+		// 	if (orderRes && orderRes.length > 0) {
+		// 		product_image = orderRes[0].product_snapshot?.images[0] || '';
+		// 	} else {
+		// 		const { data: snapshotRes } = await db.collection('a-snapshots').where({ order_id: orderId }).field({ product_id: 1 }).limit(1).get();
+
+		// 		if (snapshotRes && snapshotRes.length > 0) {
+		// 			product_id = snapshotRes[0].product_id;
+		// 			if (product_id) {
+		// 				const { data: productRes } = await db.collection('a-products').where({ _id: product_id }).field({ product_images: 1 }).limit(1).get();
+
+		// 				if (productRes && productRes.length > 0) {
+		// 					product_image = productRes[0].product_images[0] || '';
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+
+		// 	return {
+		// 		errCode: 0,
+		// 		data: {
+		// 			order_id: orderId,
+		// 			product_image
+		// 		}
+		// 	};
+		// }
+		const snapshotsWhere = cmd.and([
+			{ 'travel_users.id': userId },
+			// { departure_date: cmd.lte(now) },
+			cmd.expr($.gte([$.add(['$departure_date', $.multiply(['$total_days', 24 * 60 * 60 * 1000])]), now]))
+		]);
+
+		const { data: snapshot } = await db.collection('a-snapshots').where(snapshotsWhere).field({ order_id: 1, product_id: 1 }).get();
+
+		if (snapshot && snapshot.length > 0) {
+			console.log('[行程服务] 找到进行中的订单:', snapshot);
 
 			let product_image = '';
-			const { data: orderRes } = await db.collection('a-orders').where({ order_no: orderId }).field({ product_snapshot: 1 }).limit(1).get();
-
-			if (orderRes && orderRes.length > 0) {
-				product_image = orderRes[0].product_snapshot?.images[0] || '';
-			} else {
-				const { data: snapshotRes } = await db.collection('a-snapshots').where({ order_id: orderId }).field({ product_id: 1 }).limit(1).get();
-
-				if (snapshotRes && snapshotRes.length > 0) {
-					product_id = snapshotRes[0].product_id;
-					if (product_id) {
-						const { data: productRes } = await db.collection('a-products').where({ _id: product_id }).field({ product_images: 1 }).limit(1).get();
-
-						if (productRes && productRes.length > 0) {
-							product_image = productRes[0].product_images[0] || '';
-						}
-					}
-				}
+			const { data: product } = await db.collection('a-products').doc(snapshot[0].product_id).get();
+			if (product && product.length > 0) {
+				product_image = product[0].product_images[0];
 			}
-
 			return {
 				errCode: 0,
 				data: {
-					order_id: orderId,
-					product_image
+					order_id: snapshot[0].order_id,
+					product_image: product_image || ''
 				}
 			};
 		}
 
-		const { data: order } = await db
-			.collection('a-orders')
-			.where({
-				user_id: userId,
-				status: db.command.in(['paid', 'confirmed', 'processing'])
-			})
-			.field({ order_no: 1, departure_date: 1, total_days: 1, product_snapshot: 1 })
-			.limit(1)
-			.get();
+		const ordersWhere = cmd.and([
+			{ 'travel_users.id': userId },
+			// { departure_date: cmd.lte(now) },
+			{ status: db.command.in(['paid', 'confirmed', 'processing']) },
+			cmd.expr($.gte([$.add(['$departure_date', $.multiply(['$duration_days', 24 * 60 * 60 * 1000])]), now]))
+		]);
+		const { data: order } = await db.collection('a-orders').where(ordersWhere).field({ order_no: 1, product_snapshot: 1 }).limit(1).get();
 
 		if (order && order.length > 0) {
-			const startDate = order[0].departure_date;
-			const totalDays = order[0].total_days || 1;
-			const endDate = startDate + totalDays * 24 * 60 * 60 * 1000 - 1;
-
-			if (now <= endDate) {
-				console.log('[行程服务] 找到进行中的订单:', order);
-				return {
-					errCode: 0,
-					data: {
-						order_id: order[0].order_no,
-						product_image: order[0].product_snapshot?.images[0] || ''
-					}
-				};
-			}
+			console.log('[行程服务] 找到进行中的订单:', order);
+			return {
+				errCode: 0,
+				data: {
+					order_id: order[0].order_no,
+					product_image: order[0].product_snapshot?.images[0] || ''
+				}
+			};
 		}
 
 		console.log('[行程服务] 未找到进行中的订单');
-		return { errCode: 'NOT_FOUND', errMsg: '无进行中行程' };
+		return { errCode: 0, data: null };
 	},
 
 	// 获取行程详细信息
@@ -524,7 +616,11 @@ module.exports = {
 			// 验证用户身份
 			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
 			if (checkResult.errCode !== 0) {
-				throw new Error('身份验证失败');
+				console.warn('[行程服务] 用户身份验证失败:', checkResult.errMsg);
+				return {
+					errCode: 0,
+					data: null
+				};
 			}
 
 			const userId = checkResult.uid;
@@ -550,7 +646,11 @@ module.exports = {
 			// 验证用户身份
 			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
 			if (checkResult.errCode !== 0) {
-				throw new Error('身份验证失败');
+				console.warn('[行程服务] 用户身份验证失败:', checkResult.errMsg);
+				return {
+					errCode: 0,
+					data: null
+				};
 			}
 
 			const userId = checkResult.uid;
@@ -624,14 +724,18 @@ module.exports = {
 			// 1. 身份验证与授权
 			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
 			if (checkResult.errCode !== 0) {
-				throw new Error('身份验证失败');
+				console.warn('[行程服务] 用户身份验证失败:', checkResult.errMsg);
+				return {
+					errCode: 0,
+					data: null
+				};
 			}
 
 			// 授权检查：确保只有管理员可以执行更新操作
-			const authorized = checkResult.role && (checkResult.role.includes('admin') || checkResult.role.includes('super_admin'));
-			if (!authorized) {
-				return { errCode: 403, errMsg: '无权操作' };
-			}
+			// const authorized = checkResult.role && (checkResult.role.includes('admin') || checkResult.role.includes('super_admin'));
+			// if (!authorized) {
+			// 	return { errCode: 403, errMsg: '无权操作' };
+			// }
 
 			// 2. 参数验证
 			if (!itineraryId || !path) {

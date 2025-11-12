@@ -1,5 +1,5 @@
 <template>
-	<view class="page-container">
+	<view class="page-container" :class="{ 'stop-scrolling': isPopupOpen }">
 		<!-- 状态栏占位 -->
 		<view class="status-bar-placeholder" :style="{ height: statusBarHeight + 100 + 'rpx' }"></view>
 
@@ -21,25 +21,63 @@
 					<view class="exit-btn" @click="exitItinerary">退出行程</view>
 				</view>
 
+				<view class="grid grid-cols-3 gap-3 my-4">
+					<view class="theme-card bg-blue-50" @click="openTipsPopup('tips')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
+						<view class="theme-icon-wrapper bg-blue-100">
+							<!-- <text class="fa fa-suitcase-rolling text-blue-500"></text> -->
+							<image src="/static/icons/suitcase-rolling.svg" class="w-5 h-5" mode="aspectFit" />
+						</view>
+						<view class="theme-card-title">
+							<text>出行</text>
+							<text>提示</text>
+						</view>
+					</view>
+
+					<view class="theme-card bg-red-50" @click="openTipsPopup('precautions')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
+						<view class="theme-icon-wrapper bg-red-100">
+							<!-- <text class="fa fa-exclamation-triangle text-red-500"></text> -->
+							<image src="/static/icons/exclamation-triangle.svg" class="w-5 h-5" mode="aspectFit" />
+						</view>
+						<view class="theme-card-title">
+							<text>注意</text>
+							<text>事项</text>
+						</view>
+					</view>
+
+					<view class="theme-card bg-green-50" @click="openTipsPopup('must_read')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
+						<view class="theme-icon-wrapper bg-green-100">
+							<!-- <text class="fa fa-check-circle text-green-500"></text> -->
+							<image src="/static/icons/check-circle.svg" class="w-5 h-5" mode="aspectFit" />
+						</view>
+						<view class="theme-card-title">
+							<text>出行前</text>
+							<text>必读</text>
+						</view>
+					</view>
+				</view>
+
 				<!-- 天气信息区域 -->
-				<view class="weather-info mt-3 p-3 bg-blue-50 rounded-lg">
+				<view class="weather-info mt-3 p-3 bg-brand-orange-50 rounded-lg">
 					<!-- 今天和明天天气对比 -->
 					<view class="flex">
 						<!-- 今天天气 -->
 						<view class="flex-1 pr-2">
-							<view class="text-xs text-blue-600 font-medium mb-1">今天 {{ weatherData.today.date }}</view>
+							<view class="text-xs text-brand-orange font-medium mb-1">今天 {{ weatherData.today.date }}</view>
 							<view class="flex items-center mb-2">
-								<text class="fa fa-sun text-yellow-500 text-xl mr-3"></text>
+								<!-- <text class="fa fa-sun text-yellow-500 text-xl mr-3"></text> -->
+								<image src="/static/icons/sun.svg" class="w-5 h-5 mr-3" mode="aspectFit" />
 								<view>
 									<view class="text-lg font-semibold text-gray-800">{{ weatherData.today.temp }}</view>
 									<view class="text-sm text-gray-600">{{ weatherData.today.condition }}</view>
 								</view>
 							</view>
 							<view class="flex items-center mb-1">
-								<text class="fa fa-map-marker-alt text-blue-500 text-xs mr-1"></text>
+								<!-- <text class="fa fa-map-marker-alt text-brand-orange text-xs mr-1"></text> -->
+								<image src="/static/icons/map-marker-alt.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
 								<text class="text-xs text-gray-600">{{ weatherData.today.location }}</text>
-								<text class="fa fa-mountain text-blue-500 text-xs ml-2 mr-1"></text>
-								<text class="text-xs text-blue-600">{{ weatherData.today.altitude }}</text>
+								<!-- <text class="fa fa-mountain text-brand-orange text-xs ml-2 mr-1"></text> -->
+								<image src="/static/icons/mountain.svg" class="w-3 h-3 ml-2 mr-1" mode="aspectFit" />
+								<text class="text-xs text-brand-orange">{{ weatherData.today.altitude }}</text>
 							</view>
 							<view class="text-xs text-gray-500 mb-1">{{ weatherData.today.tempRange }}</view>
 							<view class="text-xs text-gray-500">风力 {{ weatherData.today.wind }}</view>
@@ -50,19 +88,22 @@
 
 						<!-- 明天天气 -->
 						<view class="flex-1 pl-2">
-							<view class="text-xs text-blue-600 font-medium mb-1">明天 {{ weatherData.tomorrow.date }}</view>
+							<view class="text-xs text-brand-orange font-medium mb-1">明天 {{ weatherData.tomorrow.date }}</view>
 							<view class="flex items-center mb-2">
-								<text class="fa fa-cloud-sun text-gray-500 text-xl mr-3"></text>
+								<!-- <text class="fa fa-cloud-sun text-gray-500 text-xl mr-3"></text> -->
+								<image src="/static/icons/cloud-sun.svg" class="w-5 h-5 mr-3" mode="aspectFit" />
 								<view>
 									<view class="text-lg font-semibold text-gray-800">{{ weatherData.tomorrow.temp }}</view>
 									<view class="text-sm text-gray-600">{{ weatherData.tomorrow.condition }}</view>
 								</view>
 							</view>
 							<view class="flex items-center mb-1">
-								<text class="fa fa-map-marker-alt text-blue-500 text-xs mr-1"></text>
+								<!-- <text class="fa fa-map-marker-alt text-brand-orange text-xs mr-1"></text> -->
+								<image src="/static/icons/map-marker-alt.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
 								<text class="text-xs text-gray-600">{{ weatherData.tomorrow.location }}</text>
-								<text class="fa fa-mountain text-blue-500 text-xs ml-2 mr-1"></text>
-								<text class="text-xs text-blue-600">{{ weatherData.tomorrow.altitude }}</text>
+								<!-- <text class="fa fa-mountain text-brand-orange text-xs ml-2 mr-1"></text> -->
+								<image src="/static/icons/mountain.svg" class="w-3 h-3 ml-2 mr-1" mode="aspectFit" />
+								<text class="text-xs text-brand-orange">{{ weatherData.tomorrow.altitude }}</text>
 							</view>
 							<view class="text-xs text-gray-500 mb-1">{{ weatherData.tomorrow.tempRange }}</view>
 							<view class="text-xs text-gray-500">风力 {{ weatherData.tomorrow.wind }}</view>
@@ -97,7 +138,8 @@
 			<view class="day-highlights" v-if="currentDayInfo.highlights">
 				<view class="highlight-section">
 					<view class="highlight-header">
-						<text class="fa fa-star text-amber-500 mr-2"></text>
+						<!-- <text class="fa fa-star text-amber-500 mr-2"></text> -->
+						<image src="/static/icons/star.svg" class="w-5 h-5 mr-2" mode="aspectFit" />
 						<text class="font-semibold text-gray-800">当日亮点</text>
 					</view>
 					<view class="highlight-content">
@@ -113,13 +155,15 @@
 				<!-- 时间轴项目 -->
 				<view class="timeline-item" :id="'timeline-item-' + index" v-for="(item, index) in currentDaySchedule" :key="index">
 					<view class="timeline-dot">
-						<text :class="getTimelineIcon(item.type)"></text>
+						<!-- <text :class="getTimelineIcon(item.type)"></text> -->
+						<image :src="getTimelineIcon(item.type)" class="w-4 h-4" mode="aspectFit" />
 					</view>
 					<view class="timeline-content">
 						<view class="timeline-header">
 							<view class="timeline-time">{{ item.time }}</view>
 							<view class="timeline-type">
-								<text :class="getTimelineIcon(item.type)"></text>
+								<!-- <text :class="getTimelineIcon(item.type)"></text> -->
+								<image :src="getTimelineIcon(item.type)" class="w-4 h-4" mode="aspectFit" />
 								<text class="type-text">{{ getActivityTypeName(item.elementType) }}</text>
 							</view>
 						</view>
@@ -147,24 +191,43 @@
 
 			<!-- 底部操作区 -->
 			<view class="bottom-actions">
+				<view class="action-group">
+					<view class="group-btn" @click="contactSupport" hover-class="group-btn-active" hover-start-time="0" hover-stay-time="70">
+						<!-- <text class="fa fa-phone mr-2"></text> -->
+						<image src="/static/icons/phone.svg" class="w-5 h-5 mr-2" mode="aspectFit" />
+						<text>联系管家</text>
+					</view>
+
+					<view class="action-divider"></view>
+
+					<view class="group-btn" @click="contactGuide" hover-class="group-btn-active" hover-start-time="0" hover-stay-time="70">
+						<!-- <text class="fa fa-user-headset mr-2"></text> -->
+						<image src="/static/icons/user-headset.svg" class="w-5 h-5 mr-2" mode="aspectFit" />
+						<text>联系向导</text>
+					</view>
+				</view>
+			</view>
+			<!-- <view class="bottom-actions">
 				<view class="action-btn action-btn-light" @click="contactGuide">
 					<text class="fa fa-phone mr-2"></text>
 					<text>联系导游</text>
 				</view>
-			</view>
+			</view> -->
 		</view>
 
 		<!-- 无行程状态 -->
 		<view class="content-area" v-else>
 			<view class="empty-state">
 				<view class="empty-state-icon">
-					<text class="fa fa-route"></text>
+					<!-- <text class="fa fa-route"></text> -->
+					<image src="/static/icons/route.svg" class="route-icon" mode="aspectFit" />
 				</view>
 				<text class="text-xl font-semibold text-gray-800 mb-2">暂无行程</text>
 				<text class="text-gray-600">您目前没有进行中的旅行行程，</text>
 				<text class="text-gray-600">快去探索心仪的旅行产品吧！</text>
 				<view class="action-button mb-14" @click="browseProducts">
-					<text class="fa fa-search mr-2"></text>
+					<!-- <text class="fa fa-search mr-2"></text> -->
+					<image src="/static/icons/search-white.svg" class="search-icon mr-2" mode="aspectFit" />
 					<text>浏览旅行产品</text>
 				</view>
 				<text class="text-gray-600 mb-2">或输入订单号来导入行程</text>
@@ -172,16 +235,39 @@
 					<input v-model="orderId" placeholder="输入订单号..." focus="focus" placeholder-class="text-gray-400 text-sm" class="flex-1 bg-transparent text-sm text-gray-800" />
 				</view>
 				<view class="action-button" @click="fetchItineraryAndJoinAlbum">
-					<text class="fa fa-search mr-2"></text>
+					<!-- <text class="fa fa-search mr-2"></text> -->
+					<image src="/static/icons/search-white.svg" class="search-icon mr-2" mode="aspectFit" />
 					<text>导入行程</text>
 				</view>
 			</view>
 		</view>
+
+		<uni-popup ref="tipsPopup" type="bottom" @change="onPopupChange">
+			<view class="tips-popup-container">
+				<view class="tips-popup-header" @touchstart="onHeaderDragStart" @touchmove.stop.prevent="onDragMove" @touchend="onHeaderDragEnd">
+					<!-- <view class="tips-popup-title">{{ popupTitle }}</view> -->
+					<view class="tips-popup-close" @click="closeTipsPopup">
+						<uni-icons type="closeempty" size="20" color="#999"></uni-icons>
+					</view>
+				</view>
+
+				<view class="tips-popup-content-wrapper" @touchstart="onContentTouchStart" @touchend="onContentTouchEnd">
+					<scroll-view class="tips-popup-content" scroll-y :show-scrollbar="false" @scroll="onContentScroll" @touchmove.stop="dummyAllow">
+						<rich-content :html="popupContent" />
+					</scroll-view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
 <script>
+import RichContent from '@/components/rich-content/rich-content.vue';
+
 export default {
+	components: {
+		RichContent
+	},
 	data() {
 		return {
 			orderId: null,
@@ -239,7 +325,18 @@ export default {
 			fullItinerary: null,
 
 			// 当日行程安排
-			currentDaySchedule: []
+			currentDaySchedule: [],
+
+			guidePhone: null,
+			attendantPhone: null,
+
+			popupTitle: '',
+			popupContent: '<p>正在加载...</p>',
+			isPopupOpen: false,
+			headerDragData: { y: 0, time: 0 },
+			contentDragData: { y: 0, time: 0 },
+			isDragging: false,
+			isContentAtTop: true
 		};
 	},
 
@@ -251,41 +348,84 @@ export default {
 		this.statusBarHeight = systemInfo.statusBarHeight || 0;
 		console.log('[行程页面] 状态栏高度:', this.statusBarHeight);
 
+		const guideOrderId = uni.getStorageSync('guide_override_order_id');
+		if (guideOrderId) {
+			console.log('[行程页面] 向导特权：加载行程，订单号：', guideOrderId);
+			this.orderId = guideOrderId;
+			await this.fetchItineraryAndJoinAlbum(true);
+		}
 		// 检查用户是否有进行中的行程
-		await this.checkUserItinerary();
+		else {
+			console.log('[行程页面] 用户加载行程');
+			await this.checkUserItinerary();
+		}
 	},
 
 	async onShow() {
+		const guideOrderId = uni.getStorageSync('guide_override_order_id');
+		if (guideOrderId) {
+			console.log('[行程页面] onShow 当前行程为向导特权订单：', guideOrderId);
+			uni.removeStorageSync('guide_override_order_id');
+			this.orderId = guideOrderId;
+			this.loading = true;
+			this.hasItinerary = false;
+			await this.fetchItineraryAndJoinAlbum(true);
+
+			if (this.hasItinerary) {
+				await this.$nextTick();
+				this.scrollToCurrentPosition();
+			}
+			return;
+		}
+
 		// 如果有行程且不是从图片预览中退回，实现智能滚动
-		if (this.hasItinerary && !this.isPreview) {
+		if (this.isPreview) {
+			this.isPreview = false; // 重置标志
+			console.log('[行程页面] onShow: 从图片预览返回，跳过');
+			return; // 退出
+		}
+
+		this.isPreview = false;
+		console.log('[行程页面] onShow: 页面显示，检查缓存时效');
+
+		// onShow 也调用标准检查，它会自动处理缓存
+		await this.checkUserItinerary();
+
+		// 智能滚动 (基于刷新后的状态)
+		if (this.hasItinerary) {
 			await this.$nextTick();
 			this.scrollToCurrentPosition();
 		}
 
-		this.isPreview = false;
-		console.log('[行程页面] 页面加载完成');
+		console.log('[行程页面] 页面加载完成 (onShow)');
+	},
+
+	async onPullDownRefresh() {
+		console.log('[行程页面] 用户触发下拉刷新');
+		// 调用检查，并传入 true 强制刷新
+		await this.checkUserItinerary(true);
 	},
 
 	methods: {
 		// 检查用户是否有进行中的行程
-		async checkUserItinerary() {
-			console.log('[检查行程] 开始检查用户行程');
+		async checkUserItinerary(forceRefresh = false) {
+			console.log(`[检查行程] 开始 (ForceRefresh: ${forceRefresh})`);
 			try {
 				console.log('[检查行程] 设置加载状态为true');
 
 				// 检查登录状态
 				const token = uni.getStorageSync('uni_id_token');
 				if (!token) {
-					console.error('[相册列表] 用户未登录');
-					uni.navigateTo({
-						url: '/pages/login/login'
-					});
+					console.error('[检查行程] 用户未登录');
+					// uni.navigateTo({
+					// 	url: '/pages/login/login'
+					// });
 					return;
 				}
 
 				// 先检查本地缓存的行程信息
 				const cachedItinerary = uni.getStorageSync('current_itinerary');
-				if (cachedItinerary) {
+				if (cachedItinerary && !forceRefresh) {
 					if (cachedItinerary.orderType) this.orderType = cachedItinerary.orderType;
 					console.log('[检查行程] 使用缓存的行程信息');
 					await this.loadItineraryFromCache(cachedItinerary);
@@ -293,7 +433,9 @@ export default {
 				}
 
 				// 调用行程服务获取当前行程
-				this.loading = true;
+				if (!this.hasItinerary) {
+					this.loading = true;
+				}
 				console.log('[检查行程] 调用行程服务获取当前行程');
 				const itineraryService = uniCloud.importObject('a-itinerary-service');
 				const result = await itineraryService.getCurrentItinerary();
@@ -311,6 +453,9 @@ export default {
 					this.hasItinerary = false;
 					// 清除可能存在的旧缓存
 					uni.removeStorageSync('current_itinerary');
+					// uni.navigateTo({
+					// 	url: '/pages/login/login'
+					// });
 				}
 			} catch (error) {
 				console.error('[检查行程] 检查行程失败:', error);
@@ -324,18 +469,30 @@ export default {
 		},
 
 		// 通过用户输入的订单号获取订单行程及加入相册
-		async fetchItineraryAndJoinAlbum() {
+		async fetchItineraryAndJoinAlbum(forceRefresh = false) {
+			// 检查登录状态
+			const token = uni.getStorageSync('uni_id_token');
+			if (!token) {
+				console.error('[检查行程] 用户未登录');
+				uni.navigateTo({
+					url: '/pages/login/login'
+				});
+				return;
+			}
+
 			console.log('[检查行程] 开始检查用户行程');
 			try {
 				this.loading = true;
 				console.log('[检查行程] 设置加载状态为true');
 
-				// 先检查本地缓存的行程信息
-				const cachedItinerary = uni.getStorageSync('current_itinerary');
-				if (cachedItinerary) {
-					console.log('[检查行程] 使用缓存的行程信息');
-					await this.loadItineraryFromCache(cachedItinerary);
-					return;
+				if (!forceRefresh) {
+					// 先检查本地缓存的行程信息
+					const cachedItinerary = uni.getStorageSync('current_itinerary');
+					if (cachedItinerary) {
+						console.log('[检查行程] 使用缓存的行程信息');
+						await this.loadItineraryFromCache(cachedItinerary);
+						return;
+					}
 				}
 
 				// 调用行程服务获取当前行程
@@ -403,6 +560,7 @@ export default {
 				// 设置基本信息
 				this.currentOrder = itineraryInfo.order;
 				this.fullItinerary = itineraryInfo.itinerary;
+				this.parseStaves();
 
 				// 设置行程标题和日期
 				this.itineraryData.title = itineraryInfo.itinerary.title || itineraryInfo.order.product_snapshot?.title || '';
@@ -412,7 +570,18 @@ export default {
 				this.daysList = Array.from({ length: this.totalDays }, (_, i) => i + 1);
 
 				// 设置日期范围 - 使用云端格式化好的日期字符串
-				this.itineraryData.dateRange = `${itineraryInfo.departureDate} - ${itineraryInfo.endDate}`;
+				const departureTimestamp = Number(this.currentOrder.departure_date);
+				const departureDateObj = new Date(departureTimestamp);
+
+				// 计算结束日期
+				const endDateObj = new Date(departureTimestamp);
+				endDateObj.setDate(departureDateObj.getDate() + this.totalDays - 1);
+
+				const departureDateStr = this.formatDate(departureDateObj);
+				const endDateStr = this.formatDate(endDateObj);
+
+				// 5. 设置日期范围
+				this.itineraryData.dateRange = `${departureDateStr} - ${endDateStr}`;
 
 				// 计算进度
 				this.progressPercent = Math.round((this.currentDay / this.totalDays) * 100);
@@ -431,6 +600,40 @@ export default {
 				// 清除损坏的缓存
 				uni.removeStorageSync('current_itinerary');
 			}
+		},
+
+		parseStaves() {
+			// 每次加载时先重置
+			this.guidePhone = null;
+			this.attendantPhone = null;
+
+			if (!this.currentOrder || !Array.isArray(this.currentOrder.staves)) {
+				console.log('[解析Staves] 订单信息中无 staves 字段');
+				return;
+			}
+
+			const staves = this.currentOrder.staves;
+
+			for (const staff of staves) {
+				if (staff.role && Array.isArray(staff.role)) {
+					// 查找向导
+					if (staff.role.includes('guide')) {
+						this.guidePhone = staff.mobile;
+						console.log('[解析Staves] 找到向导电话:', staff.mobile);
+					}
+					// 查找管家
+					if (staff.role.includes('attendant')) {
+						this.attendantPhone = staff.mobile;
+						console.log('[解析Staves] 找到管家电话:', staff.mobile);
+					}
+				}
+			}
+		},
+
+		navigateToTips(type) {
+			uni.navigateTo({
+				url: `/pages/itinerary/itinerary-tips?type=${type}`
+			});
 		},
 
 		// 格式化日期
@@ -649,6 +852,7 @@ export default {
 						console.log('[退出行程] 退出成功');
 						this.orderId = null;
 						uni.removeStorageSync('current_itinerary');
+						uni.removeStorageSync('guide_override_order_id');
 						this.hasItinerary = false;
 					}
 				} else if (res.cancel) {
@@ -794,26 +998,28 @@ export default {
 			// 优先处理景点类型的详细信息
 			if (activity.elementType === 'scenic' && activity.elementData?.scenic_spots) {
 				const spots = activity.elementData.scenic_spots;
-				for (const spot of spots) {
-					if (spot.description) {
-						if (description) description += '\n\n';
-						description += spot.description;
+				if (Array.isArray(spots)) {
+					for (const spot of spots) {
+						if (spot.description) {
+							if (description) description += '\n\n';
+							description += spot.description;
 
-						// 添加景点级别信息
-						if (spot.level || activity.elementData.level) {
-							description += `\n级别：${spot.level || activity.elementData.level}`;
-						}
+							// 添加景点级别信息
+							if (spot.level || activity.elementData.level) {
+								description += `\n级别：${spot.level || activity.elementData.level}`;
+							}
 
-						// 添加亮点信息
-						if (spot.highlights && spot.highlights.length > 0) {
-							description += `\n亮点：${spot.highlights.join('、')}`;
-						} else if (activity.elementData.highlights && activity.elementData.highlights.length > 0) {
-							description += `\n亮点：${activity.elementData.highlights.join('、')}`;
-						}
+							// 添加亮点信息
+							if (spot.highlights && spot.highlights.length > 0) {
+								description += `\n亮点：${spot.highlights.join('、')}`;
+							} else if (activity.elementData.highlights && activity.elementData.highlights.length > 0) {
+								description += `\n亮点：${activity.elementData.highlights.join('、')}`;
+							}
 
-						// 添加门票信息
-						if (spot.ticket_type) {
-							description += `\n门票：${spot.ticket_type}`;
+							// 添加门票信息
+							if (spot.ticket_type) {
+								description += `\n门票：${spot.ticket_type}`;
+							}
 						}
 					}
 				}
@@ -1355,28 +1561,30 @@ export default {
 				}
 
 				// 备选：从活动中提取位置
-				for (const activity of dayData.activities) {
-					if (activity.location) {
-						console.log('[提取指定天位置] 从活动位置字段提取:', activity.location);
-						// 提取城市名称
-						const cityMatch = activity.location.match(
-							/(北京|上海|广州|深圳|杭州|南京|苏州|成都|重庆|西安|武汉|长沙|郑州|济南|青岛|大连|沈阳|哈尔滨|长春|石家庄|太原|呼和浩特|银川|西宁|乌鲁木齐|拉萨|昆明|贵阳|南宁|海口|三亚|福州|厦门|南昌|合肥|兰州|林芝|日喀则|山南|那曲|阿里)/
-						);
-						if (cityMatch) {
-							console.log('[提取指定天位置] 提取到城市:', cityMatch[1]);
-							return cityMatch[1];
+				if (Array.isArray(dayData.activities)) {
+					for (const activity of dayData.activities) {
+						if (activity.location) {
+							console.log('[提取指定天位置] 从活动位置字段提取:', activity.location);
+							// 提取城市名称
+							const cityMatch = activity.location.match(
+								/(北京|上海|广州|深圳|杭州|南京|苏州|成都|重庆|西安|武汉|长沙|郑州|济南|青岛|大连|沈阳|哈尔滨|长春|石家庄|太原|呼和浩特|银川|西宁|乌鲁木齐|拉萨|昆明|贵阳|南宁|海口|三亚|福州|厦门|南昌|合肥|兰州|林芝|日喀则|山南|那曲|阿里)/
+							);
+							if (cityMatch) {
+								console.log('[提取指定天位置] 提取到城市:', cityMatch[1]);
+								return cityMatch[1];
+							}
+							return activity.location;
 						}
-						return activity.location;
-					}
 
-					// 从活动标题中提取位置
-					if (activity.title) {
-						const titleCityMatch = activity.title.match(
-							/(北京|上海|广州|深圳|杭州|南京|苏州|成都|重庆|西安|武汉|长沙|郑州|济南|青岛|大连|沈阳|哈尔滨|长春|石家庄|太原|呼和浩特|银川|西宁|乌鲁木齐|拉萨|昆明|贵阳|南宁|海口|三亚|福州|厦门|南昌|合肥|兰州|林芝|日喀则|山南|那曲|阿里)/
-						);
-						if (titleCityMatch) {
-							console.log('[提取指定天位置] 从活动标题提取到城市:', titleCityMatch[1]);
-							return titleCityMatch[1];
+						// 从活动标题中提取位置
+						if (activity.title) {
+							const titleCityMatch = activity.title.match(
+								/(北京|上海|广州|深圳|杭州|南京|苏州|成都|重庆|西安|武汉|长沙|郑州|济南|青岛|大连|沈阳|哈尔滨|长春|石家庄|太原|呼和浩特|银川|西宁|乌鲁木齐|拉萨|昆明|贵阳|南宁|海口|三亚|福州|厦门|南昌|合肥|兰州|林芝|日喀则|山南|那曲|阿里)/
+							);
+							if (titleCityMatch) {
+								console.log('[提取指定天位置] 从活动标题提取到城市:', titleCityMatch[1]);
+								return titleCityMatch[1];
+							}
 						}
 					}
 				}
@@ -1635,12 +1843,17 @@ export default {
 		// 获取时间轴图标
 		getTimelineIcon(type) {
 			const iconMap = {
-				meal: 'fa fa-utensils',
-				transport: 'fa fa-car',
-				attraction: 'fa fa-camera',
-				hotel: 'fa fa-hotel'
+				// meal: 'fa fa-utensils',
+				meal: '/static/icons/utensils.svg',
+				// transport: 'fa fa-car',
+				transport: '/static/icons/car.svg',
+				// attraction: 'fa fa-camera',
+				attraction: '/static/icons/camera.svg',
+				// hotel: 'fa fa-hotel'
+				hotel: '/static/icons/hotel.svg'
 			};
-			return iconMap[type] || 'fa fa-circle';
+			// return iconMap[type] || 'fa fa-circle';
+			return iconMap[type] || '/static/icons/circle.svg';
 		},
 
 		// 获取活动类型名称
@@ -1657,26 +1870,67 @@ export default {
 			return typeNameMap[elementType] || '活动';
 		},
 
-		// 联系导游
-		contactGuide() {
-			console.log('[联系导游] 用户点击联系导游');
+		// 联系管家
+		contactSupport() {
+			console.log('[联系管家] 用户点击');
+			if (!this.attendantPhone) {
+				uni.showToast({
+					title: '暂未分配管家',
+					icon: 'none'
+				});
+				return;
+			}
+
 			uni.showModal({
-				title: '联系导游',
-				content: '确定要拨打导游电话吗？',
+				title: '联系管家',
+				content: `确定要拨打管家电话吗？\n号码：${this.attendantPhone} `,
 				success: (res) => {
 					if (res.confirm) {
-						console.log('[联系导游] 用户确认拨打电话');
+						console.log('[联系管家] 用户确认拨打电话');
 						uni.makePhoneCall({
-							phoneNumber: '13800138000',
+							phoneNumber: this.attendantPhone, // 动态号码
 							success: () => {
-								console.log('[联系导游] 拨打电话成功');
+								console.log('[联系管家] 拨打电话成功');
 							},
 							fail: (error) => {
-								console.error('[联系导游] 拨打电话失败:', error);
+								console.error('[联系管家] 拨打电话失败:', error);
 							}
 						});
 					} else {
-						console.log('[联系导游] 用户取消拨打电话');
+						console.log('[联系管家] 用户取消拨打电话');
+					}
+				}
+			});
+		},
+
+		// 联系向导
+		contactGuide() {
+			console.log('[联系向导] 用户点击');
+			if (!this.guidePhone) {
+				uni.showToast({
+					title: '暂未分配向导',
+					icon: 'none'
+				});
+				return;
+			}
+
+			uni.showModal({
+				title: '联系向导',
+				content: `确定要拨打向导电话吗？\n号码：${this.guidePhone} `,
+				success: (res) => {
+					if (res.confirm) {
+						console.log('[联系向导] 用户确认拨打电话');
+						uni.makePhoneCall({
+							phoneNumber: this.guidePhone, // 动态号码
+							success: () => {
+								console.log('[联系向导] 拨打电话成功');
+							},
+							fail: (error) => {
+								console.error('[联系向导] 拨打电话失败:', error);
+							}
+						});
+					} else {
+						console.log('[联系向导] 用户取消拨打电话');
 					}
 				}
 			});
@@ -2006,6 +2260,123 @@ export default {
 			} catch (error) {
 				console.error('[滚动定位估算] 滚动定位失败:', error);
 			}
+		},
+
+		// 打开弹窗并触发内容加载
+		async openTipsPopup(type) {
+			// 根据类型设置标题
+			if (type === 'tips') {
+				this.popupTitle = '出行提示';
+			} else if (type === 'precautions') {
+				this.popupTitle = '注意事项';
+			} else if (type === 'must_read') {
+				this.popupTitle = '出行前必读';
+			}
+
+			this.popupContent = '<p>正在加载...</p>';
+			this.$refs.tipsPopup.open();
+
+			await this.fetchPopupContent(type);
+		},
+
+		// 关闭弹窗
+		closeTipsPopup() {
+			this.$refs.tipsPopup.close();
+		},
+
+		// 从数据库获取内容
+		async fetchPopupContent(type) {
+			try {
+				const db = uniCloud.database();
+				const res = await db.collection('a-region-content').where({ type: type }).get();
+				if (res.result.data && res.result.data.length > 0) {
+					const data = res.result.data[0];
+					this.popupContent = data.content;
+				} else {
+					this.popupContent = '<p>未找到内容</p>';
+				}
+			} catch (e) {
+				console.error(e);
+				this.popupContent = '<p>内容加载失败</p>';
+			}
+		},
+
+		onPopupChange(e) {
+			this.isPopupOpen = e.show;
+			if (e.show) {
+				this.isContentAtTop = true;
+			}
+		},
+		onHeaderDragStart(e) {
+			if (e.touches.length !== 1) return;
+			this.headerDragData.y = e.touches[0].clientY;
+			this.headerDragData.time = Date.now();
+			this.isDragging = true;
+		},
+		onDragMove(e) {
+			if (!this.isDragging) return;
+			// 可以在此添加让弹窗跟随手指移动的逻辑 (较复杂)
+		},
+		onDragEnd(e) {
+			if (!this.isDragging) return;
+			this.isDragging = false;
+
+			const touch = e.changedTouches[0];
+			const deltaY = touch.clientY - this.headerDragData.y; // 垂直滑动的距离
+			const deltaTime = Date.now() - this.headerDragData.time; // 滑动时间
+
+			// --- 判断为“用力下划” ---
+			// 1. 必须是向下滑动 (deltaY > 0)
+			// 2. 必须滑动了足够距离 (例如 > 50px)
+			// 3. 必须足够快 (例如 < 300ms)
+			const isForcefulSwipe = deltaY > 50 && deltaTime < 300;
+
+			if (isForcefulSwipe) {
+				this.closeTipsPopup(); // 调用您已有的关闭方法
+			}
+		},
+		dummyAllow() {
+			// 这个空函数是为了让 @touchmove.stop 生效
+			return;
+		},
+		/**
+		 * 监听内容区滚动
+		 */
+		onContentScroll(e) {
+			// 判断是否滚动到了顶部 (小于5px都算顶部，增加容错)
+			this.isContentAtTop = e.detail.scrollTop < 20;
+		},
+
+		/**
+		 * 在内容区按下
+		 */
+		onContentTouchStart(e) {
+			if (e.touches.length !== 1) return;
+			this.contentDragData.y = e.touches[0].clientY;
+			this.contentDragData.time = Date.now();
+			this.isDragging = true;
+		},
+
+		/**
+		 * 在内容区松开
+		 */
+		onContentTouchEnd(e) {
+			if (!this.isDragging) return;
+			this.isDragging = false;
+
+			const touch = e.changedTouches[0];
+			const deltaY = touch.clientY - this.contentDragData.y;
+			const deltaTime = Date.now() - this.contentDragData.time;
+
+			// 检查是否为快速下划
+			const isForcefulSwipe = deltaY > 50 && deltaTime < 300;
+
+			// (核心逻辑)
+			// 必须是快速下划，*并且* 滚动条必须在最顶部
+			if (isForcefulSwipe && this.isContentAtTop) {
+				console.log('Swipe down on content top detected, closing popup.');
+				this.closeTipsPopup();
+			}
 		}
 	}
 };
@@ -2040,7 +2411,7 @@ export default {
 	width: 40px;
 	height: 40px;
 	border: 3px solid #f0f0f0;
-	border-top: 3px solid #0086f6;
+	border-top: 3px solid #eb6d20;
 	border-radius: 50%;
 	animation: spin 1s linear infinite;
 	margin-bottom: 16px;
@@ -2064,6 +2435,10 @@ export default {
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 	background-color: #f8f9fa;
 	min-height: 100vh;
+}
+.page-container.stop-scrolling {
+	height: 100vh;
+	overflow: hidden;
 }
 
 .content-area {
@@ -2090,7 +2465,7 @@ export default {
 
 .progress {
 	height: 100%;
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	border-radius: 2px;
 	transition: width 0.3s ease;
 }
@@ -2101,9 +2476,49 @@ export default {
 	border-radius: 8px;
 	font-size: 12px;
 	white-space: nowrap;
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	color: white;
-	box-shadow: 0 2px 8px rgba(0, 134, 246, 0.3);
+	box-shadow: 0 2px 8px rgba(235, 109, 32, 0.3);
+}
+
+.theme-card {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 10px 12px;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	border: 1px solid #f0f0f0;
+	transition: transform 0.15s ease-out, filter 0.15s ease-out;
+}
+
+.theme-card-active {
+	transform: scale(0.96);
+	filter: brightness(0.92);
+}
+
+.theme-icon-wrapper {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 0;
+	margin-right: 8px;
+}
+.theme-icon-wrapper .fa {
+	font-size: 18px;
+}
+
+.theme-card-title {
+	display: flex;
+	flex-direction: column;
+	font-size: 12px;
+	font-weight: 500;
+	color: #333;
+	line-height: 1.3;
 }
 
 .day-tabs {
@@ -2124,15 +2539,15 @@ export default {
 	border-radius: 16px;
 	font-size: 14px;
 	white-space: nowrap;
-	background-color: #f0f7ff;
-	color: #0086f6;
+	background-color: #fff8f3;
+	color: #eb6d20;
 	transition: all 0.2s ease;
 }
 
 .day-tab.active {
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	color: white;
-	box-shadow: 0 2px 8px rgba(0, 134, 246, 0.3);
+	box-shadow: 0 2px 8px rgba(235, 109, 32, 0.3);
 }
 
 .day-overview {
@@ -2163,7 +2578,7 @@ export default {
 }
 
 .weather-info {
-	border: 1px solid rgba(0, 134, 246, 0.1);
+	border: 1px solid rgba(235, 109, 32, 0.1);
 	transition: all 0.3s ease;
 }
 
@@ -2174,7 +2589,7 @@ export default {
 
 .altitude {
 	font-weight: 500;
-	color: #0086f6;
+	color: #eb6d20;
 }
 
 .timeline {
@@ -2204,8 +2619,8 @@ export default {
 	width: 24px;
 	height: 24px;
 	border-radius: 50%;
-	background-color: #f0f9ff;
-	border: 1px solid #0086f6;
+	background-color: #fff8f3;
+	border: 1px solid #eb6d20;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -2213,7 +2628,7 @@ export default {
 }
 
 .timeline-dot text {
-	color: #0086f6;
+	color: #eb6d20;
 	font-size: 12px;
 }
 
@@ -2232,7 +2647,7 @@ export default {
 }
 
 .timeline-time {
-	color: #0086f6;
+	color: #eb6d20;
 	font-weight: 500;
 	font-size: 14px;
 }
@@ -2335,14 +2750,14 @@ export default {
 	align-items: center;
 	justify-content: center;
 	height: 90vh;
-	padding: 0 32px;
+	padding: 0 0px;
 	text-align: center;
 }
 
 .empty-state-icon {
-	width: 120px;
-	height: 120px;
-	background-color: #f0f9ff;
+	width: 240rpx;
+	height: 240rpx;
+	background-color: #fff8f3;
 	border-radius: 60px;
 	display: flex;
 	align-items: center;
@@ -2352,20 +2767,31 @@ export default {
 
 .empty-state-icon text {
 	font-size: 48px;
-	color: #0086f6;
+	color: #eb6d20;
 }
 
 .action-button {
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	color: white;
 	border-radius: 24px;
 	padding: 12px 24px;
 	font-weight: 500;
 	margin-top: 16px;
-	box-shadow: 0 4px 12px rgba(0, 134, 246, 0.3);
+	box-shadow: 0 4px 12px rgba(235, 109, 32, 0.3);
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.route-icon {
+	width: 140rpx;
+	height: 124rpx;
+}
+
+.search-icon {
+	width: 24px;
+	height: 24px;
+	margin-right: 6px;
 }
 
 .bottom-actions {
@@ -2378,28 +2804,138 @@ export default {
 	z-index: 10;
 }
 
-.action-btn {
-	background-color: rgba(255, 255, 255, 0.9);
+/* "胶囊"容器 */
+.action-group {
+	display: flex;
+	align-items: center;
+	background-color: rgba(255, 255, 255, 0.75);
 	color: #555;
-	backdrop-filter: blur(5px);
+	backdrop-filter: blur(1px);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-	border: 1px solid rgba(0, 0, 0, 0.05);
+	/* border: 1px solid rgba(0, 0, 0, 0.05); */
+	border: 1px solid rgba(255, 255, 255, 0.2);
 	border-radius: 24px;
+	overflow: hidden;
+}
+
+/* "胶囊"内部的单个按钮 */
+.group-btn {
 	padding: 12px 20px;
 	font-weight: 500;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	color: #555;
+	transition: background-color 0.1s ease-out;
 }
 
-.action-btn-light {
-	background-color: rgba(255, 255, 255, 0.9);
-	color: #555;
+/* 按钮之间的垂直分割线 */
+.action-divider {
+	width: 1px;
+	height: 16px;
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮的 "按下" 状态 (使用 hover-class) */
+.group-btn-active {
+	background-color: rgba(0, 0, 0, 0.05);
 }
 
 .formatted-content {
 	white-space: pre-wrap;
 	display: block;
 	word-break: break-all;
+}
+
+.tips-popup-container {
+	background-color: #ffffff;
+	border-top-left-radius: 16px;
+	border-top-right-radius: 16px;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 80vh;
+}
+
+.tips-popup-header {
+	padding: 12px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-bottom: 1px solid #f0f0f0;
+	position: relative;
+	min-height: 44px;
+	box-sizing: border-box;
+	flex-shrink: 0;
+}
+
+.tips-popup-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: #333;
+}
+
+.tips-popup-close {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+}
+.tips-popup-close:active {
+	background-color: #f0f0f0;
+}
+
+.tips-popup-content-wrapper {
+	flex: 1; /* 占据头部以外的所有剩余空间 */
+	min-height: 0; /* 修复 flex bug */
+	position: relative; /* 确保 scroll-view 能在内部正确定位 */
+}
+
+.tips-popup-content {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 100%;
+	width: 100%;
+}
+
+.tips-popup-content ::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+	-webkit-appearance: none;
+	background: transparent;
+	color: transparent;
+}
+
+uni-modal .uni-modal__bd {
+	white-space: pre-wrap;
+}
+
+.bg-brand-orange {
+	background-color: #eb6d20;
+}
+.text-brand-orange {
+	color: #eb6d20;
+}
+.border-brand-orange {
+	border-color: #eb6d20;
+}
+.bg-brand-orange-50 {
+	background-color: #fff8f3;
+}
+.bg-brand-orange-100 {
+	background-color: #fff0e6;
+}
+.bg-brand-orange-200 {
+	background-color: #ffe0cc;
 }
 </style>

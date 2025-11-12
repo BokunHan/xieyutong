@@ -1,12 +1,12 @@
 export default {
 	//调试模式
-	"debug": false,
+	debug: false,
 	/*
 		登录类型 未列举到的或运行环境不支持的，将被自动隐藏。
 		如果需要在不同平台有不同的配置，直接用条件编译即可
 	*/
-	"isAdmin": true, // 区分管理端与用户端
-	"loginTypes": [
+	isAdmin: false, // 区分管理端与用户端
+	loginTypes: [
 		// "qq",
 		// "xiaomi",
 		// "sinaweibo",
@@ -17,12 +17,12 @@ export default {
 		// "douyin",
 
 		// #ifdef APP
-		"univerify",
+		'univerify',
 		// #endif
 		// "weixin",
-		"username",
+		'username',
 		// #ifdef APP
-		"apple",
+		'apple'
 		// #endif
 		// "smsCode"
 	],
@@ -36,12 +36,12 @@ export default {
 	// 	]
 	// },
 	// 提供各类服务接入（如微信登录服务）的应用id
-	"appid": {
-		"weixin": {
+	appid: {
+		weixin: {
 			// 微信公众号的appid，来源:登录微信公众号（https://mp.weixin.qq.com）-> 设置与开发 -> 基本配置 -> 公众号开发信息 -> AppID
-			"h5": "xxxxxx",
+			h5: 'xxxxxx',
 			// 微信开放平台的appid，来源:登录微信开放平台（https://open.weixin.qq.com） -> 管理中心 -> 网站应用 -> 选择对应的应用名称，点击查看 -> AppID
-			"web": "xxxxxx"
+			web: 'xxxxxx'
 		}
 	},
 	/**
@@ -52,5 +52,5 @@ export default {
 	 * weak（弱：密码必须包含字母和数字，长度范围：6-16位之间）
 	 * 为空或false则不验证密码强度
 	 */
-	"passwordStrength":"medium"
-}
+	passwordStrength: 'medium'
+};

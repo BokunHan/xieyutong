@@ -14,8 +14,8 @@ html {
 	background-color: #f5f5f5;
 }
 
-.uni-mask + .uni-left-window,
-.uni-mask + .uni-right-window {
+.uni-mask+.uni-left-window,
+.uni-mask+.uni-right-window {
 	position: fixed;
 }
 
@@ -27,9 +27,7 @@ uni-page-head .uni-btn-icon {
 	color: #333 !important;
 }
 
-.uni-app--showleftwindow
-	uni-page-head[uni-page-head-type="default"]
-	~ uni-page-wrapper {
+.uni-app--showleftwindow uni-page-head[uni-page-head-type="default"]~uni-page-wrapper {
 	height: auto;
 	padding-top: 44px;
 }
@@ -152,7 +150,7 @@ uni-page-head .uni-btn-icon {
 	margin: 10px;
 }
 
-.uni-group > .uni-button:first-child {
+.uni-group>.uni-button:first-child {
 	margin-left: 0;
 }
 
@@ -437,7 +435,8 @@ button:after {
 	box-shadow: -1px -1px 5px 0 rgba(0, 0, 0, 0.1);
 	margin-bottom: 15px;
 }
-.uni-stat--app-select{
+
+.uni-stat--app-select {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -569,7 +568,7 @@ button:after {
 		margin: 0 86px;
 	}
 
-	::v-deep .uni-pagination-picker-show .uni-picker-container .uni-picker-custom .uni-picker-select + div {
+	::v-deep .uni-pagination-picker-show .uni-picker-container .uni-picker-custom .uni-picker-select+div {
 		left: 50% !important;
 	}
 }
@@ -582,19 +581,22 @@ button:after {
 	min-height: calc(100vh - 237px);
 	box-sizing: border-box;
 }
+
 ::v-deep .uni-table .tr-table--border {
 	border-left: 1px #ebeef5 solid;
 }
+
 /* #endif */
 
 /* #ifndef H5 */
 .fix-top-window {
 	margin-top: 85px;
 }
+
 /* #endif */
 
 /* 地图选择top需要大于topWindow的高度 */
-.uni-system-choose-location{
+.uni-system-choose-location {
 	display: block;
 	position: fixed;
 	left: 0;

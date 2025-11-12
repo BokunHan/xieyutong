@@ -160,7 +160,19 @@
 					</view>
 				</view>
 				<view class="p-6">
-					<view class="grid grid-cols-1 md:grid-cols-5 gap-4">
+					<view class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
+						<view class="bg-cyan-50 hover:bg-cyan-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-system/list')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-cogs text-cyan-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-cyan-900">系统管理</text>
+						</view>
+						<view class="bg-indigo-50 hover:bg-indigo-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-regions/list')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-globe-asia text-indigo-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-indigo-900">区域管理</text>
+						</view>
 						<view class="bg-blue-50 hover:bg-blue-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-products/list')">
 							<view class="flex items-center justify-center mb-3">
 								<i class="fas fa-shopping-bag text-blue-600 text-2xl"></i>
@@ -278,6 +290,9 @@ export default {
 
 /* 确保hover效果在移动端也能正常工作 */
 @media (hover: hover) {
+	.hover\:bg-cyan-100:hover {
+		background-color: #cffafe;
+	}
 	.hover\:bg-blue-100:hover {
 		background-color: #dbeafe;
 	}
@@ -289,6 +304,9 @@ export default {
 	}
 	.hover\:bg-orange-100:hover {
 		background-color: #ffedd5;
+	}
+	.hover\:bg-indigo-100:hover {
+		background-color: #e0e7ff;
 	}
 }
 </style>

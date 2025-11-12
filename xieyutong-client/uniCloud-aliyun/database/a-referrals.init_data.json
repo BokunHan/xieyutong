@@ -1,49 +1,49 @@
-[
-  {
-    "_id": "referral_demo_1",
-    "referrer_id": "demo_user_3",
-    "referee_id": "demo_user_1",
-    "order_id": "demo_order_001",
-    "order_amount": 10000,
-    "referrer_coupon_id": "auto_referrer_1000",
-    "referee_coupon_id": "auto_referee_1000",
-    "referrer_coupon_amount": 1000,
-    "referee_coupon_amount": 1000,
-    "status": "completed",
-    "order_date": {
-      "$env": "now"
-    },
-    "coupon_sent_date": {
-      "$env": "now"
-    },
-    "remark": "老客户推荐新人，双方各得1000元券",
-    "created_at": {
-      "$env": "now"
-    },
-    "updated_at": {
-      "$env": "now"
-    }
-  },
-  {
-    "_id": "referral_demo_2",
-    "referrer_id": "demo_user_4",
-    "referee_id": "demo_user_2",
-    "order_id": "demo_order_002",
-    "order_amount": 15000,
-    "referrer_coupon_id": "auto_referrer_1000",
-    "referee_coupon_id": "auto_referee_1000",
-    "referrer_coupon_amount": 1000,
-    "referee_coupon_amount": 1000,
-    "status": "confirmed",
-    "order_date": {
-      "$env": "now"
-    },
-    "remark": "老客户成功推荐，等待发券",
-    "created_at": {
-      "$env": "now"
-    },
-    "updated_at": {
-      "$env": "now"
-    }
-  }
-] 
+// [
+//   {
+//     "_id": "referral_demo_1",
+//     "referrer_id": "demo_user_3",
+//     "referee_id": "demo_user_1",
+//     "order_id": "demo_order_001",
+//     "order_amount": 10000,
+//     "referrer_coupon_id": "auto_referrer_1000",
+//     "referee_coupon_id": "auto_referee_1000",
+//     "referrer_coupon_amount": 1000,
+//     "referee_coupon_amount": 1000,
+//     "status": "completed",
+//     "order_date": {
+//       "$env": "now"
+//     },
+//     "coupon_sent_date": {
+//       "$env": "now"
+//     },
+//     "remark": "老客户推荐新人，双方各得1000元券",
+//     "created_at": {
+//       "$env": "now"
+//     },
+//     "updated_at": {
+//       "$env": "now"
+//     }
+//   },
+//   {
+//     "_id": "referral_demo_2",
+//     "referrer_id": "demo_user_4",
+//     "referee_id": "demo_user_2",
+//     "order_id": "demo_order_002",
+//     "order_amount": 15000,
+//     "referrer_coupon_id": "auto_referrer_1000",
+//     "referee_coupon_id": "auto_referee_1000",
+//     "referrer_coupon_amount": 1000,
+//     "referee_coupon_amount": 1000,
+//     "status": "confirmed",
+//     "order_date": {
+//       "$env": "now"
+//     },
+//     "remark": "老客户成功推荐，等待发券",
+//     "created_at": {
+//       "$env": "now"
+//     },
+//     "updated_at": {
+//       "$env": "now"
+//     }
+//   }
+// ] 

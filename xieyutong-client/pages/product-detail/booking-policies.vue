@@ -19,11 +19,11 @@
 			</view>
 			<view class="header-spacer" :style="{ height: fixedHeaderHeight + 'px' }"></view>
 
-			<view
+			<!-- <view
 				v-if="bookingPolicyData.travel_agency_info && bookingPolicyData.travel_agency_info.claim"
 				class="top-claim bg-gray-50 p-3 text-xs text-orange-500 border-b border-gray-200">
 				<text>{{ bookingPolicyData.travel_agency_info.claim }}</text>
-			</view>
+			</view> -->
 
 			<view class="policy-section">
 				<text class="section-title">预订限制</text>
@@ -165,7 +165,7 @@
 				<view v-else class="text-gray-400 text-sm">暂无保障提示信息</view>
 			</view>
 
-			<view class="policy-section">
+			<!-- <view class="policy-section">
 				<text class="section-title">支付信息</text>
 				<view class="content-text" v-if="bookingPolicyData.payment_info?.supported_methods?.length > 0">
 					<text class="font-medium">支持的支付方式：</text>
@@ -182,7 +182,7 @@
 					</view>
 				</view>
 				<view v-else class="text-gray-400 text-sm">暂无常见支付问题信息</view>
-			</view>
+			</view> -->
 		</view>
 
 		<view v-else class="p-10 text-center text-gray-500">
@@ -420,7 +420,7 @@ export default {
 	transform: translateY(-50%);
 	width: 4px; /* 侧边条宽度 */
 	height: 16px; /* 侧边条高度 */
-	background-color: #3b82f6; /* 侧边条颜色 (蓝色) */
+	background-color: #eb6d20; /* 侧边条颜色 (蓝色) */
 	border-radius: 2px;
 }
 
@@ -435,7 +435,7 @@ export default {
 }
 
 .link-text {
-	color: #3b82f6; /* 链接颜色 */
+	color: #eb6d20; /* 链接颜色 */
 	font-weight: 500; /* 加粗一点表示可点击 */
 	cursor: pointer;
 }

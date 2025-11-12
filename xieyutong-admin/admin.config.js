@@ -8,36 +8,53 @@ export default {
 	error: {
 		url: '/pages/error/404' // 404 Not Found 错误页面路径
 	},
-	navBar: { // 顶部导航
+	navBar: {
+		// 顶部导航
 		logo: '/static/logo.png', // 左侧 Logo
-		langs: [{
-			text: '中文简体',
-			lang: 'zh-Hans'
-		}],
-		themes: [{
-			text: '默认',
-			value: 'default'
-		}, {
-			text: '绿柔',
-			value: 'green'
-		}],
+		langs: [
+			{
+				text: '中文简体',
+				lang: 'zh-Hans'
+			}
+		],
+		themes: [
+			{
+				text: '默认',
+				value: 'default'
+			},
+			{
+				text: '绿柔',
+				value: 'green'
+			}
+		],
 		debug: {
 			enable: process.env.NODE_ENV !== 'production', //是否显示错误信息
-			engine: [{ // 搜索引擎配置（每条错误信息后，会自动生成搜索链接，点击后跳转至搜索引擎）
-				name: '百度',
-				url: 'https://www.baidu.com/baidu?wd=ERR_MSG'
-			}, {
-				name: '谷歌',
-				url: 'https://www.google.com/search?q=ERR_MSG'
-			}]
+			engine: [
+				{
+					// 搜索引擎配置（每条错误信息后，会自动生成搜索链接，点击后跳转至搜索引擎）
+					name: '百度',
+					url: 'https://www.baidu.com/baidu?wd=ERR_MSG'
+				},
+				{
+					name: '谷歌',
+					url: 'https://www.google.com/search?q=ERR_MSG'
+				}
+			]
 		}
 	},
-	sideBar: { // 左侧菜单
+	sideBar: {
+		// 左侧菜单
 		// 配置静态菜单列表（放置在用户被授权的菜单列表下边）
 		staticMenu: [
+			{
+				menu_id: 'index',
+				name: '首页',
+				text: '首页',
+				icon: 'uni-icons-home',
+				value: '/',
+				sort: 0
+			}
 		]
 	},
-	uniStat: {
-
-	}
-}
+	uniStat: {}
+};

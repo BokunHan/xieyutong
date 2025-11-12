@@ -4,7 +4,8 @@
 		<view class="bg-white shadow-sm" :style="{ paddingTop: statusBarHeight + 40 + 'rpx' }">
 			<view class="flex items-center justify-between px-4 py-3">
 				<view class="flex items-center space-x-3">
-					<text class="i-awesome fas fa-arrow-left text-gray-600 text-lg" @click="goBack"></text>
+					<!-- <text class="i-awesome fas fa-arrow-left text-gray-600 text-lg" @click="goBack"></text> -->
+					<image src="/static/icons/arrow-left.svg" class="w-5 h-5 mr-3" mode="aspectFit" @click="goBack" />
 					<text class="text-lg font-medium">我的优惠券</text>
 				</view>
 			</view>
@@ -32,7 +33,8 @@
 			<view v-if="loading" class="flex items-center justify-center py-20">
 				<view class="flex flex-col items-center space-y-4">
 					<view class="animate-spin">
-						<text class="i-awesome fas fa-spinner text-blue-500 text-2xl"></text>
+						<!-- <text class="i-awesome fas fa-spinner text-blue-500 text-2xl"></text> -->
+						<image src="/static/icons/spinner.svg" class="w-5 h-5" mode="aspectFit" />
 					</view>
 					<text class="text-gray-500">加载中...</text>
 				</view>
@@ -63,25 +65,27 @@
 						<view class="flex-1 p-4">
 							<view class="flex items-start justify-between">
 								<view class="flex-1">
-									<text class="text-base font-medium text-gray-800 mb-1">{{ coupon.title }}</text>
-									<text class="text-sm text-gray-500 mb-2">满{{ coupon.min_amount }}元可用</text>
+									<view class="text-base font-medium text-gray-800 mb-1">{{ coupon.title }}</view>
+									<view class="text-sm text-gray-500 mb-2">满{{ coupon.min_amount }}元可用</view>
 
 									<!-- 状态和时间信息 -->
 									<view class="flex items-center space-x-4 text-xs">
+										<view class="text-gray-400">{{ formatTime(coupon.received_at) }}</view>
 										<view v-if="coupon.status === 'unused'" class="flex items-center space-x-1 text-orange-600">
-											<text class="i-awesome fas fa-clock"></text>
+											<!-- <text class="i-awesome fas fa-clock"></text> -->
+											<image src="/static/icons/clock.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
 											<text>{{ formatExpireTime(coupon.expired_at) }}</text>
 										</view>
 										<view v-else-if="coupon.status === 'used'" class="flex items-center space-x-1 text-green-600">
-											<text class="i-awesome fas fa-check-circle"></text>
+											<!-- <text class="i-awesome fas fa-check-circle"></text> -->
+											<image src="/static/icons/check-circle.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
 											<text>已使用</text>
 										</view>
 										<view v-else class="flex items-center space-x-1 text-gray-500">
-											<text class="i-awesome fas fa-times-circle"></text>
+											<!-- <text class="i-awesome fas fa-times-circle"></text> -->
+											<image src="/static/icons/times-circle.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
 											<text>已过期</text>
 										</view>
-
-										<text class="text-gray-400">{{ formatTime(coupon.received_at) }}</text>
 									</view>
 								</view>
 
@@ -97,7 +101,7 @@
 							<view v-if="coupon.coupon_code" class="mt-3 pt-3 border-t border-gray-100">
 								<view class="flex items-center justify-between">
 									<text class="text-xs text-gray-500">券码：{{ coupon.coupon_code }}</text>
-									<button @click="copyCouponCode(coupon.coupon_code)" class="text-xs text-blue-500 hover:text-blue-600">复制</button>
+									<!-- <button @click="copyCouponCode(coupon.coupon_code)" class="text-xs text-blue-500 hover:text-blue-600">复制</button> -->
 								</view>
 							</view>
 						</view>
@@ -107,7 +111,8 @@
 
 			<!-- 空状态 -->
 			<view v-else class="flex flex-col items-center justify-center py-20">
-				<text class="i-awesome fas fa-ticket text-gray-300 text-4xl mb-4"></text>
+				<!-- <text class="i-awesome fas fa-ticket text-gray-300 text-4xl mb-4"></text> -->
+				<image src="/static/icons/ticket-alt.svg" class="w-12 h-12 mb-4" mode="aspectFit" />
 				<text class="text-gray-500 mb-2">{{ getEmptyText() }}</text>
 				<text class="text-sm text-gray-400 text-center">{{ getEmptySubText() }}</text>
 			</view>
@@ -280,7 +285,7 @@ export default {
 			} else if (diffDays <= 7) {
 				return `${diffDays}天后过期`;
 			} else {
-				return `${expireDate.getFullYear()}-${String(expireDate.getMonth() + 1).padStart(2, '0')}-${String(expireDate.getDate()).padStart(2, '0')}过期`;
+				return `${expireDate.getFullYear()}-${String(expireDate.getMonth() + 1).padStart(2, '0')}-${String(expireDate.getDate()).padStart(2, '0')} 过期`;
 			}
 		},
 

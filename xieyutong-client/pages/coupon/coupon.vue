@@ -4,13 +4,7 @@
 		<view class="content-area">
 			<!-- 优惠券标签页 -->
 			<view class="coupon-tabs">
-				<view 
-					class="coupon-tab" 
-					v-for="(tab, index) in tabs" 
-					:key="index"
-					:class="{ active: currentTab === index }"
-					@click="switchTab(index)"
-				>
+				<view class="coupon-tab" v-for="(tab, index) in tabs" :key="index" :class="{ active: currentTab === index }" @click="switchTab(index)">
 					{{ tab.name }}
 				</view>
 			</view>
@@ -28,20 +22,14 @@
 					<view class="loading-spinner"></view>
 					<view class="loading-text">加载中...</view>
 				</view>
-				
+
 				<!-- 优惠券卡片 -->
-				<view 
-					v-else
-					class="coupon-card" 
-					v-for="(coupon, index) in currentCoupons" 
-					:key="index"
-					:class="{ 'expired-card': coupon.status === 'expired' }"
-				>
+				<view v-else class="coupon-card" v-for="(coupon, index) in currentCoupons" :key="index" :class="{ 'expired-card': coupon.status === 'expired' }">
 					<!-- 特殊标签 -->
 					<view v-if="coupon.badge" class="badge" :class="coupon.badgeClass">
 						{{ coupon.badge }}
 					</view>
-					
+
 					<view class="coupon-content">
 						<view class="coupon-left">
 							<view class="coupon-title">{{ coupon.title }}</view>
@@ -55,11 +43,7 @@
 					</view>
 					<view class="coupon-footer">
 						<view class="coupon-rules" @click="showRules(coupon)">使用规则</view>
-						<button 
-							class="use-button" 
-							:disabled="coupon.status === 'expired'"
-							@click="useCoupon(coupon)"
-						>
+						<button class="use-button" :disabled="coupon.status === 'expired'" @click="useCoupon(coupon)">
 							{{ coupon.status === 'expired' ? '已过期' : '立即使用' }}
 						</button>
 					</view>
@@ -67,7 +51,8 @@
 
 				<!-- 空状态 -->
 				<view v-if="!loading && currentCoupons.length === 0" class="empty-state">
-					<text class="fa fa-ticket-alt empty-icon"></text>
+					<!-- <text class="fa fa-ticket-alt empty-icon"></text> -->
+					<image src="/static/icons/ticket-alt.svg" mode="aspectFit" />
 					<view>暂无可用优惠券</view>
 				</view>
 			</view>
@@ -94,7 +79,7 @@ const coupons = ref([]);
 // 当前显示的优惠券列表
 const currentCoupons = computed(() => {
 	const status = tabs.value[currentTab.value].status;
-	return coupons.value.filter(coupon => coupon.status === status);
+	return coupons.value.filter((coupon) => coupon.status === status);
 });
 
 // 加载优惠券数据
@@ -102,7 +87,7 @@ const loadCoupons = async () => {
 	try {
 		console.log('[优惠券页面] 开始加载优惠券数据');
 		loading.value = true;
-		
+
 		// 检查登录状态
 		const token = uni.getStorageSync('uni_id_token');
 		if (!token) {
@@ -112,38 +97,38 @@ const loadCoupons = async () => {
 			});
 			return;
 		}
-		
+
 		// 使用 ClientDB 查询用户优惠券
 		const db = uniCloud.database();
 		const userCouponsCollection = db.collection('a-user-coupons');
-		
+
 		const result = await userCouponsCollection
 			.where('user_id == $cloudEnv_uid')
 			.field('_id, coupon_id, coupon_code, status, amount, min_amount, title, expired_at, used_at, remark, source_type')
 			.orderBy('received_at', 'desc')
 			.get();
-		
+
 		console.log('[优惠券页面] 数据库查询结果:', result);
-		
+
 		if (result.result && result.result.data) {
 			const couponData = result.result.data;
-			
+
 			// 处理优惠券数据，检查过期状态
 			const now = Date.now();
-			coupons.value = couponData.map(coupon => {
+			coupons.value = couponData.map((coupon) => {
 				let status = coupon.status;
-				
+
 				// 检查是否过期
 				if (status === 'unused' && coupon.expired_at && coupon.expired_at < now) {
 					status = 'expired';
 				}
-				
+
 				// 格式化过期时间
 				const expiredDate = coupon.expired_at ? new Date(coupon.expired_at) : null;
-				const validity = expiredDate ? 
-					`有效期至：${expiredDate.getFullYear()}-${(expiredDate.getMonth() + 1).toString().padStart(2, '0')}-${expiredDate.getDate().toString().padStart(2, '0')}` 
+				const validity = expiredDate
+					? `有效期至：${expiredDate.getFullYear()}-${(expiredDate.getMonth() + 1).toString().padStart(2, '0')}-${expiredDate.getDate().toString().padStart(2, '0')}`
 					: '永久有效';
-				
+
 				// 根据来源类型设置徽章
 				let badge = '';
 				let badgeClass = 'badge';
@@ -157,7 +142,7 @@ const loadCoupons = async () => {
 				} else if (coupon.source_type === 'activity') {
 					badge = '活动专享';
 				}
-				
+
 				return {
 					id: coupon._id,
 					couponCode: coupon.coupon_code,
@@ -172,13 +157,12 @@ const loadCoupons = async () => {
 					remark: coupon.remark || ''
 				};
 			});
-			
+
 			console.log('[优惠券页面] 处理后的优惠券数据:', coupons.value);
 		} else {
 			console.log('[优惠券页面] 暂无优惠券数据');
 			coupons.value = [];
 		}
-		
 	} catch (error) {
 		console.error('[优惠券页面] 加载优惠券失败:', error);
 		uni.showToast({
@@ -204,7 +188,7 @@ const goBack = () => {
 // 使用优惠券
 const useCoupon = (coupon) => {
 	if (coupon.status === 'expired') return;
-	
+
 	if (coupon.status === 'unused') {
 		// 复制优惠券码到剪贴板
 		uni.setClipboardData({
@@ -248,14 +232,10 @@ onMounted(() => {
 </script>
 
 <style>
-
-
 .page-container {
 	background-color: #f5f7fa;
 	min-height: 100vh;
 }
-
-
 
 .content-area {
 	min-height: 100vh;
@@ -279,24 +259,24 @@ onMounted(() => {
 }
 
 .coupon-tab.active {
-	color: #0086F6;
+	color: #eb6d20;
 	font-weight: 500;
 }
 
 .coupon-tab.active::after {
-	content: "";
+	content: '';
 	position: absolute;
 	bottom: 0;
 	left: 50%;
 	transform: translateX(-50%);
 	width: 20px;
 	height: 3px;
-	background-color: #0086F6;
+	background-color: #eb6d20;
 	border-radius: 1.5px;
 }
 
 .banner {
-	background: linear-gradient(135deg, #FF9500, #FF5E3A);
+	background: linear-gradient(135deg, #ff9500, #ff5e3a);
 	color: white;
 	padding: 16px;
 	margin: 12px;
@@ -324,13 +304,13 @@ onMounted(() => {
 }
 
 .coupon-card::before {
-	content: "";
+	content: '';
 	position: absolute;
 	left: 0;
 	top: 0;
 	bottom: 0;
 	width: 6px;
-	background-color: #FF9500;
+	background-color: #ff9500;
 	border-top-left-radius: 12px;
 	border-bottom-left-radius: 12px;
 }
@@ -358,13 +338,13 @@ onMounted(() => {
 .coupon-value {
 	font-size: 24px;
 	font-weight: bold;
-	color: #FF9500;
+	color: #ff9500;
 	margin-bottom: 4px;
 }
 
 .coupon-type {
 	font-size: 12px;
-	color: #FF9500;
+	color: #ff9500;
 }
 
 .coupon-title {
@@ -395,11 +375,11 @@ onMounted(() => {
 
 .coupon-rules {
 	font-size: 12px;
-	color: #0086F6;
+	color: #eb6d20;
 }
 
 .use-button {
-	background-color: #FF9500;
+	background-color: #ff9500;
 	color: white;
 	border-radius: 9999px;
 	padding: 6px 16px;
@@ -426,8 +406,15 @@ onMounted(() => {
 	color: #999;
 }
 
-.empty-icon {
+/* .empty-icon {
 	font-size: 48px;
+	margin-bottom: 16px;
+	color: #ccc;
+} */
+.empty-icon {
+	width: 54px;
+	height: 48px;
+	height: ;
 	margin-bottom: 16px;
 	color: #ccc;
 }
@@ -436,7 +423,7 @@ onMounted(() => {
 	position: absolute;
 	top: -8px;
 	right: -8px;
-	background-color: #FF3B30;
+	background-color: #ff3b30;
 	color: white;
 	font-size: 10px;
 	padding: 2px 6px;
@@ -448,7 +435,7 @@ onMounted(() => {
 	position: absolute;
 	top: 12px;
 	right: 12px;
-	background-color: #FF3B30;
+	background-color: #ff3b30;
 	color: white;
 	font-size: 10px;
 	padding: 2px 6px;
@@ -470,7 +457,7 @@ onMounted(() => {
 	width: 32px;
 	height: 32px;
 	border: 3px solid #f0f0f0;
-	border-top: 3px solid #FF9500;
+	border-top: 3px solid #ff9500;
 	border-radius: 50%;
 	animation: spin 1s linear infinite;
 	margin-bottom: 12px;
@@ -482,7 +469,11 @@ onMounted(() => {
 }
 
 @keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
-</style> 
+</style>

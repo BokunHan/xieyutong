@@ -3,7 +3,8 @@
 		<!-- 1. 顶部导航栏 -->
 		<view class="header-bar">
 			<view class="back-btn" @click="goBack">
-				<text class="fa fa-chevron-left"></text>
+				<!-- <text class="fa fa-chevron-left"></text> -->
+				<image src="/static/icons/chevron-left.svg" class="w-6 h-6" mode="aspectFit" />
 			</view>
 			<text class="header-title">点评</text>
 			<view class="placeholder"></view>
@@ -133,7 +134,8 @@
 							</view>
 
 							<view class="helpful-btn" @click="toggleHelpful(review)">
-								<text class="fa fa-thumbs-up mr-1"></text>
+								<!-- <text class="fa fa-thumbs-up mr-1"></text> -->
+								<image src="/static/icons/thumbs-up.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
 								<text v-if="review.helpful_count === 0">有用</text>
 								<text v-else>{{ review.helpful_count }}</text>
 							</view>
@@ -391,7 +393,7 @@ export default {
 .main-rating {
 	font-size: 36px;
 	font-weight: bold;
-	color: #3b82f6; /* 蓝色 */
+	color: #eb6d20;
 	line-height: 1;
 }
 .good-rate {
@@ -421,13 +423,13 @@ export default {
 }
 .progress-bar-fill {
 	height: 100%;
-	background-color: #3b82f6;
+	background-color: #eb6d20;
 	border-radius: 3px;
 	transition: width 0.3s ease;
 }
 .spec-score {
 	font-weight: 500;
-	color: #3b82f6;
+	color: #eb6d20;
 	width: 24px; /* 固定宽度，防止跳动 */
 	text-align: right;
 }
@@ -499,7 +501,7 @@ export default {
 }
 
 .helpful-btn.active {
-	color: #3b82f6;
+	color: #eb6d20;
 	border-color: #bfdbfe;
 	background-color: #eff6ff;
 }

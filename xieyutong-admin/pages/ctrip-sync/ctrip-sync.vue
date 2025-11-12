@@ -461,41 +461,88 @@ export default {
 				error: null
 			}));
 
-			// 并发获取所有详情
-			const promises = idsToFetch.map((id) => {
-				return uniCloud.callFunction({
-					name: 'ctrip-sync-service',
-					data: {
-						action: 'getProductDetail',
-						productId: id
-					}
-				});
-			});
+			const CONCURRENCY_LIMIT = 2; // 同时运行的任务数
+			const queue = [...idsToFetch];
 
-			const results = await Promise.allSettled(promises);
-
-			// 处理结果
-			results.forEach((result, index) => {
-				const productId = idsToFetch[index];
+			// 单个任务的执行函数
+			const taskFn = async (productId) => {
 				const product = this.productDetailList.find((p) => p.id === productId);
+				try {
+					const result = await uniCloud.callFunction({
+						name: 'ctrip-sync-service',
+						data: {
+							action: 'getProductDetail',
+							productId: productId
+						}
+					});
 
-				if (result.status === 'fulfilled') {
-					if (result.value.result.errCode === 0) {
+					if (result.result.errCode === 0) {
 						product.status = 'success';
 						product.data = {
-							...result.value.result.data,
-							// 兼容旧模板的图片字段
-							images: result.value.result.data.product_images || result.value.result.data.images || []
+							...result.result.data,
+							images: result.result.data.product_images || result.result.data.images || []
 						};
 					} else {
-						product.status = 'error';
-						product.error = result.value.result.errMsg;
+						throw new Error(result.result.errMsg);
 					}
-				} else {
+				} catch (error) {
 					product.status = 'error';
-					product.error = result.reason.message || '请求失败';
+					product.error = error.message || '请求失败';
 				}
-			});
+			};
+
+			// 创建
+			const workers = [];
+			for (let i = 0; i < CONCURRENCY_LIMIT; i++) {
+				const worker = async () => {
+					while (queue.length > 0) {
+						const productId = queue.shift(); // 从队列中取出一个任务
+						if (productId) {
+							await taskFn(productId); // 执行任务
+						}
+					}
+				};
+				workers.push(worker());
+			}
+
+			// 等待所有
+			await Promise.all(workers);
+
+			// // 并发获取所有详情
+			// const promises = idsToFetch.map((id) => {
+			// 	return uniCloud.callFunction({
+			// 		name: 'ctrip-sync-service',
+			// 		data: {
+			// 			action: 'getProductDetail',
+			// 			productId: id
+			// 		}
+			// 	});
+			// });
+
+			// const results = await Promise.allSettled(promises);
+
+			// // 处理结果
+			// results.forEach((result, index) => {
+			// 	const productId = idsToFetch[index];
+			// 	const product = this.productDetailList.find((p) => p.id === productId);
+
+			// 	if (result.status === 'fulfilled') {
+			// 		if (result.value.result.errCode === 0) {
+			// 			product.status = 'success';
+			// 			product.data = {
+			// 				...result.value.result.data,
+			// 				// 兼容旧模板的图片字段
+			// 				images: result.value.result.data.product_images || result.value.result.data.images || []
+			// 			};
+			// 		} else {
+			// 			product.status = 'error';
+			// 			product.error = result.value.result.errMsg;
+			// 		}
+			// 	} else {
+			// 		product.status = 'error';
+			// 		product.error = result.reason.message || '请求失败';
+			// 	}
+			// });
 
 			this.loadingProductDetails = false;
 		},
@@ -564,40 +611,91 @@ export default {
 		async executeSync(productIds) {
 			const token = uni.getStorageSync('uni_id_token');
 
-			const promises = productIds.map((id) => {
-				return uniCloud.callFunction({
-					name: 'ctrip-sync-service',
-					data: {
-						action: 'syncFullProduct',
-						productId: id,
-						uniIdToken: token
-					}
-				});
-			});
+			const CONCURRENCY_LIMIT = 2; // 同步的并发数
+			const queue = [...productIds];
 
-			const results = await Promise.allSettled(promises);
-
-			// 处理结果
-			results.forEach((result, index) => {
-				const productId = productIds[index];
+			// 单个任务的执行函数
+			const taskFn = async (productId) => {
 				const syncResult = this.syncResults.find((r) => r.id === productId);
+				try {
+					const result = await uniCloud.callFunction({
+						name: 'ctrip-sync-service',
+						data: {
+							action: 'syncFullProduct',
+							productId: productId,
+							uniIdToken: token
+						}
+					});
 
-				if (result.status === 'fulfilled') {
-					if (result.value.result.errCode === 0) {
+					if (result.result.errCode === 0) {
 						syncResult.status = 'success';
 						syncResult.error = null;
-						this.syncStats.success++;
+						// this.syncStats.success++;
 					} else {
 						syncResult.status = 'error';
 						syncResult.error = result.value.result.errMsg;
-						this.syncStats.failed++;
+						// this.syncStats.failed++;
 					}
-				} else {
+				} catch (error) {
 					syncResult.status = 'error';
-					syncResult.error = result.reason.message || '请求失败';
-					this.syncStats.failed++;
+					syncResult.error = error.message || '请求失败';
+					// this.syncStats.failed++;
 				}
-			});
+			};
+
+			// 创建
+			const workers = [];
+			for (let i = 0; i < CONCURRENCY_LIMIT; i++) {
+				const worker = async () => {
+					while (queue.length > 0) {
+						const productId = queue.shift(); // 从队列中取出一个任务
+						if (productId) {
+							await taskFn(productId); // 执行任务
+						}
+					}
+				};
+				workers.push(worker());
+			}
+
+			// 等待所有
+			await Promise.all(workers);
+			// const promises = productIds.map((id) => {
+			// 	return uniCloud.callFunction({
+			// 		name: 'ctrip-sync-service',
+			// 		data: {
+			// 			action: 'syncFullProduct',
+			// 			productId: id,
+			// 			uniIdToken: token
+			// 		}
+			// 	});
+			// });
+
+			// const results = await Promise.allSettled(promises);
+
+			// // 处理结果
+			// results.forEach((result, index) => {
+			// 	const productId = productIds[index];
+			// 	const syncResult = this.syncResults.find((r) => r.id === productId);
+
+			// 	if (result.status === 'fulfilled') {
+			// 		if (result.value.result.errCode === 0) {
+			// 			syncResult.status = 'success';
+			// 			syncResult.error = null;
+			// 			this.syncStats.success++;
+			// 		} else {
+			// 			syncResult.status = 'error';
+			// 			syncResult.error = result.value.result.errMsg;
+			// 			this.syncStats.failed++;
+			// 		}
+			// 	} else {
+			// 		syncResult.status = 'error';
+			// 		syncResult.error = result.reason.message || '请求失败';
+			// 		this.syncStats.failed++;
+			// 	}
+			// });
+
+			this.syncStats.success = this.syncResults.filter((r) => r.status === 'success').length;
+			this.syncStats.failed = this.syncResults.filter((r) => r.status === 'error').length;
 
 			this.loadingSync = false;
 			this.$message.success('同步任务执行完成');

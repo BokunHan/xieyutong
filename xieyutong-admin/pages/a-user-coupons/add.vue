@@ -1,186 +1,409 @@
 <template>
-  <view class="uni-container">
-    <uni-forms ref="form" :model="formData" validateTrigger="bind">
-      <uni-forms-item name="user_id" label="用户ID" required>
-        <uni-easyinput placeholder="用户ID，关联uni-id-users表" v-model="formData.user_id"></uni-easyinput>
-      </uni-forms-item>
-      <uni-forms-item name="coupon_id" label="优惠券ID" required>
-        <uni-easyinput placeholder="优惠券ID，关联a-coupons表" v-model="formData.coupon_id"></uni-easyinput>
-      </uni-forms-item>
-      <uni-forms-item name="coupon_code" label="优惠券码">
-        <uni-easyinput placeholder="优惠券码，用户使用时的唯一标识" v-model="formData.coupon_code"></uni-easyinput>
-      </uni-forms-item>
-      <uni-forms-item name="status" label="使用状态" required>
-        <uni-data-checkbox v-model="formData.status" :localdata="formOptions.status_localdata"></uni-data-checkbox>
-      </uni-forms-item>
-      <uni-forms-item name="order_id" label="关联订单ID">
-        <uni-easyinput placeholder="使用该券的订单ID" v-model="formData.order_id"></uni-easyinput>
-      </uni-forms-item>
-      <uni-forms-item name="source_type" label="获取来源">
-        <uni-data-checkbox v-model="formData.source_type" :localdata="formOptions.source_type_localdata"></uni-data-checkbox>
-      </uni-forms-item>
-      <uni-forms-item name="source_detail" label="来源详情">
-        <undefined v-model="formData.source_detail"></undefined>
-      </uni-forms-item>
-      <uni-forms-item name="received_at" label="领取时间">
-        <uni-datetime-picker return-type="timestamp" v-model="formData.received_at"></uni-datetime-picker>
-      </uni-forms-item>
-      <uni-forms-item name="used_at" label="使用时间">
-        <uni-datetime-picker return-type="timestamp" v-model="formData.used_at"></uni-datetime-picker>
-      </uni-forms-item>
-      <uni-forms-item name="expired_at" label="过期时间">
-        <uni-datetime-picker return-type="timestamp" v-model="formData.expired_at"></uni-datetime-picker>
-      </uni-forms-item>
-      <uni-forms-item name="amount" label="优惠金额">
-        <undefined v-model="formData.amount"></undefined>
-      </uni-forms-item>
-      <uni-forms-item name="min_amount" label="使用门槛">
-        <undefined v-model="formData.min_amount"></undefined>
-      </uni-forms-item>
-      <uni-forms-item name="title" label="券标题">
-        <uni-easyinput placeholder="优惠券标题（冗余存储）" v-model="formData.title"></uni-easyinput>
-      </uni-forms-item>
-      <uni-forms-item name="remark" label="备注">
-        <uni-easyinput placeholder="备注信息" v-model="formData.remark"></uni-easyinput>
-      </uni-forms-item>
-      <uni-forms-item name="created_at" label="">
-        <uni-datetime-picker return-type="timestamp" v-model="formData.created_at"></uni-datetime-picker>
-      </uni-forms-item>
-      <uni-forms-item name="updated_at" label="">
-        <uni-datetime-picker return-type="timestamp" v-model="formData.updated_at"></uni-datetime-picker>
-      </uni-forms-item>
-      <view class="uni-button-group">
-        <button type="primary" class="uni-button" style="width: 100px;" @click="submit">提交</button>
-        <navigator open-type="navigateBack" style="margin-left: 15px;">
-          <button class="uni-button" style="width: 100px;">返回</button>
-        </navigator>
-      </view>
-    </uni-forms>
-  </view>
+	<view class="uni-container">
+		<uni-forms ref="form" :model="formData" validateTrigger="bind" label-width="100" label-align="right">
+			<uni-forms-item name="selected_users" label="发放用户" required>
+				<view class="w-full">
+					<view v-if="!formData.selected_users || formData.selected_users.length === 0" class="text-sm text-gray-400 mb-2">暂无用户</view>
+					<view v-else class="w-full space-y-2 mb-3">
+						<view v-for="(user, index) in formData.selected_users" :key="user.id" class="flex items-center justify-between bg-gray-100 px-3 py-2 rounded-lg">
+							<view class="flex items-center">
+								<i class="fas fa-user text-emerald-600 mr-2"></i>
+								<text class="text-sm text-gray-800">{{ user.mobile || '号码缺失' }}</text>
+							</view>
+							<button
+								@click="removeUser(index)"
+								class="px-2 py-0 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition-colors"
+								style="line-height: 1.5rem; margin: 0">
+								移除
+							</button>
+						</view>
+					</view>
+					<uni-combox
+						v-model="userSearchInput"
+						:candidates="userCandidates"
+						label-key="mobile"
+						value-key="_id"
+						placeholder="输入手机号搜索并添加用户"
+						@input="searchUsers"
+						@change="onUserSelect"
+						@click="loadDefaultUsers" />
+				</view>
+			</uni-forms-item>
+
+			<uni-forms-item name="coupon_id" label="选择优惠券" required>
+				<uni-combox
+					v-model="formData.coupon_id"
+					:candidates="couponCandidates"
+					label-key="title"
+					value-key="_id"
+					placeholder="输入标题搜索优惠券"
+					@input="searchCoupons"
+					@change="onCouponSelect"
+					@click="loadDefaultCoupons" />
+			</uni-forms-item>
+
+			<uni-forms-item name="source_type" label="获取来源" required>
+				<uni-data-checkbox v-model="formData.source_type" :localdata="formOptions.source_type_localdata"></uni-data-checkbox>
+			</uni-forms-item>
+
+			<uni-forms-item name="remark" label="备注">
+				<uni-easyinput type="textarea" placeholder="备注信息 (例如：后台手动发放)" v-model="formData.remark"></uni-easyinput>
+			</uni-forms-item>
+
+			<view class="uni-button-group">
+				<button type="primary" class="uni-button" style="width: 100px" @click="submit">提交</button>
+				<navigator open-type="navigateBack" style="margin-left: 15px">
+					<button class="uni-button" style="width: 100px">返回</button>
+				</navigator>
+			</view>
+		</uni-forms>
+	</view>
 </template>
 
 <script>
-  import { validator } from '../../js_sdk/validator/a-user-coupons.js';
+import { validator } from '../../js_sdk/validator/a-user-coupons.js';
 
-  const db = uniCloud.database();
-  const dbCmd = db.command;
-  const dbCollectionName = 'a-user-coupons';
+const db = uniCloud.database();
+const dbCmd = db.command;
+const dbCollectionName = 'a-user-coupons';
+const couponsCollection = db.collection('a-coupons');
+const usersCollection = db.collection('uni-id-users');
 
-  function getValidator(fields) {
-    let result = {}
-    for (let key in validator) {
-      if (fields.includes(key)) {
-        result[key] = validator[key]
-      }
-    }
-    return result
-  }
+function getValidator(fields) {
+	let result = {};
+	for (let key in validator) {
+		if (fields.includes(key)) {
+			result[key] = validator[key];
+		}
+	}
+	return result;
+}
 
-  
+function escapeRegExp(string) {
+	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
-  export default {
-    data() {
-      let formData = {
-        "user_id": "",
-        "coupon_id": "",
-        "coupon_code": "",
-        "status": "",
-        "order_id": "",
-        "source_type": "",
-        "source_detail": null,
-        "received_at": null,
-        "used_at": null,
-        "expired_at": null,
-        "amount": null,
-        "min_amount": null,
-        "title": "",
-        "remark": "",
-        "created_at": null,
-        "updated_at": null
-      }
-      return {
-        formData,
-        formOptions: {
-          "status_localdata": [
-            {
-              "value": "unused",
-              "text": "unused"
-            },
-            {
-              "value": "used",
-              "text": "used"
-            },
-            {
-              "value": "expired",
-              "text": "expired"
-            }
-          ],
-          "source_type_localdata": [
-            {
-              "value": "manual",
-              "text": "manual"
-            },
-            {
-              "value": "referral_reward",
-              "text": "referral_reward"
-            },
-            {
-              "value": "new_user_gift",
-              "text": "new_user_gift"
-            },
-            {
-              "value": "member_upgrade",
-              "text": "member_upgrade"
-            },
-            {
-              "value": "activity",
-              "text": "activity"
-            }
-          ]
-        },
-        rules: {
-          ...getValidator(Object.keys(formData))
-        }
-      }
-    },
-    onReady() {
-      this.$refs.form.setRules(this.rules)
-    },
-    methods: {
-      
-      /**
-       * 验证表单并提交
-       */
-      submit() {
-        uni.showLoading({
-          mask: true
-        })
-        this.$refs.form.validate().then((res) => {
-          return this.submitForm(res)
-        }).catch(() => {
-        }).finally(() => {
-          uni.hideLoading()
-        })
-      },
+function generateCouponCode() {
+	const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	let result = '';
+	for (let i = 0; i < 12; i++) {
+		result += chars.charAt(Math.floor(Math.random() * chars.length));
+	}
+	return result;
+}
 
-      /**
-       * 提交表单
-       */
-      submitForm(value) {
-        // 使用 clientDB 提交数据
-        return db.collection(dbCollectionName).add(value).then((res) => {
-          uni.showToast({
-            title: '新增成功'
-          })
-          this.getOpenerEventChannel().emit('refreshData')
-          setTimeout(() => uni.navigateBack(), 500)
-        }).catch((err) => {
-          uni.showModal({
-            content: err.message || '请求服务失败',
-            showCancel: false
-          })
-        })
-      }
-    }
-  }
+export default {
+	data() {
+		let formData = {
+			selected_users: [],
+			coupon_id: '',
+			source_type: 'manual',
+			remark: ''
+		};
+		return {
+			formData,
+			formOptions: {
+				source_type_localdata: [
+					{ value: 'manual', text: '手动发放' },
+					{ value: 'referral_reward', text: '推荐奖励' },
+					{ value: 'new_user_gift', text: '新用户礼品' },
+					{ value: 'member_upgrade', text: '会员升级' },
+					{ value: 'activity', text: '活动赠送' }
+				]
+			},
+			rules: {},
+
+			userSearchInput: '',
+			userCandidates: [],
+			userSearchTimer: null,
+
+			couponSearchInput: '',
+			couponCandidates: [],
+			couponSearchTimer: null,
+			selectedCoupon: null
+		};
+	},
+	onReady() {
+		const newRules = {
+			selected_users: {
+				rules: [
+					{
+						required: true,
+						validateFunction: (rule, value, data, callback) => {
+							if (!value || value.length === 0) {
+								callback('请至少选择一个用户');
+							}
+							return true;
+						}
+					}
+				]
+			},
+			coupon_id: {
+				rules: [{ required: true, errorMessage: '请选择一个优惠券' }]
+			},
+			source_type: {
+				rules: [{ required: true, errorMessage: '请选择来源' }]
+			}
+		};
+		this.$refs.form.setRules(newRules);
+		this.rules = newRules;
+	},
+	methods: {
+		/**
+		 * 验证表单并提交
+		 */
+		submit() {
+			this.$refs.form
+				.validate()
+				.then((res) => {
+					this.submitForm(res);
+				})
+				.catch((err) => {
+					console.log('表单错误信息：', err);
+				});
+		},
+
+		/**
+		 * 提交表单
+		 */
+		async submitForm(value) {
+			uni.showLoading({ mask: true, title: '正在发放...' });
+			try {
+				const usersToIssue = this.formData.selected_users;
+				const couponId = this.formData.coupon_id;
+
+				if (!usersToIssue || usersToIssue.length === 0) {
+					throw new Error('请至少选择一个用户');
+				}
+				if (!couponId) {
+					throw new Error('请选择一个优惠券');
+				}
+
+				// 1. 获取优惠券模板
+				let coupon = this.selectedCoupon;
+				if (!coupon || coupon._id !== couponId) {
+					const couponRes = await couponsCollection.doc(couponId).get();
+					if (!couponRes.result || !couponRes.result.data || couponRes.result.data.length === 0) {
+						throw new Error('优惠券ID不存在 (a-coupons)');
+					}
+					coupon = couponRes.result.data[0];
+				}
+
+				const now = Date.now();
+				const expired_at = now + coupon.valid_days * 24 * 60 * 60 * 1000;
+				const dataToSubmitList = [];
+
+				// 2. 准备批量数据
+				for (const user of usersToIssue) {
+					const coupon_code = generateCouponCode();
+					const dataToSubmit = {
+						user_id: user.id,
+						coupon_id: couponId,
+						source_type: value.source_type,
+						remark: value.remark,
+						coupon_code: coupon_code,
+						status: 'unused',
+						expired_at: expired_at,
+						type: coupon.type,
+						amount: coupon.amount,
+						min_amount: coupon.min_amount,
+						title: coupon.title,
+						source_detail: {
+							admin_user: 'admin'
+						}
+					};
+					dataToSubmitList.push(dataToSubmit);
+				}
+
+				// 3. 批量提交
+				const res = await db.collection(dbCollectionName).add(dataToSubmitList);
+
+				uni.hideLoading();
+				uni.showToast({ title: `成功发放 ${dataToSubmitList.length} 张优惠券` });
+				this.getOpenerEventChannel().emit('refreshData');
+				setTimeout(() => uni.navigateBack(), 500);
+			} catch (err) {
+				uni.hideLoading();
+				uni.showModal({
+					content: err.message || '请求服务失败',
+					showCancel: false
+				});
+			}
+		},
+
+		// =============================================
+		// 用户搜索框相关方法
+		// =============================================
+		async loadDefaultUsers() {
+			if (this.userSearchInput) return;
+			if (this.userSearchTimer) clearTimeout(this.userSearchTimer);
+			try {
+				const res = await usersCollection.where('mobile != null').field('_id, mobile').limit(30).orderBy('register_date', 'desc').get();
+				if (res.result.data) this.userCandidates = res.result.data;
+			} catch (err) {
+				console.error('loadDefaultUsers error:', err);
+			}
+		},
+
+		searchUsers(query) {
+			this.userSearchInput = query;
+			if (this.userSearchTimer) clearTimeout(this.userSearchTimer);
+			if (!query) {
+				this.loadDefaultUsers();
+				return;
+			}
+			const escapedQuery = escapeRegExp(query);
+			this.userSearchTimer = setTimeout(async () => {
+				try {
+					const res = await usersCollection
+						.where({ mobile: new RegExp(escapedQuery, 'i') })
+						.field('_id, mobile')
+						.limit(30)
+						.get();
+					if (res.result.data) this.userCandidates = res.result.data;
+				} catch (err) {
+					console.error('searchUsers error:', err);
+				}
+			}, 300);
+		},
+
+		onUserSelect(selectedUserId) {
+			if (!selectedUserId) return;
+			const selectedUser = this.userCandidates.find((user) => user._id === selectedUserId);
+			if (!selectedUser) return;
+
+			const isDuplicate = this.formData.selected_users.some((user) => user.id === selectedUserId);
+			if (isDuplicate) {
+				uni.showToast({ title: '用户已在列表中', icon: 'none' });
+				this.resetUserCombox();
+				return;
+			}
+
+			this.formData.selected_users.push({
+				id: selectedUserId,
+				mobile: selectedUser.mobile
+			});
+			this.resetUserCombox();
+		},
+
+		removeUser(index) {
+			this.formData.selected_users.splice(index, 1);
+		},
+
+		resetUserCombox() {
+			this.$nextTick(() => {
+				this.userSearchInput = '';
+				this.userCandidates = [];
+			});
+		},
+
+		// =============================================
+		// 优惠券搜索框相关方法
+		// =============================================
+		async loadDefaultCoupons() {
+			if (this.couponSearchInput) return;
+			if (this.couponSearchTimer) clearTimeout(this.couponSearchTimer);
+			try {
+				const res = await couponsCollection.field('_id, title, amount, min_amount, valid_days').limit(30).orderBy('created_at', 'desc').get();
+				if (res.result.data) this.couponCandidates = res.result.data;
+			} catch (err) {
+				console.error('loadDefaultCoupons error:', err);
+			}
+		},
+
+		searchCoupons(query) {
+			this.couponSearchInput = query;
+			if (this.couponSearchTimer) clearTimeout(this.couponSearchTimer);
+			if (!query) {
+				this.loadDefaultCoupons();
+				return;
+			}
+			const escapedQuery = escapeRegExp(query);
+			this.couponSearchTimer = setTimeout(async () => {
+				try {
+					const res = await couponsCollection
+						.where({ title: new RegExp(escapedQuery, 'i') })
+						.field('_id, title, amount, min_amount, valid_days')
+						.limit(30)
+						.get();
+					if (res.result.data) this.couponCandidates = res.result.data;
+				} catch (err) {
+					console.error('searchCoupons error:', err);
+				}
+			}, 300);
+		},
+
+		onCouponSelect(selectedCouponId) {
+			if (!selectedCouponId) {
+				this.selectedCoupon = null;
+				this.formData.coupon_id = '';
+				return;
+			}
+			this.selectedCoupon = this.couponCandidates.find((c) => c._id === selectedCouponId);
+			this.formData.coupon_id = selectedCouponId;
+			this.$nextTick(() => {
+				this.couponSearchInput = '';
+			});
+		}
+	}
+};
 </script>
+
+<style>
+.uni-container {
+	padding: 20px;
+}
+.uni-forms-item {
+	margin-bottom: 20px;
+}
+.w-full {
+	width: 100%;
+}
+.text-sm {
+	font-size: 14px;
+}
+.text-gray-400 {
+	color: #9ca3af;
+}
+.mb-2 {
+	margin-bottom: 8px;
+}
+.mb-3 {
+	margin-bottom: 12px;
+}
+.space-y-2 > * + * {
+	margin-top: 8px;
+}
+.flex {
+	display: flex;
+}
+.items-center {
+	align-items: center;
+}
+.justify-between {
+	justify-content: space-between;
+}
+.bg-gray-100 {
+	background-color: #f3f4f6;
+}
+.px-3 {
+	padding-left: 12px;
+	padding-right: 12px;
+}
+.py-2 {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+.rounded-lg {
+	border-radius: 8px;
+}
+.text-gray-800 {
+	color: #1f2937;
+}
+.fa-user {
+	margin-right: 8px;
+}
+.text-emerald-600 {
+	color: #059669;
+}
+</style>

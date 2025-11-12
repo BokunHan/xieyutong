@@ -3,9 +3,9 @@
 	"required": ["A_route_id", "route_ids"],
 	"permission": {
 		"read": true,
-		"create": "auth.uid != null || 'admin' in auth.role || 'super_admin' in auth.role",
-		"update": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role",
-		"delete": "doc.user_id == auth.uid || 'admin' in auth.role || 'super_admin' in auth.role"
+		"create": "auth.uid != null && ('MANAGE_PRODUCTS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"update": "auth.uid != null && ('MANAGE_PRODUCTS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"delete": "auth.uid != null && ('MANAGE_PRODUCTS' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)"
 	},
 	"properties": {
 		"_id": {

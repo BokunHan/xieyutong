@@ -430,7 +430,7 @@ export default {
 }
 
 .submit-button {
-	background-color: #0086f6;
+	background-color: #eb6d20;
 	color: white;
 	border-radius: 12px;
 	padding: 14px;
