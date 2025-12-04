@@ -44,14 +44,30 @@
 						class="banner-swiper"
 						:circular="true"
 						:indicator-dots="true"
-						:autoplay="true"
+						:autoplay="swiperAutoplay"
 						:interval="5000"
 						:duration="500"
 						indicator-color="rgba(0, 0, 0, 0.2)"
 						indicator-active-color="#333"
 						@change="onSwiperChange">
 						<swiper-item v-for="(banner, index) in bannerList" :key="index">
-							<image :src="banner.image" class="banner-img" mode="aspectFill" @click="handleBannerClick(banner)"></image>
+							<video
+								v-if="banner.media_type === 'video'"
+								:id="'banner-video-' + index"
+								:src="banner.image"
+								:autoplay="index === currentBannerIndex"
+								:loop="false"
+								:muted="true"
+								:controls="false"
+								:show-play-btn="false"
+								:show-center-play-btn="false"
+								object-fit="cover"
+								class="banner-img"
+								@click="handleBannerClick(banner)"
+								@ended="onVideoEnded"></video>
+
+							<view v-else class="banner-img" :style="getBannerStyle(banner)" @click="handleBannerClick(banner)"></view>
+
 							<view class="banner-content">
 								<view class="banner-title">{{ banner.title }}</view>
 								<view class="banner-subtitle">{{ banner.subtitle }}</view>
@@ -140,6 +156,7 @@ export default {
 			currentScrollTop: 0,
 			isLoading: false,
 			scrollViewScrollTop: 0,
+			swiperAutoplay: true,
 			currentBannerIndex: 0,
 			bannerLoading: true,
 			bannerError: false,
@@ -273,6 +290,34 @@ export default {
 		}
 	},
 	methods: {
+		getBannerStyle(banner) {
+			const baseStyle = {
+				width: '100%',
+				height: '100%',
+				display: 'block',
+				backgroundImage: `url('${encodeURI(banner.image)}')`,
+				backgroundRepeat: 'no-repeat'
+			};
+
+			// 优先使用精细调整的配置
+			if (banner.object_position) {
+				// 如果有缩放配置
+				if (banner.object_position && banner.object_position.backgroundSize) {
+					// 直接使用保存的值 (可能是 'cover' 也可能是 '120% auto')
+					baseStyle.backgroundSize = banner.object_position.backgroundSize;
+				} else {
+					baseStyle.backgroundSize = 'cover';
+				}
+
+				if (banner.object_position.backgroundPosition) {
+					baseStyle.backgroundPosition = banner.object_position.backgroundPosition;
+				}
+				return baseStyle;
+			}
+
+			return baseStyle;
+		},
+
 		// 统一的弹窗检查逻辑
 		async checkAndShowModals(forceCheck = false) {
 			// 0. 检查是否已登录
@@ -595,6 +640,7 @@ export default {
 		handleBannerClick(banner) {
 			console.log('=== Banner点击事件开始 ===');
 			console.log('点击的banner数据:', banner);
+			console.log('banner.image:', banner.image);
 			console.log('banner.url:', banner.url);
 			console.log('banner.link_type:', banner.link_type);
 
@@ -730,6 +776,25 @@ export default {
 
 		onSwiperChange(e) {
 			this.currentBannerIndex = e.detail.current;
+
+			const currentBanner = this.bannerList[this.currentBannerIndex];
+			if (currentBanner && currentBanner.media_type === 'video') {
+				console.log('📺 切换到视频，停止轮播，等待播放结束');
+				this.swiperAutoplay = false;
+				const videoId = 'banner-video-' + this.currentBannerIndex;
+				const videoCtx = uni.createVideoContext(videoId, this);
+				this.$nextTick(() => {
+					videoCtx.seek(0);
+					videoCtx.play();
+				});
+			} else {
+				this.swiperAutoplay = true;
+			}
+		},
+
+		onVideoEnded() {
+			console.log('✅ 视频播放结束，恢复轮播');
+			this.swiperAutoplay = true;
 		},
 
 		// 加载Banner数据
@@ -752,7 +817,7 @@ export default {
 					.collection('a-banners')
 					.where('status == 1') // 只查询状态为启用的banner
 					.orderBy('sort_order asc, created_at desc') // 按排序字段和创建时间排序
-					.field('title, subtitle, button_name, image, url, link_type, sort_order') // 指定需要的字段
+					.field('title, subtitle, button_name, image, url, link_type, sort_order, media_type, object_position') // 指定需要的字段
 					.get();
 
 				console.log('✅ 数据库查询成功:', result);
@@ -767,6 +832,14 @@ export default {
 					if (this.currentBannerIndex >= this.bannerList.length) {
 						this.currentBannerIndex = 0;
 						console.log('🔄 重置轮播图索引为0');
+					}
+
+					const firstBanner = this.bannerList[this.currentBannerIndex];
+					if (firstBanner && firstBanner.media_type === 'video') {
+						console.log('🎬 初始展示为视频，暂停轮播');
+						this.swiperAutoplay = false;
+					} else {
+						this.swiperAutoplay = true;
 					}
 				} else {
 					console.log('⚠️ 数据库中没有启用的banner数据');
@@ -1072,11 +1145,12 @@ export default {
 /* 3. Banner容器 (新样式) */
 .banner-container {
 	position: relative;
-	height: 30vh; /* 缩小高度 */
+	/* height: 30vh;*/ /* 缩小高度 */
 	overflow: hidden;
 	/* 为轮播图底部留出空间，避免裁切 */
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	width: calc(100% - 24px);
+	aspect-ratio: 750 / 450;
 	margin: 8px auto;
 	border-radius: 12px;
 }

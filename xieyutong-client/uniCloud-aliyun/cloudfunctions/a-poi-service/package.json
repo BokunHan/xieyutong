@@ -1,0 +1,7 @@
+{
+  "name": "a-poi-service",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

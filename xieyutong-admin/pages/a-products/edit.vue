@@ -54,9 +54,11 @@
 			<!-- 行程管理标签 -->
 			<view v-else-if="activeTab === 1" class="space-y-8">
 				<ItineraryManagement
-					:productId="formData._id"
+					:productId="editType === 'product' ? formDataId : formData.product_id"
 					:productCtripId="formData.ctrip_id"
 					:itineraryData="itineraryData"
+					:editType="editType"
+					:snapshotId="editType === 'snapshot' ? formDataId : null"
 					@update="updateItineraryData"
 					@data-loaded="onItineraryDataLoaded"
 					@no-data-found="onItineraryNoDataFound"
@@ -66,12 +68,12 @@
 
 			<!-- 预定须知标签 -->
 			<view v-else-if="activeTab === 2" class="space-y-8">
-				<BookingPolicies :productId="formData._id" :ctripId="formData.ctrip_id" :policyData="policyData" @update="updatePolicyData" />
+				<BookingPolicies :productId="editType === 'product' ? formDataId : formData.product_id" :ctripId="formData.ctrip_id" :policyData="policyData" @update="updatePolicyData" />
 			</view>
 
 			<!-- 评价管理标签 -->
 			<view v-else-if="activeTab === 3" class="space-y-8">
-				<ReviewManagement :productId="formData._id" :ctripId="formData.ctrip_id" :reviewData="reviewData" @update="updateReviewData" />
+				<ReviewManagement :productId="editType === 'product' ? formDataId : formData.product_id" :ctripId="formData.ctrip_id" :reviewData="reviewData" @update="updateReviewData" />
 			</view>
 		</view>
 
@@ -109,6 +111,7 @@ export default {
 			loadingText: '加载中...',
 			activeTab: 0,
 			formDataId: '',
+			editType: 'product',
 			tabs: [
 				{ name: '商品信息', icon: 'fas fa-box' },
 				{ name: '行程管理', icon: 'fas fa-route' },
@@ -169,6 +172,9 @@ export default {
 
 		if (e.id) {
 			this.formDataId = e.id;
+			if (e.type) {
+				this.editType = e.type;
+			}
 			console.log('✅ [产品编辑页] 获取到商品ID:', e.id);
 			this.loadAllData(e.id);
 		} else {
@@ -190,10 +196,24 @@ export default {
 			this.loadingText = '加载商品数据...';
 
 			try {
-				// 并行加载所有数据（行程数据由ItineraryManagement组件自行获取）
-				const promises = [this.getProductDetail(id), this.getPolicyData(id), this.getReviewData(id)];
+				let productId = '';
+				let ctripId = '';
 
-				console.log('🔄 [产品编辑页] 开始并行加载3个数据源（行程数据由组件自行获取）...');
+				if (this.editType === 'product') {
+					this.loadingText = '加载商品数据...';
+					const productData = await this.getProductDetail(id); // 从 a-products 加载
+					productId = productData._id;
+					ctripId = productData.ctrip_id;
+				} else if (this.editType === 'snapshot') {
+					this.loadingText = '加载快照数据...';
+					const snapshotData = await this.getSnapshotDetail(id);
+					productId = snapshotData.product_id; // 从快照中获取 product_id
+					ctripId = snapshotData.ctrip_id; // 从快照中获取 ctrip_id
+				}
+
+				// 并行加载所有数据（行程数据由ItineraryManagement组件自行获取）
+				const promises = [this.getPolicyData(productId, ctripId), this.getReviewData(productId, ctripId)];
+
 				const results = await Promise.all(promises);
 				console.log('✅ [产品编辑页] 所有数据加载完成, 结果数量:', results.length);
 
@@ -234,6 +254,7 @@ export default {
 						price: this.formData.price,
 						status: this.formData.status
 					});
+					return this.formData;
 				} else {
 					console.warn('⚠️ [商品详情] 未找到商品数据, ID:', id);
 					this.$message.warning('未找到商品数据');
@@ -244,12 +265,68 @@ export default {
 			}
 		},
 
+		async getSnapshotDetail(id) {
+			console.log('📦 [快照详情] 开始获取快照详情, ID:', id);
+			try {
+				const res = await db.collection('a-snapshots').doc(id).get();
+				if (res.result.data.length > 0) {
+					const snapshotData = res.result.data[0];
+
+					// 先加载原始商品信息，再用快照信息覆盖
+					let baseProduct = {};
+					if (snapshotData.product_id) {
+						const productRes = await db
+							.collection('a-products')
+							.doc(snapshotData.product_id)
+							.field('_id,product_images,detail_images,overview,cost_info,features') // 只加载快照没有的字段
+							.get();
+						if (productRes.result.data.length > 0) {
+							baseProduct = productRes.result.data[0];
+						}
+					}
+
+					if (snapshotData.sub_title !== undefined) {
+						console.log('📦 [快照详情] 正在标准化: sub_title -> subtitle');
+						snapshotData.subtitle = snapshotData.sub_title;
+						delete snapshotData.sub_title;
+					}
+
+					if (snapshotData.total_days !== undefined) {
+						console.log('📦 [快照详情] 正在标准化: total_days -> duration_days');
+						snapshotData.duration_days = snapshotData.total_days;
+						delete snapshotData.total_days;
+					}
+
+					// 合并数据：快照中的字段(如title)会覆盖原始商品的字段
+					this.formData = { ...baseProduct, ...snapshotData };
+					this.formData._id = snapshotData._id; // 确保 formData 的 _id 是快照的 _id
+
+					console.log('✅ [快照详情] 快照数据赋值成功:', this.formData.title);
+					return this.formData; // 返回数据供 loadAllData 使用
+				} else {
+					throw new Error('未找到快照数据');
+				}
+			} catch (error) {
+				console.error('💥 [快照详情] 获取快照详情失败:', error);
+				throw error;
+			}
+		},
+
 		// 获取政策数据
-		async getPolicyData(productId) {
-			console.log('📋 [政策数据] 开始获取政策数据, product_id:', productId);
+		async getPolicyData(productId, ctripId) {
+			console.log('📋 [政策数据] 开始获取政策数据, product_id:', productId, 'ctrip_id:', ctripId);
+			if (!productId && !ctripId) return;
+			let whereCondition = '';
+			if (productId && ctripId) {
+				whereCondition = `product_id == "${productId}" || ctrip_id == "${ctripId}"`;
+			} else if (productId) {
+				whereCondition = `product_id == "${productId}"`;
+			} else {
+				whereCondition = `ctrip_id == "${ctripId}"`;
+			}
 
 			try {
-				const res = await db.collection('a-booking-policies').where(`product_id == "${productId}"`).get();
+				const res = await db.collection('a-booking-policies').where(whereCondition).get();
 				console.log('📋 [政策数据] 数据库查询结果:', res);
 				console.log('📋 [政策数据] 查询状态 - success:', res.success);
 				console.log('📋 [政策数据] 数据数量:', res.result?.data?.length || 0);
@@ -271,19 +348,22 @@ export default {
 		},
 
 		// 获取评价数据
-		async getReviewData(productId) {
-			console.log('⭐ [评价数据] 开始获取评价数据, product_id:', productId);
+		async getReviewData(productId, ctripId) {
+			console.log('⭐ [评价数据] 开始获取评价数据, product_id:', productId, 'ctrip_id:', ctripId);
 
 			try {
-				const productRes = await db.collection('a-products').where(`_id == "${productId}"`).get();
-				let ctripId = '';
-				if (productRes.result.data && productRes.result.data.length > 0) {
-					ctripId = productRes.result.data[0].ctrip_id;
-					console.log('⭐ [评价数据] 成功获取A线路ID:', ctripId);
+				let queryCtripId = ctripId;
+
+				if (!queryCtripId && productId) {
+					// 如果没有 ctripId, 尝试从 product_id 获取
+					const productRes = await db.collection('a-products').doc(productId).field('ctrip_id').get();
+					if (productRes.result.data.length > 0) {
+						queryCtripId = productRes.result.data[0].ctrip_id;
+					}
 				}
 
-				if (ctripId) {
-					const res = await db.collection('a-reviews').where(`ctrip_id == "${ctripId}"`).limit(1000).orderBy('created_at', 'desc').get();
+				if (queryCtripId) {
+					const res = await db.collection('a-reviews').where(`ctrip_id == "${queryCtripId}"`).limit(1000).orderBy('created_at', 'desc').get();
 					console.log('⭐ [评价数据] 数据库查询结果:', res);
 					console.log('⭐ [评价数据] 查询状态 - success:', res.success);
 					console.log('⭐ [评价数据] 数据数量:', res.result?.data?.length || 0);
@@ -360,9 +440,30 @@ export default {
 					return;
 				}
 
+				let collectionName = '';
+				if (this.editType === 'product') {
+					collectionName = 'a-products';
+				} else if (this.editType === 'snapshot') {
+					collectionName = 'a-snapshots';
+
+					// subtitle 的反向映射
+					if (updateData.subtitle !== undefined) {
+						console.log('💾 [更新商品-快照] 正在标准化: subtitle -> sub_title');
+						updateData.sub_title = updateData.subtitle;
+						delete updateData.subtitle;
+					}
+
+					// "天数" 的反向映射
+					if (updateData.duration_days !== undefined) {
+						console.log('💾 [更新商品-快照] 正在标准化: duration_days -> total_days');
+						updateData.total_days = updateData.duration_days;
+						delete updateData.duration_days;
+					}
+				}
+
 				// 直接使用ClientDB保存
-				console.log('🚀 [更新商品] 开始执行数据库更新操作...');
-				const result = await db.collection('a-products').doc(this.formDataId).update(updateData);
+				console.log(`🚀 [更新商品] 开始执行数据库更新操作... 集合: ${collectionName}`);
+				const result = await db.collection(collectionName).doc(this.formDataId).update(updateData);
 				console.log('✅ [更新商品] 保存结果:', result);
 				console.log('✅ [更新商品] 结果详情:', {
 					success: result.success,
@@ -413,15 +514,54 @@ export default {
 
 			try {
 				console.log('🔍 [保存行程] 检查现有行程记录...');
+				let result;
+				let operationType = 'unknown';
+				let saveData;
 
-				// 检查是否已存在行程记录
-				const existQuery = await db.collection('a-itineraries').where(`product_id == "${data.product_id}"`).get();
+				if (this.editType === 'product') {
+					// 检查是否已存在行程记录
+					const existQuery = await db.collection('a-itineraries').where(`product_id == "${data.product_id}"`).get();
 
-				console.log('🔍 [保存行程] 查询结果:', existQuery);
-				console.log('🔍 [保存行程] 现有记录数量:', existQuery.result.data.length);
+					console.log('🔍 [保存行程] 查询结果:', existQuery);
+					console.log('🔍 [保存行程] 现有记录数量:', existQuery.result.data.length);
 
-				// 准备保存的数据（根据schema定义，需要将组件数据转换为数据库格式）
-				const saveData = this.convertComponentToDatabase(data);
+					// 准备保存的数据（根据schema定义，需要将组件数据转换为数据库格式）
+					const saveData = this.convertComponentToDatabase(data);
+
+					let result;
+					if (existQuery.result.data.length > 0) {
+						// 更新现有记录
+						const existId = existQuery.result.data[0]._id;
+						console.log('🔄 [保存行程] 更新现有记录, ID:', existId);
+
+						result = await db.collection('a-itineraries').doc(existId).update(saveData);
+						operationType = '更新';
+						console.log('✅ [保存行程] 更新完成，结果:', result);
+					} else {
+						// 创建新记录
+						console.log('🆕 [保存行程] 创建新记录');
+
+						result = await db.collection('a-itineraries').add(saveData);
+						operationType = '创建';
+						console.log('✅ [保存行程] 创建完成，结果:', result);
+					}
+				} else if (this.editType === 'snapshot') {
+					console.log('🔄 [保存行程-快照] 更新现有快照记录, ID:', this.formDataId);
+					const saveData = this.convertComponentToDatabase(data);
+
+					// 快照更新只关心行程相关的字段
+					const snapshotUpdateData = {
+						title: saveData.title,
+						total_days: saveData.total_days,
+						remarks: saveData.remarks,
+						itinerary: saveData.itinerary,
+						status: saveData.status
+					};
+
+					const result = await db.collection('a-snapshots').doc(this.formDataId).update(snapshotUpdateData);
+					operationType = '更新';
+					console.log('✅ [保存行程-快照] 更新完成，结果:', result);
+				}
 
 				console.log('📝 [保存行程] 准备保存的数据:', saveData);
 				console.log('📝 [保存行程] 数据完整性检查:', {
@@ -435,32 +575,16 @@ export default {
 					}
 				});
 
-				let result;
-				if (existQuery.result.data.length > 0) {
-					// 更新现有记录
-					const existId = existQuery.result.data[0]._id;
-					console.log('🔄 [保存行程] 更新现有记录, ID:', existId);
-
-					result = await db.collection('a-itineraries').doc(existId).update(saveData);
-					console.log('✅ [保存行程] 更新完成，结果:', result);
-				} else {
-					// 创建新记录
-					console.log('🆕 [保存行程] 创建新记录');
-
-					result = await db.collection('a-itineraries').add(saveData);
-					console.log('✅ [保存行程] 创建完成，结果:', result);
-				}
-
 				console.log('🎉 [保存行程] 行程数据保存成功');
 				console.log('📊 [保存行程] 保存统计:', {
-					操作类型: existQuery.result.data.length > 0 ? '更新' : '创建',
+					操作类型: operationType,
 					数据大小: JSON.stringify(saveData).length + ' 字符',
 					总天数: saveData.total_days,
 					行程天数: saveData.itinerary.length,
 					状态: saveData.status
 				});
 
-				if (result.result.updated > 0) {
+				if (result && result.result.updated > 0) {
 					this.$message.success('保存成功');
 				} else {
 					console.warn('⚠️ [保存行程] 没有文档被更新');
@@ -594,30 +718,54 @@ export default {
 			// 1. 【修改】导入云对象
 			const itineraryService = uniCloud.importObject('a-itinerary-service');
 
-			const payload = {
-				itineraryId: this.itineraryData._id,
-				path,
-				value,
-				operator
-			};
+			if (this.editType === 'product') {
+				const payload = {
+					itineraryId: this.itineraryData._id,
+					path,
+					value,
+					operator
+				};
 
-			console.log(`🚀 [局部更新] 准备调用云对象partialUpdateItinerary方法，参数:`, payload);
-			uni.showToast({ title: '自动保存中...', icon: 'loading', duration: 1500 });
+				console.log(`🚀 [局部更新] 准备调用云对象partialUpdateItinerary方法，参数:`, payload);
+				uni.showToast({ title: '自动保存中...', icon: 'loading', duration: 1500 });
 
-			try {
-				// 2. 【修改】调用云对象的方法，而不是 callFunction
-				const res = await itineraryService.partialUpdateItinerary(payload);
+				try {
+					const res = await itineraryService.partialUpdateItinerary(payload);
 
-				if (res.errCode === 0) {
-					uni.showToast({ title: '自动保存成功', icon: 'success', duration: 1500 });
-					console.log('✅ [局部更新] 云对象方法执行成功');
-				} else {
-					// 如果云对象返回了错误，就抛出它
-					throw new Error(res.errMsg || '云对象返回错误');
+					if (res.errCode === 0) {
+						uni.showToast({ title: '自动保存成功', icon: 'success', duration: 1500 });
+						console.log('✅ [局部更新] 云对象方法执行成功');
+					} else {
+						throw new Error(res.errMsg || '云对象返回错误');
+					}
+				} catch (error) {
+					console.error('💥 [局部更新] 调用云对象失败:', error);
+					uni.showToast({ title: `保存失败: ${error.message || '未知错误'}`, icon: 'none', duration: 3000 });
 				}
-			} catch (error) {
-				console.error('💥 [局部更新] 调用云对象失败:', error);
-				uni.showToast({ title: `保存失败: ${error.message || '未知错误'}`, icon: 'none', duration: 3000 });
+			} else if (this.editType === 'snapshot') {
+				const payload = {
+					snapshotId: this.formDataId,
+					path,
+					value,
+					operator
+				};
+
+				console.log(`🚀 [局部更新] 准备调用云对象partialUpdateSnapshot方法，参数:`, payload);
+				uni.showToast({ title: '自动保存中...', icon: 'loading', duration: 1500 });
+
+				try {
+					const res = await itineraryService.partialUpdateSnapshot(payload);
+
+					if (res.errCode === 0) {
+						uni.showToast({ title: '自动保存成功', icon: 'success', duration: 1500 });
+						console.log('✅ [局部更新] 云对象方法执行成功');
+					} else {
+						throw new Error(res.errMsg || '云对象返回错误');
+					}
+				} catch (error) {
+					console.error('💥 [局部更新] 调用云对象失败:', error);
+					uni.showToast({ title: `保存失败: ${error.message || '未知错误'}`, icon: 'none', duration: 3000 });
+				}
 			}
 		},
 
@@ -667,11 +815,10 @@ export default {
 		onItineraryNoDataFound(params) {
 			console.log('ℹ️ [行程管理] 未找到匹配的行程数据:', params);
 			console.log('ℹ️ [行程管理] 传递的查询参数对比:', {
-				传递的productId: this.formData._id,
-				传递的productCtripId: this.formData.ctrip_id,
-				组件接收的productId: params.productId,
-				组件接收的productCtripId: params.productCtripId,
-				参数是否匹配: this.formData._id === params.productId && this.formData.ctrip_id === params.productCtripId,
+				Mode: this.editType,
+				ProductID: this.editType === 'product' ? this.formDataId : this.formData.product_id,
+				CtripID: this.formData.ctrip_id,
+				SnapshotID: this.editType === 'snapshot' ? this.formDataId : null,
 				timestamp: new Date().toLocaleString()
 			});
 
@@ -684,8 +831,8 @@ export default {
 			console.error('❌ [行程管理] 数据加载失败:', errorInfo);
 			console.error('❌ [行程管理] 错误详情:', {
 				error: errorInfo.error,
-				productId: errorInfo.productId,
-				productCtripId: errorInfo.productCtripId,
+				productId: errorInfo.productId || null,
+				productCtripId: errorInfo.productCtripId || null,
 				timestamp: new Date().toLocaleString()
 			});
 

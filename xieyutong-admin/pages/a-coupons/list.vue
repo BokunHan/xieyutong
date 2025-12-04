@@ -21,7 +21,7 @@
 					<view>
 						<button
 							class="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center text-base"
-							@click="navigateTo('../a-user-coupons/list')">
+							@click="navigateTo('../a-coupons/a-user-coupons/list')">
 							用户优惠券管理
 						</button>
 					</view>

@@ -202,17 +202,17 @@
 				"navigationBarTitleText": "列表"
 			}
 		}, {
-			"path": "pages/a-user-coupons/add",
+			"path": "pages/a-coupons/a-user-coupons/add",
 			"style": {
 				"navigationBarTitleText": "新增"
 			}
 		}, {
-			"path": "pages/a-user-coupons/edit",
+			"path": "pages/a-coupons/a-user-coupons/edit",
 			"style": {
 				"navigationBarTitleText": "编辑"
 			}
 		}, {
-			"path": "pages/a-user-coupons/list",
+			"path": "pages/a-coupons/a-user-coupons/list",
 			"style": {
 				"navigationBarTitleText": "列表"
 			}
@@ -368,19 +368,103 @@
 				"navigationBarTitleText": "区域列表"
 			}
 		}, {
-			"path": "pages/a-region-content/add",
+			"path": "pages/a-regions/a-region-content/add",
 			"style": {
 				"navigationBarTitleText": "新增区域内容"
 			}
 		}, {
-			"path": "pages/a-region-content/edit",
+			"path": "pages/a-regions/a-region-content/edit",
 			"style": {
 				"navigationBarTitleText": "编辑区域内容"
 			}
 		}, {
-			"path": "pages/a-region-content/list",
+			"path": "pages/a-regions/a-region-content/list",
 			"style": {
 				"navigationBarTitleText": "区域内容列表"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-categories/add",
+			"style": {
+				"navigationBarTitleText": "新增POI分类"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-categories/edit",
+			"style": {
+				"navigationBarTitleText": "编辑POI分类"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-categories/list",
+			"style": {
+				"navigationBarTitleText": "POI分类列表"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-tags/add",
+			"style": {
+				"navigationBarTitleText": "新增POI标签"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-tags/edit",
+			"style": {
+				"navigationBarTitleText": "编辑POI标签"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-tags/list",
+			"style": {
+				"navigationBarTitleText": "POI标签列表"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-database/add",
+			"style": {
+				"navigationBarTitleText": "新增POI内容"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-database/edit",
+			"style": {
+				"navigationBarTitleText": "编辑POI内容"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-database/list",
+			"style": {
+				"navigationBarTitleText": "POI内容列表"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-system",
+			"style": {
+				"navigationBarTitleText": "POI系统管理中枢"
+			}
+		},
+		{
+			"path": "pages/a-poi-system/a-poi-calibration/list",
+			"style": {
+				"navigationBarTitleText": "POI批量校准"
+			}
+		},
+		{
+			"path": "pages/a-task-orders/list",
+			"style": {
+				"navigationBarTitleText": "行中推荐任务管理"
+			}
+		},
+		{
+			"path": "pages/a-task-orders/add",
+			"style": {
+				"navigationBarTitleText": "新建推荐任务"
+			}
+		},
+		{
+			"path": "pages/a-task-orders/queue",
+			"style": {
+				"navigationBarTitleText": "消息发送队列"
 			}
 		}
 	],

@@ -90,6 +90,36 @@
 								{{ btn.text }}
 							</button>
 						</view>
+
+						<view v-if="showQrModal" class="fixed inset-0 z-50 flex items-center justify-center bg-mask backdrop-blur-sm" @click="closeQrModal">
+							<view class="flex flex-col items-center" @click.stop>
+								<view class="bg-white rounded-2xl p-8 flex flex-col items-center w-72 shadow-2xl animate-scale-in">
+									<view class="text-lg font-bold text-gray-800 mb-6">扫码绑定</view>
+
+									<view class="relative w-56 h-56 mb-6">
+										<image v-if="qrCodeBase64" :src="qrCodeBase64" class="w-full h-full" mode="aspectFit"></image>
+										<view v-else class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg">
+											<view class="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin"></view>
+										</view>
+									</view>
+
+									<view class="text-xs text-gray-400 text-center leading-relaxed">
+										使用微信“扫一扫”
+										<br />
+										绑定此订单行程和相册
+									</view>
+								</view>
+
+								<view class="close-btn-area" @click="closeQrModal">
+									<view class="close-btn">
+										<view class="close-icon">
+											<view class="icon-line line-1"></view>
+											<view class="icon-line line-2"></view>
+										</view>
+									</view>
+								</view>
+							</view>
+						</view>
 					</view>
 				</view>
 
@@ -138,7 +168,9 @@ export default {
 			hasMore: true,
 			pageSize: 10,
 			currentPage: 1,
-			scrollViewHeight: '100vh'
+			scrollViewHeight: '100vh',
+			showQrModal: false,
+			qrCodeBase64: ''
 		};
 	},
 	async onLoad(options) {
@@ -285,12 +317,14 @@ export default {
 					if (order.departure_date >= now) {
 						statusText = '待出行';
 						buttons = [
+							{ text: '邀请', type: 'outline', action: 'invite' },
 							{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
 							{ text: '联系客户', type: 'primary', action: 'contactClient' }
 						];
 					} else if (calculatedEndDate >= now) {
 						statusText = '进行中';
 						buttons = [
+							{ text: '邀请', type: 'outline', action: 'invite' },
 							{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
 							{ text: '联系客户', type: 'primary', action: 'contactClient' }
 						];
@@ -301,6 +335,7 @@ export default {
 				} else if (order.status === 'processing') {
 					statusText = '进行中';
 					buttons = [
+						{ text: '邀请', type: 'outline', action: 'invite' },
 						{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
 						{ text: '联系客户', type: 'primary', action: 'contactClient' }
 					];
@@ -384,6 +419,7 @@ export default {
 
 			if (this.isGuide) {
 				buttons = [
+					{ text: '邀请', type: 'outline', action: 'invite' },
 					{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
 					{ text: '联系客户', type: 'primary', action: 'contactClient' }
 				];
@@ -543,9 +579,40 @@ export default {
 						}
 					});
 					break;
+				case 'invite':
+					this.showInviteQr(order);
+					break;
 				default:
 					console.log('未知操作:', action);
 			}
+		},
+
+		// 显示邀请二维码
+		async showInviteQr(order) {
+			this.showQrModal = true;
+			this.qrCodeBase64 = '';
+
+			try {
+				uni.showLoading({ title: '生成中...' });
+				const res = await orderService.getInviteQRCode(order._id);
+				uni.hideLoading();
+
+				if (res.errCode === 0) {
+					this.qrCodeBase64 = res.base64;
+				} else {
+					uni.showToast({ title: res.errMsg, icon: 'none' });
+					this.showQrModal = false;
+				}
+			} catch (e) {
+				uni.hideLoading();
+				uni.showToast({ title: '生成失败', icon: 'none' });
+				this.showQrModal = false;
+				console.error(e);
+			}
+		},
+
+		closeQrModal() {
+			this.showQrModal = false;
 		},
 
 		viewItinerary(order) {
@@ -626,6 +693,79 @@ export default {
 /* 加载动画 */
 .animate-spin {
 	animation: spin 1s linear infinite;
+}
+
+.bg-mask {
+	background-color: rgba(0, 0, 0, 0.6);
+}
+
+.border-close {
+	border-color: rgba(255, 255, 255, 0.5);
+}
+
+.backdrop-blur-sm {
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+} /* 增加磨砂玻璃质感 */
+.animate-scale-in {
+	animation: scaleIn 0.2s ease-out;
+}
+
+/* 关闭按钮专用样式 */
+.close-btn-area {
+	margin-top: 60rpx;
+	padding: 20rpx;
+	opacity: 0.8;
+}
+.close-btn-area:active {
+	opacity: 0.5;
+}
+
+.close-btn {
+	width: 80rpx;
+	height: 80rpx;
+	border-radius: 50%;
+	border: 2rpx solid rgba(255, 255, 255, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.close-icon {
+	position: relative;
+	width: 32rpx;
+	height: 32rpx;
+}
+
+.icon-line {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	width: 100%;
+	height: 4rpx; /* 线条厚度 */
+	background-color: #ffffff; /* 强制白色 */
+	border-radius: 4rpx;
+}
+
+/* 第一条线：旋转 45 度 */
+.line-1 {
+	transform: translateY(-50%) rotate(45deg);
+}
+
+/* 第二条线：旋转 -45 度 */
+.line-2 {
+	transform: translateY(-50%) rotate(-45deg);
+}
+
+@keyframes scaleIn {
+	from {
+		transform: scale(0.9);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
 }
 
 @keyframes spin {

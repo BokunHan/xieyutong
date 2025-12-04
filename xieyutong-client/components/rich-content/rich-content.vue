@@ -1,6 +1,6 @@
 <template>
 	<view class="content-wrapper">
-		<mp-html :content="html" lazy-load container-style="padding: 15px" />
+		<mp-html :content="html" lazy-load container :container-style="noPadding ? '' : 'padding: 15px'" @linktap="onLinkTap" />
 	</view>
 </template>
 
@@ -14,10 +14,21 @@ export default {
 		html: {
 			type: String,
 			default: '<p>暂无内容</p>'
+		},
+		noPadding: {
+			type: Boolean,
+			default: false
 		}
 	},
 	data() {
 		return {};
+	},
+	methods: {
+		onLinkTap(e) {
+			// mp-html 的 linktap 事件会返回 { href: '...' }
+			// 我们将这个事件向上抛出给父组件处理
+			this.$emit('linkTap', e);
+		}
 	}
 };
 </script>

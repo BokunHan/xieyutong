@@ -103,6 +103,11 @@
 							"bsonType": "object",
 							"required": ["elementType", "title"],
 							"properties": {
+								"id": {
+									"bsonType": "string",
+									"title": "活动唯一ID",
+									"description": "用于POI匹配和更新，程序自动生成"
+								},
 								"elementType": {
 									"bsonType": "string",
 									"description": "活动类型",
@@ -165,9 +170,127 @@
 									"minimum": 0,
 									"maximum": 59
 								},
+								"linked_poi_id": {
+									"bsonType": "string",
+									"title": "关联POI",
+									"description": "手动或自动关联的 a-poi-database._id",
+									"foreignKey": "a-poi-database._id",
+									"componentForEdit": {
+										"name": "uni-data-picker",
+										"props": {
+											"collection": "a-poi-database",
+											"field": "_id as value, name as text"
+										}
+									}
+								},
+								"match_status": {
+									"bsonType": "string",
+									"title": "匹配状态",
+									"description": "POI的匹配状态",
+									"defaultValue": "unmatched",
+									"enum": [{
+											"value": "unmatched",
+											"text": "未匹配"
+										},
+										{
+											"value": "auto",
+											"text": "自动匹配"
+										},
+										{
+											"value": "manual",
+											"text": "手动确认"
+										},
+										{
+											"value": "ignore",
+											"text": "忽略"
+										}
+									]
+								}
 								"elementData": {
 									"bsonType": "object",
-									"description": "活动详细数据，根据不同活动类型存储不同结构的数据"
+									"description": "活动详细数据，根据不同活动类型存储不同结构的数据",
+									"properties": {
+										"scenic_spots": {
+											"bsonType": "array",
+											"title": "景点列表",
+											"items": {
+												"bsonType": "object",
+												"properties": {
+													"name": {
+														"bsonType": "string",
+														"title": "景点名"
+													},
+													"linked_poi_id": {
+														"bsonType": "string",
+														"title": "关联POI",
+														"foreignKey": "a-poi-database._id"
+													},
+													"match_status": {
+														"bsonType": "string",
+														"title": "匹配状态",
+														"defaultValue": "unmatched",
+														"enum": [{
+																"value": "unmatched",
+																"text": "未匹配"
+															},
+															{
+																"value": "auto",
+																"text": "自动匹配"
+															},
+															{
+																"value": "manual",
+																"text": "手动确认"
+															},
+															{
+																"value": "ignore",
+																"text": "忽略"
+															}
+														]
+													}
+												}
+											}
+										},
+										"alternativeHotels": {
+											"bsonType": "array",
+											"title": "备选酒店",
+											"items": {
+												"bsonType": "object",
+												"properties": {
+													"name": {
+														"bsonType": "string",
+														"title": "备用酒店名称"
+													},
+													"linked_poi_id": {
+														"bsonType": "string",
+														"title": "关联POI",
+														"foreignKey": "a-poi-database._id"
+													},
+													"match_status": {
+														"bsonType": "string",
+														"title": "匹配状态",
+														"defaultValue": "unmatched",
+														"enum": [{
+																"value": "unmatched",
+																"text": "未匹配"
+															},
+															{
+																"value": "auto",
+																"text": "自动匹配"
+															},
+															{
+																"value": "manual",
+																"text": "手动确认"
+															},
+															{
+																"value": "ignore",
+																"text": "忽略"
+															}
+														]
+													}
+												}
+											}
+										}
+									}
 								}
 							}
 						}

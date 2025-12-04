@@ -1,0 +1,82 @@
+{
+	"bsonType": "object",
+	"required": ["task_id", "group_name", "payload"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"task_id": {
+			"bsonType": "string",
+			"title": "关联任务ID"
+		},
+		"account_name": {
+			"bsonType": "string",
+			"title": "执行账号"
+		},
+		"group_name": {
+			"bsonType": "string",
+			"title": "目标群名"
+		},
+		"task_name": {
+			"bsonType": "string",
+			"title": "子任务名称",
+			"description": "来源任务的原始名称"
+		},
+		"start_time": {
+			"bsonType": "string",
+			"title": "任务开始时间",
+			"description": "原始任务建议的开始时间"
+		},
+		"end_time": {
+			"bsonType": "string",
+			"title": "任务截止时间",
+			"description": "原始任务建议的截止时间"
+		},
+		"payload": {
+			"bsonType": "array",
+			"title": "消息内容",
+			"description": "包含 type(text/image) 和 data 的数组"
+		},
+		"status": {
+			"bsonType": "string",
+			"title": "发送状态",
+			"enum": [{
+					"value": "pending",
+					"text": "待发送"
+				},
+				{
+					"value": "sent",
+					"text": "已发送"
+				},
+				{
+					"value": "failed",
+					"text": "发送失败"
+				},
+				{
+					"value": "manual_stop",
+					"text": "人工暂停"
+				}
+			],
+			"defaultValue": "pending"
+		},
+		"send_time": {
+			"bsonType": "string",
+			"title": "计划发送时间"
+		},
+		"error_msg": {
+			"bsonType": "string",
+			"title": "错误信息"
+		},
+		"priority": {
+			"bsonType": "int",
+			"title": "优先级",
+			"defaultValue": 0
+		}
+	}
+}

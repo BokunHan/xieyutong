@@ -59,7 +59,7 @@
 							class="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center text-base"
 							@click="navigateToSync">
 							<i class="fas fa-sync mr-2"></i>
-							同步商品
+							{{ this.activeTab === 'products' ? '同步商品' : '同步快照' }}
 						</button>
 
 						<button
@@ -82,242 +82,480 @@
 		</view>
 
 		<!-- 主要内容区域 -->
-		<view class="mx-6 my-6">
-			<unicloud-db
-				ref="udb"
-				:collection="collectionList"
-				field="_id,ctrip_id,title,subtitle,route_title,duration_days,price,child_price,product_images,status,created_at"
-				:where="where"
-				page-data="replace"
-				:orderby="orderby"
-				:getcount="true"
-				:page-size="options.pageSize"
-				:page-current="options.pageCurrent"
-				v-slot:default="{ data, pagination, loading, error, options }"
-				:options="options"
-				loadtime="manual"
-				@load="onqueryload">
-				<!-- 数据统计信息 -->
-				<view class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
-					<view class="p-4 border-b border-gray-200">
-						<view class="flex items-center justify-between">
-							<view class="flex items-center">
-								<i class="fas fa-chart-bar text-indigo-600 text-lg mr-3"></i>
-								<text class="text-lg font-semibold text-gray-900">数据概览</text>
+		<view class="mx-6 mt-6">
+			<el-tabs v-model="activeTab" @tab-click="handleTabClick">
+				<el-tab-pane label="小程序商品" name="products">
+					<unicloud-db
+						ref="udb"
+						:collection="collectionList"
+						field="_id,ctrip_id,title,subtitle,route_title,duration_days,price,child_price,product_images,status,created_at"
+						:where="where"
+						page-data="replace"
+						:orderby="orderby"
+						:getcount="true"
+						:page-size="options.pageSize"
+						:page-current="options.pageCurrent"
+						v-slot:default="{ data, pagination, loading, error, options }"
+						:options="options"
+						loadtime="manual"
+						@load="onqueryload">
+						<!-- 数据统计信息 -->
+						<view class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+							<view class="p-4 border-b border-gray-200">
+								<view class="flex items-center justify-between">
+									<view class="flex items-center">
+										<i class="fas fa-chart-bar text-indigo-600 text-lg mr-3"></i>
+										<text class="text-lg font-semibold text-gray-900">数据概览</text>
+									</view>
+									<view class="text-sm text-gray-500">
+										共找到
+										<text class="font-semibold text-indigo-600 text-base">{{ pagination.count }}</text>
+										个商品
+									</view>
+								</view>
 							</view>
-							<view class="text-sm text-gray-500">
-								共找到
-								<text class="font-semibold text-indigo-600 text-base">{{ pagination.count }}</text>
-								个商品
-							</view>
-						</view>
-					</view>
 
-					<!-- Element Plus 表格 -->
-					<div class="p-2">
-						<el-table :data="data" style="width: 100%" v-loading="loading" element-loading-text="正在加载数据..." @selection-change="handleSelectionChange" row-key="_id">
-							<!-- 选择列 -->
-							<el-table-column type="selection" width="40" :reserve-selection="true" />
+							<!-- Element Plus 表格 -->
+							<div class="p-2">
+								<el-table :data="data" style="width: 100%" v-loading="loading" element-loading-text="正在加载数据..." @selection-change="handleSelectionChange" row-key="_id">
+									<!-- 选择列 -->
+									<el-table-column type="selection" width="40" :reserve-selection="true" />
 
-							<!-- 商品ID -->
-							<!-- <el-table-column prop="_id" label="商品ID" width="140" show-overflow-tooltip>
-								<template #default="scope">
-									<div class="flex items-center">
-										<el-text type="info" class="cursor-pointer hover:text-blue-600" @click="copyToClipboard(scope.row._id)">
-											{{ scope.row._id ? scope.row._id.substring(0, 8) + '...' : '-' }}
-										</el-text>
-										<i class="fas fa-copy text-gray-400 ml-2 cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(scope.row._id)"></i>
-									</div>
-								</template>
-							</el-table-column> -->
+									<!-- 商品ID -->
+									<!-- <el-table-column prop="_id" label="商品ID" width="140" show-overflow-tooltip>
+												<template #default="scope">
+													<div class="flex items-center">
+														<el-text type="info" class="cursor-pointer hover:text-blue-600" @click="copyToClipboard(scope.row._id)">
+															{{ scope.row._id ? scope.row._id.substring(0, 8) + '...' : '-' }}
+														</el-text>
+														<i class="fas fa-copy text-gray-400 ml-2 cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(scope.row._id)"></i>
+													</div>
+												</template>
+											</el-table-column> -->
 
-							<!-- 携程商品ID -->
-							<el-table-column prop="ctrip_id" label="携程商品ID" width="120" show-overflow-tooltip>
-								<template #default="scope">
-									<div class="flex items-center">
-										<el-text type="primary" class="cursor-pointer" @click="copyToClipboard(scope.row.ctrip_id)">
-											{{ scope.row.ctrip_id || '-' }}
-										</el-text>
-										<i class="fas fa-copy text-gray-400 ml-2 cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(scope.row.ctrip_id)"></i>
-									</div>
-								</template>
-							</el-table-column>
-
-							<!-- 商品信息 -->
-							<el-table-column label="商品信息" min-width="200">
-								<template #default="scope">
-									<div>
-										<div class="font-medium text-gray-900 line-clamp-2 mb-1">
-											{{ scope.row.title || '未设置标题' }}
-										</div>
-										<div class="text-xs text-gray-500 line-clamp-2" v-if="scope.row.subtitle">
-											{{ scope.row.subtitle }}
-										</div>
-										<div class="text-xs text-blue-600 line-clamp-1 mt-1" v-if="scope.row.route_title">
-											<i class="fas fa-route mr-1" style="font-size: 11px"></i>
-											{{ scope.row.route_title }}
-										</div>
-									</div>
-								</template>
-							</el-table-column>
-
-							<!-- 商品图片 -->
-							<el-table-column label="商品图片" width="100" align="center">
-								<template #default="scope">
-									<el-image
-										v-if="scope.row.product_images && scope.row.product_images.length > 0"
-										:src="getFirstImage(scope.row.product_images)"
-										:preview-src-list="getImageList(scope.row.product_images)"
-										fit="cover"
-										class="w-16 h-16 rounded-lg"
-										:initial-index="0"
-										preview-teleported
-										hide-on-click-modal />
-									<!-- <div v-else class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-										<i class="fas fa-image text-gray-400 text-xl"></i>
-									</div> -->
-								</template>
-							</el-table-column>
-
-							<!-- 成人价格 -->
-							<el-table-column prop="price" label="成人价格" width="120" sortable>
-								<template #default="scope">
-									<el-text type="success" v-if="scope.row.price">¥{{ scope.row.price }}</el-text>
-									<el-text type="info" v-else>-</el-text>
-								</template>
-							</el-table-column>
-
-							<!-- 儿童价格 -->
-							<el-table-column prop="child_price" label="儿童价格" width="120" sortable>
-								<template #default="scope">
-									<el-text type="warning" v-if="scope.row.child_price">¥{{ scope.row.child_price }}</el-text>
-									<el-text type="info" v-else>-</el-text>
-								</template>
-							</el-table-column>
-
-							<!-- 天数 -->
-							<el-table-column prop="duration_days" label="天数" width="100" sortable>
-								<template #header>
-									<div class="flex items-center">
-										<span>天数</span>
-										<el-popover placement="bottom" title="筛选天数" :width="200" trigger="click" v-model:visible="durationPopoverVisible">
-											<template #reference>
-												<el-button type="primary" link class="ml-1 !p-1" :class="durationFilter ? 'text-blue-500' : 'text-gray-400'" @click.stop title="筛选天数">
-													<i class="fas fa-filter"></i>
-												</el-button>
-											</template>
-											<template #default>
-												<el-select
-													v-if="durationPopoverVisible"
-													v-model="durationFilter"
-													placeholder="选择天数 (1-15)"
-													clearable
-													class="w-full"
-													size="small"
-													@change="onDurationChange">
-													<el-option v-for="n in 15" :key="n" :label="`${n} 天`" :value="n" />
-												</el-select>
-											</template>
-										</el-popover>
-									</div>
-								</template>
-								<template #default="scope">
-									<el-text v-if="scope.row.duration_days > 0">{{ scope.row.duration_days }} 天</el-text>
-									<el-text type="info" v-else>-</el-text>
-								</template>
-							</el-table-column>
-
-							<!-- 创建时间 -->
-							<el-table-column prop="created_at" label="创建时间" width="140" sortable>
-								<template #default="scope">
-									<el-text type="info" size="small">
-										<uni-dateformat :threshold="[0, 0]" :date="scope.row.created_at" format="yyyy-MM-dd hh:mm"></uni-dateformat>
-									</el-text>
-								</template>
-							</el-table-column>
-
-							<!-- 商品状态 -->
-							<el-table-column prop="status" label="商品状态" width="120">
-								<template #default="scope">
-									<el-tag :type="getElementStatusType(scope.row.status)" effect="light" round>
-										<i :class="getStatusIcon(scope.row.status)" class="mr-1"></i>
-										{{ getStatusText(scope.row.status) }}
-									</el-tag>
-								</template>
-							</el-table-column>
-
-							<!-- 操作 -->
-							<el-table-column label="操作" width="120" fixed="right" align="center">
-								<template #default="scope">
-									<div class="flex flex-col items-center justify-center gap-2 mb-1">
-										<el-button type="primary" size="small" @click="navigateTo('./edit?id=' + scope.row._id, false)" class="w-full">
-											<i class="fas fa-edit mr-1"></i>
-											编辑
-										</el-button>
-										<el-button type="danger" size="small" @click="confirmDelete(scope.row._id)" class="w-full !ml-0">
-											<i class="fas fa-trash mr-1"></i>
-											删除
-										</el-button>
-									</div>
-
-									<!-- 更多操作下拉菜单 -->
-									<el-dropdown trigger="click" @command="handleCommand">
-										<el-button type="info" size="small" text class="w-full">
-											<i class="fas fa-ellipsis-v"></i>
-										</el-button>
-										<template #dropdown>
-											<el-dropdown-menu>
-												<!-- <el-dropdown-item 
-                          :command="{action: 'view', id: scope.row._id}"
-                          icon="el-icon-view"
-                        >
-                          <i class="fas fa-eye mr-2"></i>
-                          查看详情
-                        </el-dropdown-item> -->
-												<!-- <el-dropdown-item 
-                          :command="{action: 'copy', id: scope.row._id}"
-                          icon="el-icon-copy-document"
-                        >
-                          <i class="fas fa-copy mr-2"></i>
-                          复制商品
-                        </el-dropdown-item> -->
-												<el-dropdown-item :command="{ action: 'toggle-status', id: scope.row._id, status: scope.row.status }" divided>
-													<i class="fas fa-power-off mr-2"></i>
-													{{ scope.row.status === 1 ? '下架商品' : '上架商品' }}
-												</el-dropdown-item>
-											</el-dropdown-menu>
+									<!-- 携程商品ID -->
+									<el-table-column prop="ctrip_id" label="携程商品ID" width="120" show-overflow-tooltip>
+										<template #default="scope">
+											<div class="flex items-center">
+												<el-text type="primary" class="cursor-pointer" @click="copyToClipboard(scope.row.ctrip_id)">
+													{{ scope.row.ctrip_id || '-' }}
+												</el-text>
+												<i class="fas fa-copy text-gray-400 ml-2 cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(scope.row.ctrip_id)"></i>
+											</div>
 										</template>
-									</el-dropdown>
-								</template>
-							</el-table-column>
-						</el-table>
+									</el-table-column>
 
-						<!-- 空状态 -->
-						<el-empty v-if="!loading && !data.length" description="暂无商品数据">
-							<el-button type="primary" @click="navigateToSync">
-								<i class="fas fa-sync mr-2"></i>
-								同步商品
-							</el-button>
-						</el-empty>
-					</div>
-				</view>
+									<!-- 商品信息 -->
+									<el-table-column label="商品信息" min-width="200">
+										<template #default="scope">
+											<div>
+												<div class="font-medium text-gray-900 line-clamp-2 mb-1">
+													{{ scope.row.title || '未设置标题' }}
+												</div>
+												<div class="text-xs text-gray-500 line-clamp-2" v-if="scope.row.subtitle">
+													{{ scope.row.subtitle }}
+												</div>
+												<div class="text-xs text-blue-600 line-clamp-1 mt-1" v-if="scope.row.route_title">
+													<i class="fas fa-route mr-1" style="font-size: 11px"></i>
+													{{ scope.row.route_title }}
+												</div>
+											</div>
+										</template>
+									</el-table-column>
 
-				<!-- 分页组件 -->
-				<view class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" v-if="pagination.count > 0">
-					<view class="flex items-center justify-between">
-						<view class="text-sm text-gray-700">
-							显示第
-							<text class="font-medium">{{ (pagination.current - 1) * pagination.size + 1 }}</text>
-							到
-							<text class="font-medium">{{ Math.min(pagination.current * pagination.size, pagination.count) }}</text>
-							条， 共
-							<text class="font-medium">{{ pagination.count }}</text>
-							条记录
+									<!-- 商品图片 -->
+									<el-table-column label="商品图片" width="100" align="center">
+										<template #default="scope">
+											<el-image
+												v-if="scope.row.product_images && scope.row.product_images.length > 0"
+												:src="getFirstImage(scope.row.product_images)"
+												:preview-src-list="getImageList(scope.row.product_images)"
+												fit="cover"
+												class="w-16 h-16 rounded-lg"
+												:initial-index="0"
+												preview-teleported
+												hide-on-click-modal />
+											<!-- <div v-else class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+														<i class="fas fa-image text-gray-400 text-xl"></i>
+													</div> -->
+										</template>
+									</el-table-column>
+
+									<!-- 成人价格 -->
+									<el-table-column prop="price" label="成人价格" width="120" sortable>
+										<template #default="scope">
+											<el-text type="success" v-if="scope.row.price">¥{{ scope.row.price }}</el-text>
+											<el-text type="info" v-else>-</el-text>
+										</template>
+									</el-table-column>
+
+									<!-- 儿童价格 -->
+									<el-table-column prop="child_price" label="儿童价格" width="120" sortable>
+										<template #default="scope">
+											<el-text type="warning" v-if="scope.row.child_price">¥{{ scope.row.child_price }}</el-text>
+											<el-text type="info" v-else>-</el-text>
+										</template>
+									</el-table-column>
+
+									<!-- 天数 -->
+									<el-table-column prop="duration_days" label="天数" width="100" sortable>
+										<template #header>
+											<div class="flex items-center">
+												<span>天数</span>
+												<el-popover placement="bottom" title="筛选天数" :width="200" trigger="click" v-model:visible="durationPopoverVisible">
+													<template #reference>
+														<el-button type="primary" link class="ml-1 !p-1" :class="durationFilter ? 'text-blue-500' : 'text-gray-400'" @click.stop title="筛选天数">
+															<i class="fas fa-filter"></i>
+														</el-button>
+													</template>
+													<template #default>
+														<el-select
+															v-if="durationPopoverVisible"
+															v-model="durationFilter"
+															placeholder="选择天数 (1-15)"
+															clearable
+															class="w-full"
+															size="small"
+															@change="onDurationChange">
+															<el-option v-for="n in 15" :key="n" :label="`${n} 天`" :value="n" />
+														</el-select>
+													</template>
+												</el-popover>
+											</div>
+										</template>
+										<template #default="scope">
+											<el-text v-if="scope.row.duration_days > 0">{{ scope.row.duration_days }} 天</el-text>
+											<el-text type="info" v-else>-</el-text>
+										</template>
+									</el-table-column>
+
+									<!-- 创建时间 -->
+									<el-table-column prop="created_at" label="创建时间" width="140" sortable>
+										<template #default="scope">
+											<el-text type="info" size="small">
+												<uni-dateformat :threshold="[0, 0]" :date="scope.row.created_at" format="yyyy-MM-dd hh:mm"></uni-dateformat>
+											</el-text>
+										</template>
+									</el-table-column>
+
+									<!-- 商品状态 -->
+									<el-table-column prop="status" label="商品状态" width="120">
+										<template #default="scope">
+											<el-tag :type="getElementStatusType(scope.row.status)" effect="light" round>
+												<i :class="getStatusIcon(scope.row.status)" class="mr-1"></i>
+												{{ getStatusText(scope.row.status) }}
+											</el-tag>
+										</template>
+									</el-table-column>
+
+									<!-- 操作 -->
+									<el-table-column label="操作" width="120" fixed="right" align="center">
+										<template #default="scope">
+											<div class="flex flex-col items-center justify-center gap-2 mb-1">
+												<el-button type="primary" size="small" @click="navigateTo('./edit?id=' + scope.row._id + '&type=product', false)" class="w-full">
+													<i class="fas fa-edit mr-1"></i>
+													编辑
+												</el-button>
+												<el-button type="danger" size="small" @click="confirmDelete(scope.row._id, 'product')" class="w-full !ml-0">
+													<i class="fas fa-trash mr-1"></i>
+													删除
+												</el-button>
+											</div>
+
+											<!-- 更多操作下拉菜单 -->
+											<el-dropdown trigger="click" @command="handleCommand">
+												<el-button type="info" size="small" text class="w-full">
+													<i class="fas fa-ellipsis-v"></i>
+												</el-button>
+												<template #dropdown>
+													<el-dropdown-menu>
+														<!-- <el-dropdown-item 
+						                      :command="{action: 'view', id: scope.row._id}"
+						                      icon="el-icon-view"
+						                    >
+						                      <i class="fas fa-eye mr-2"></i>
+						                      查看详情
+						                    </el-dropdown-item> -->
+														<!-- <el-dropdown-item 
+						                      :command="{action: 'copy', id: scope.row._id}"
+						                      icon="el-icon-copy-document"
+						                    >
+						                      <i class="fas fa-copy mr-2"></i>
+						                      复制商品
+						                    </el-dropdown-item> -->
+														<el-dropdown-item :command="{ action: 'toggle-status', id: scope.row._id, status: scope.row.status }" divided>
+															<i class="fas fa-power-off mr-2"></i>
+															{{ scope.row.status === 1 ? '下架商品' : '上架商品' }}
+														</el-dropdown-item>
+													</el-dropdown-menu>
+												</template>
+											</el-dropdown>
+										</template>
+									</el-table-column>
+								</el-table>
+
+								<!-- 空状态 -->
+								<el-empty v-if="!loading && !data.length" description="暂无商品数据">
+									<el-button type="primary" @click="navigateToSync">
+										<i class="fas fa-sync mr-2"></i>
+										同步商品
+									</el-button>
+								</el-empty>
+							</div>
 						</view>
-						<uni-pagination show-icon :page-size="pagination.size" v-model="pagination.current" :total="pagination.count" @change="onPageChanged" />
-					</view>
-				</view>
-			</unicloud-db>
+
+						<!-- 分页组件 -->
+						<view class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" v-if="pagination.count > 0">
+							<view class="flex items-center justify-between">
+								<view class="text-sm text-gray-700">
+									显示第
+									<text class="font-medium">{{ (pagination.current - 1) * pagination.size + 1 }}</text>
+									到
+									<text class="font-medium">{{ Math.min(pagination.current * pagination.size, pagination.count) }}</text>
+									条， 共
+									<text class="font-medium">{{ pagination.count }}</text>
+									条记录
+								</view>
+								<uni-pagination show-icon :page-size="pagination.size" v-model="pagination.current" :total="pagination.count" @change="onPageChanged" />
+							</view>
+						</view>
+					</unicloud-db>
+				</el-tab-pane>
+
+				<el-tab-pane label="订单快照商品" name="snapshots">
+					<unicloud-db
+						ref="udbSnapshots"
+						collection="a-snapshots"
+						field="order_id,product_id,ctrip_id,title,sub_title,total_days,created_at"
+						:where="snapshotWhere"
+						page-data="replace"
+						:orderby="orderby"
+						:getcount="true"
+						:page-size="snapshotOptions.pageSize"
+						:page-current="snapshotOptions.pageCurrent"
+						v-slot:default="{ data, pagination, loading, error, options }"
+						:options="snapshotOptions"
+						loadtime="manual"
+						@load="onqueryload">
+						<!-- 数据统计信息 -->
+						<view class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+							<view class="p-4 border-b border-gray-200">
+								<view class="flex items-center justify-between">
+									<view class="flex items-center">
+										<i class="fas fa-chart-bar text-indigo-600 text-lg mr-3"></i>
+										<text class="text-lg font-semibold text-gray-900">数据概览</text>
+									</view>
+									<view class="text-sm text-gray-500">
+										共找到
+										<text class="font-semibold text-indigo-600 text-base">{{ pagination.count }}</text>
+										个商品
+									</view>
+								</view>
+							</view>
+
+							<!-- Element Plus 表格 -->
+							<div class="p-2">
+								<el-table :data="data" style="width: 100%" v-loading="loading" element-loading-text="正在加载数据..." @selection-change="handleSelectionChange" row-key="_id">
+									<!-- 选择列 -->
+									<el-table-column type="selection" width="30" :reserve-selection="true" />
+
+									<!-- 商品ID -->
+									<el-table-column prop="order_id" label="订单ID" width="180" show-overflow-tooltip>
+										<template #default="scope">
+											<div class="flex items-center">
+												<el-text type="info" class="cursor-pointer hover:text-blue-600" @click="copyToClipboard(scope.row._id)">
+													{{ scope.row.order_id || '-' }}
+												</el-text>
+												<i class="fas fa-copy text-gray-400 ml-2 cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(scope.row.order_id)"></i>
+											</div>
+										</template>
+									</el-table-column>
+
+									<!-- 携程商品ID -->
+									<el-table-column prop="ctrip_id" label="携程商品ID" width="120" show-overflow-tooltip>
+										<template #default="scope">
+											<div class="flex items-center">
+												<el-text type="primary" class="cursor-pointer" @click="copyToClipboard(scope.row.ctrip_id)">
+													{{ scope.row.ctrip_id || '-' }}
+												</el-text>
+												<i class="fas fa-copy text-gray-400 ml-2 cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(scope.row.ctrip_id)"></i>
+											</div>
+										</template>
+									</el-table-column>
+
+									<!-- 商品信息 -->
+									<el-table-column label="商品信息" min-width="200">
+										<template #default="scope">
+											<div>
+												<div class="font-medium text-gray-900 line-clamp-2 mb-1">
+													{{ scope.row.title || '未设置标题' }}
+												</div>
+												<div class="text-xs text-gray-500 line-clamp-2" v-if="scope.row.sub_title">
+													{{ scope.row.sub_title }}
+												</div>
+											</div>
+										</template>
+									</el-table-column>
+
+									<!-- 商品图片 -->
+									<!-- <el-table-column label="商品图片" width="100" align="center">
+												<template #default="scope">
+													<el-image
+														v-if="scope.row.product_images && scope.row.product_images.length > 0"
+														:src="getFirstImage(scope.row.product_images)"
+														:preview-src-list="getImageList(scope.row.product_images)"
+														fit="cover"
+														class="w-16 h-16 rounded-lg"
+														:initial-index="0"
+														preview-teleported
+														hide-on-click-modal /> -->
+									<!-- <div v-else class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+														<i class="fas fa-image text-gray-400 text-xl"></i>
+													</div> -->
+									<!-- </template>
+											</el-table-column> -->
+
+									<!-- 成人价格 -->
+									<!-- <el-table-column prop="price" label="成人价格" width="120" sortable>
+												<template #default="scope">
+													<el-text type="success" v-if="scope.row.price">¥{{ scope.row.price }}</el-text>
+													<el-text type="info" v-else>-</el-text>
+												</template>
+											</el-table-column> -->
+
+									<!-- 儿童价格 -->
+									<!-- <el-table-column prop="child_price" label="儿童价格" width="120" sortable>
+												<template #default="scope">
+													<el-text type="warning" v-if="scope.row.child_price">¥{{ scope.row.child_price }}</el-text>
+													<el-text type="info" v-else>-</el-text>
+												</template>
+											</el-table-column> -->
+
+									<!-- 天数 -->
+									<el-table-column prop="total_days" label="天数" width="100" sortable>
+										<template #header>
+											<div class="flex items-center">
+												<span>天数</span>
+												<el-popover placement="bottom" title="筛选天数" :width="200" trigger="click" v-model:visible="durationPopoverVisible">
+													<template #reference>
+														<el-button type="primary" link class="ml-1 !p-1" :class="durationFilter ? 'text-blue-500' : 'text-gray-400'" @click.stop title="筛选天数">
+															<i class="fas fa-filter"></i>
+														</el-button>
+													</template>
+													<template #default>
+														<el-select
+															v-if="durationPopoverVisible"
+															v-model="durationFilter"
+															placeholder="选择天数 (1-15)"
+															clearable
+															class="w-full"
+															size="small"
+															@change="onDurationChange">
+															<el-option v-for="n in 15" :key="n" :label="`${n} 天`" :value="n" />
+														</el-select>
+													</template>
+												</el-popover>
+											</div>
+										</template>
+										<template #default="scope">
+											<el-text v-if="scope.row.total_days > 0">{{ scope.row.total_days }} 天</el-text>
+											<el-text type="info" v-else>-</el-text>
+										</template>
+									</el-table-column>
+
+									<!-- 创建时间 -->
+									<el-table-column prop="created_at" label="创建时间" width="140" sortable>
+										<template #default="scope">
+											<el-text type="info" size="small">
+												<uni-dateformat :threshold="[0, 0]" :date="scope.row.created_at" format="yyyy-MM-dd hh:mm"></uni-dateformat>
+											</el-text>
+										</template>
+									</el-table-column>
+
+									<!-- 商品状态 -->
+									<!-- <el-table-column prop="status" label="商品状态" width="120">
+												<template #default="scope">
+													<el-tag :type="getElementStatusType(scope.row.status)" effect="light" round>
+														<i :class="getStatusIcon(scope.row.status)" class="mr-1"></i>
+														{{ getStatusText(scope.row.status) }}
+													</el-tag>
+												</template>
+											</el-table-column> -->
+
+									<!-- 操作 -->
+									<el-table-column label="操作" width="120" fixed="right" align="center">
+										<template #default="scope">
+											<div class="flex flex-col items-center justify-center gap-2 mb-1">
+												<el-button type="primary" size="small" @click="navigateTo('./edit?id=' + scope.row._id + '&type=snapshot', false)" class="w-full">
+													<i class="fas fa-edit mr-1"></i>
+													编辑
+												</el-button>
+												<el-button type="danger" size="small" @click="confirmDelete(scope.row._id, 'snapshot')" class="w-full !ml-0">
+													<i class="fas fa-trash mr-1"></i>
+													删除
+												</el-button>
+											</div>
+
+											<!-- 更多操作下拉菜单 -->
+											<!-- <el-dropdown trigger="click" @command="handleCommand">
+														<el-button type="info" size="small" text class="w-full">
+															<i class="fas fa-ellipsis-v"></i>
+														</el-button>
+														<template #dropdown>
+															<el-dropdown-menu> -->
+											<!-- <el-dropdown-item 
+						                      :command="{action: 'view', id: scope.row._id}"
+						                      icon="el-icon-view"
+						                    >
+						                      <i class="fas fa-eye mr-2"></i>
+						                      查看详情
+						                    </el-dropdown-item> -->
+											<!-- <el-dropdown-item 
+						                      :command="{action: 'copy', id: scope.row._id}"
+						                      icon="el-icon-copy-document"
+						                    >
+						                      <i class="fas fa-copy mr-2"></i>
+						                      复制商品
+						                    </el-dropdown-item> -->
+											<!-- <el-dropdown-item :command="{ action: 'toggle-status', id: scope.row._id, status: scope.row.status }" divided>
+																	<i class="fas fa-power-off mr-2"></i>
+																	{{ scope.row.status === 1 ? '下架商品' : '上架商品' }}
+																</el-dropdown-item> -->
+											<!-- </el-dropdown-menu>
+														</template>
+													</el-dropdown> -->
+										</template>
+									</el-table-column>
+								</el-table>
+
+								<!-- 空状态 -->
+								<el-empty v-if="!loading && !data.length" description="暂无商品数据">
+									<el-button type="primary" @click="navigateToSync">
+										<i class="fas fa-sync mr-2"></i>
+										同步商品
+									</el-button>
+								</el-empty>
+							</div>
+						</view>
+
+						<!-- 分页组件 -->
+						<view class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" v-if="pagination.count > 0">
+							<view class="flex items-center justify-between">
+								<view class="text-sm text-gray-700">
+									显示第
+									<text class="font-medium">{{ (pagination.current - 1) * pagination.size + 1 }}</text>
+									到
+									<text class="font-medium">{{ Math.min(pagination.current * pagination.size, pagination.count) }}</text>
+									条， 共
+									<text class="font-medium">{{ pagination.count }}</text>
+									条记录
+								</view>
+								<uni-pagination show-icon :page-size="pagination.size" v-model="snapshotOptions.pageCurrent" :total="pagination.count" @change="onSnapshotPageChanged" />
+							</view>
+						</view>
+					</unicloud-db>
+				</el-tab-pane>
+			</el-tabs>
 		</view>
 	</view>
 </template>
@@ -339,9 +577,11 @@ const orderByMapping = {
 export default {
 	data() {
 		return {
+			activeTab: 'products',
 			collectionList: 'a-products',
 			searchQuery: '',
 			where: '',
+			snapshotWhere: '',
 			orderby: dbOrderBy,
 			orderByFieldName: '',
 			selectedIndexs: [],
@@ -358,6 +598,12 @@ export default {
 						{ value: 2, text: '已下架' }
 					]
 				},
+				...enumConverter
+			},
+			snapshotOptions: {
+				pageSize,
+				pageCurrent,
+				filterData: {},
 				...enumConverter
 			},
 			exportExcel: {
@@ -397,13 +643,29 @@ export default {
 			if (this.$refs.udb) {
 				console.log('✅ [列表页] udb 组件已就绪，调用 loadData() 刷新！');
 				// this.$refs.udb.loadData();
-				this.loadData();
+				this.loadDataByTab();
 			} else {
 				console.error('❌ [列表页] onShow 中未能找到 udb 组件的引用！');
 			}
 		});
 	},
 	methods: {
+		handleTabClick(tab) {
+			this.activeTab = tab.props.name;
+			this.buildWhereClause(); // 重新构建 where
+			this.$nextTick(() => {
+				this.loadDataByTab(true); // 加载新 tab 的数据
+			});
+		},
+
+		loadDataByTab(clear = true) {
+			if (this.activeTab === 'products') {
+				this.$refs.udb.loadData({ clear, where: this.where });
+			} else if (this.activeTab === 'snapshots') {
+				this.$refs.udbSnapshots.loadData({ clear, where: this.snapshotWhere });
+			}
+		},
+
 		updateCurrentTime() {
 			const now = new Date();
 			const year = now.getFullYear();
@@ -569,8 +831,10 @@ export default {
 
 		// 跳转到携程同步页面
 		navigateToSync() {
+			let url = '/pages/ctrip-sync/ctrip-sync';
+			if (this.activeTab === 'snapshots') url = '/pages/snapshot-sync/snapshot-sync';
 			uni.navigateTo({
-				url: '/pages/ctrip-sync/ctrip-sync',
+				url: url,
 				success: () => {
 					console.log('跳转到携程同步页面成功');
 				},
@@ -685,6 +949,45 @@ export default {
 				this.where = '';
 			}
 
+			let currentDbSearchFields = dbSearchFields;
+			let whereString = '';
+
+			if (this.activeTab === 'snapshots') {
+				// (可选) 为快照自定义搜索字段
+				currentDbSearchFields = ['title', 'sub_title', 'ctrip_id', 'order_id'];
+				// 快照表用 'total_days'
+				if (this.durationFilter) {
+					durationCondition = `total_days == ${this.durationFilter}`;
+				}
+			}
+
+			// (使用 currentDbSearchFields 重新构建 textConditions)
+			if (query) {
+				textConditions = currentDbSearchFields.map((field) => {
+					return `/${query}/i.test(${field})`;
+				});
+			}
+
+			// (构建 whereString 的逻辑保持不变)
+			if (textConditions.length > 0 && durationCondition) {
+				whereString = `(${textConditions.join(' || ')}) && (${durationCondition})`;
+			} else if (textConditions.length > 0) {
+				whereString = textConditions.join(' || ');
+			} else if (durationCondition) {
+				whereString = durationCondition;
+			} else {
+				whereString = '';
+			}
+
+			// 根据 tab 赋值
+			if (this.activeTab === 'products') {
+				this.where = whereString;
+				this.snapshotWhere = ''; // 清空另一个，避免混淆
+			} else {
+				this.snapshotWhere = whereString;
+				this.where = '';
+			}
+
 			console.log('Updated WHERE string:', this.where);
 		},
 
@@ -694,7 +997,7 @@ export default {
 			this.buildWhereClause();
 
 			this.$nextTick(() => {
-				this.loadData();
+				this.loadDataByTab();
 			});
 
 			this.durationPopoverVisible = false;
@@ -703,8 +1006,9 @@ export default {
 		search() {
 			this.buildWhereClause();
 			this.selectedIndexs = []; // 清空选择
+			this.selectedRows = [];
 			this.$nextTick(() => {
-				this.loadData();
+				this.loadDataByTab(true);
 			});
 		},
 
@@ -712,8 +1016,9 @@ export default {
 			this.searchQuery = '';
 			this.buildWhereClause();
 			this.selectedIndexs = []; // 清空选择
+			this.selectedRows = [];
 			this.$nextTick(() => {
-				this.loadData();
+				this.loadDataByTab(true);
 			});
 		},
 
@@ -726,9 +1031,19 @@ export default {
 
 		onPageChanged(e) {
 			this.selectedIndexs = []; // 切换页面时清空选择
+			this.selectedRows = [];
 			this.$refs.udb.loadData({
 				current: e.current,
 				where: this.where
+			});
+		},
+
+		onSnapshotPageChanged(e) {
+			this.selectedIndexs = [];
+			this.selectedRows = [];
+			this.$refs.udbSnapshots.loadData({
+				current: e.current,
+				where: this.snapshotWhere
 			});
 		},
 
@@ -750,16 +1065,18 @@ export default {
 				return this.selectedRows.map((row) => row._id);
 			}
 			// 兼容原有逻辑
-			var dataList = this.$refs.udb.dataList;
+			const udbRef = this.activeTab === 'product' ? this.$refs.udb : this.$refs.udbSnapshots;
+			var dataList = udbRef.dataList;
 			return this.selectedIndexs.map((i) => dataList[i]._id);
 		},
 
 		// 批量删除
 		delTable() {
+			const udbRef = this.activeTab === 'product' ? this.$refs.udb : this.$refs.udbSnapshots;
 			const selectedCount = this.selectedRows ? this.selectedRows.length : this.selectedIndexs.length;
 			if (!selectedCount) return;
 
-			this.$refs.udb.remove(this.selectedItems(), {
+			udbRef.remove(this.selectedItems(), {
 				success: (res) => {
 					this.selectedIndexs = [];
 					this.selectedRows = [];
@@ -768,8 +1085,9 @@ export default {
 			});
 		},
 
-		confirmDelete(id) {
-			this.$refs.udb.remove(id, {
+		confirmDelete(id, type) {
+			const udbRef = type === 'product' ? this.$refs.udb : this.$refs.udbSnapshots;
+			udbRef.remove(id, {
 				success: (res) => {
 					this.selectedIndexs = [];
 					this.selectedRows = [];

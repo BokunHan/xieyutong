@@ -4,11 +4,9 @@ const uniIdCommon = require('uni-id-common');
 async function queryMemberByUserId(userId) {
 	console.log('[queryMemberByUserId] 开始查询用户会员信息, userId:', userId);
 
-	const db = uniCloud.databaseForJQL({
-		clientInfo: this.getClientInfo()
-	});
+	const db = uniCloud.database();
 
-	const result = await db.collection('a-members').where(`user_id == "${userId}"`).get();
+	const result = await db.collection('a-members').where({ user_id: userId }).get();
 
 	console.log('[queryMemberByUserId] 查询结果:', {
 		dataCount: result.data.length,
@@ -23,9 +21,7 @@ async function queryMemberByUserId(userId) {
 async function initUserMemberRecord(userId) {
 	console.log('[initUserMemberRecord] 开始初始化用户会员记录, userId:', userId);
 
-	const db = uniCloud.databaseForJQL({
-		clientInfo: this.getClientInfo()
-	});
+	const db = uniCloud.database();
 
 	const memberData = {
 		user_id: userId,
@@ -50,6 +46,17 @@ async function initUserMemberRecord(userId) {
 		console.log('[initUserMemberRecord] 用户会员记录初始化成功:', result);
 		return memberData;
 	} catch (error) {
+		if (error.message?.includes('E11000') || error.errMsg?.includes('E11000')) {
+			console.warn('[initUserMemberRecord] 捕获到并发冲突(E11000)，说明记录已存在，转为查询现有记录');
+
+			// 既然插入失败说已存在，那就把它查出来返回，当作初始化成功
+			const existingResult = await db.collection('a-members').where({ user_id: userId }).get();
+			if (existingResult.data.length > 0) {
+				console.log('[initUserMemberRecord] 成功获取到已存在的记录');
+				return existingResult.data[0];
+			}
+		}
+
 		console.error('[initUserMemberRecord] 初始化会员记录失败:', error);
 		throw error;
 	}

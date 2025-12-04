@@ -1,0 +1,34 @@
+{
+	"bsonType": "object",
+	"required": ["type", "account"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"type": {
+			"bsonType": "string",
+			"description": "指令类型，如 sync_group"
+		},
+		"account": {
+			"bsonType": "string",
+			"description": "目标账号"
+		},
+		"status": {
+			"bsonType": "string",
+			"defaultValue": "pending",
+			"enum": ["pending", "done"]
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

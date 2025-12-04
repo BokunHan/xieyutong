@@ -5,7 +5,8 @@
 			<view class="max-w-7xl mx-auto px-6 py-4">
 				<view class="flex items-center justify-between">
 					<view class="flex items-center">
-						<i class="fas fa-sync-alt text-blue-600 text-2xl mr-4"></i>
+						<button type="default" size="mini" @click="goBack">返回</button>
+						<i class="fas fa-sync-alt text-blue-600 text-2xl mx-4"></i>
 						<view>
 							<text class="text-2xl font-bold text-gray-900" style="font-family: 'Microsoft YaHei', sans-serif">携程订单快照同步</text>
 							<text class="text-sm text-gray-500 block mt-1">输入携程订单快照的完整URL地址和出发/返回日期文本，一键同步订单行程安排</text>
@@ -159,6 +160,9 @@ export default {
 		};
 	},
 	methods: {
+		goBack() {
+			uni.navigateBack();
+		},
 		// 开始同步流程
 		async startSync() {
 			this.loading = true;

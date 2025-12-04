@@ -571,16 +571,20 @@ module.exports = {
 	async getItineraryDetail(productId) {
 		try {
 			// 验证用户身份
-			const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
-			if (checkResult.errCode !== 0) {
-				throw new Error('身份验证失败');
-			}
+			// const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
+			// if (checkResult.errCode !== 0) {
+			// 	throw new Error('身份验证失败');
+			// }
 
+			if (!productId) {
+				return {
+					errCode: 500,
+					errMsg: 'productId参数缺失'
+				};
+			}
 			console.log('[行程服务] 获取行程详情，产品ID:', productId);
 
-			const db = uniCloud.databaseForJQL({
-				clientInfo: this.getClientInfo()
-			});
+			const db = uniCloud.database();
 
 			// 查询行程详细信息
 			const itineraryResult = await db
@@ -661,33 +665,37 @@ module.exports = {
 
 			if (result.data && result.data.length > 0) {
 				const order_id = result.data[0].user_input_order_id;
-				const albumRes = await db.collection('a-group-albums').where({ order_id: order_id }).field({ _id: true, members: true }).get();
+				if (order_id) {
+					const albumRes = await db.collection('a-group-albums').where({ order_id: order_id }).field({ _id: true, members: true }).get();
 
-				if (albumRes.data && albumRes.data.length > 0) {
-					const album_id = albumRes.data[0]._id;
-					const photoRes = await db.collection('a-album-photos').where({ album_id: album_id, user_id: userId }).field({ _id: true }).get();
+					if (albumRes.data && albumRes.data.length > 0) {
+						const album_id = albumRes.data[0]._id;
+						const photoRes = await db.collection('a-album-photos').where({ album_id: album_id, user_id: userId }).field({ _id: true }).get();
 
-					if (photoRes.data && photoRes.data.length === 0) {
-						const members = albumRes.data[0].members;
-						const foundUser = members.some((m) => {
-							return m.user_id === userId;
-						});
-						if (foundUser) {
-							const newMembers = members.filter((m) => {
-								return m.user_id !== userId;
+						if (photoRes.data && photoRes.data.length === 0) {
+							const members = albumRes.data[0].members;
+							const foundUser = members.some((m) => {
+								return m.user_id === userId;
 							});
-
-							// 如果用户在该行程相册中尚未上传任何照片，在退出行程时也同时退出相册
-							await db
-								.collection('a-group-albums')
-								.where({ order_id: order_id })
-								.update({
-									$set: {
-										members: newMembers
-									}
+							if (foundUser) {
+								const newMembers = members.filter((m) => {
+									return m.user_id !== userId;
 								});
+
+								// 如果用户在该行程相册中尚未上传任何照片，在退出行程时也同时退出相册
+								await db
+									.collection('a-group-albums')
+									.where({ order_id: order_id })
+									.update({
+										$set: {
+											members: newMembers
+										}
+									});
+							}
 						}
 					}
+				} else {
+					console.log('[行程服务] 用户当前未绑定订单ID，跳过相册退出逻辑');
 				}
 			}
 
@@ -792,6 +800,52 @@ module.exports = {
 				errCode: 500,
 				errMsg: error.message || '更新失败'
 			};
+		}
+	},
+
+	/**
+	 * 局部更新快照
+	 * @param {string} snapshotId - a-snapshots 的 _id
+	 * @param {string} path - 要更新的字段路径 (例如 "itinerary.0.day_title")
+	 * @param {*} value - 新的值
+	 * @param {string} operator - 操作符 (例如 '$push')
+	 */
+	async partialUpdateSnapshot({ snapshotId, path, value, operator }) {
+		// 1. 身份验证与授权
+		const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
+		if (checkResult.errCode !== 0) {
+			console.warn('[行程服务] 用户身份验证失败:', checkResult.errMsg);
+			return {
+				errCode: 0,
+				data: null
+			};
+		}
+
+		if (!snapshotId || !path) {
+			return { errCode: 1, errMsg: '缺少 snapshotId 或 path' };
+		}
+
+		const db = uniCloud.database();
+		const updatePayload = {};
+
+		try {
+			if (operator === '$push') {
+				updatePayload[path] = dbCmd.push(value);
+			} else {
+				// 默认使用 $set
+				updatePayload[path] = value;
+			}
+
+			const res = await db.collection('a-snapshots').doc(snapshotId).update(updatePayload);
+
+			if (res.updated === 0) {
+				console.warn(`[行程服务] 快照 partialUpdate 未更新任何文档: ${snapshotId}, path: ${path}`);
+			}
+
+			return { errCode: 0, errMsg: '更新成功', ...res };
+		} catch (e) {
+			console.error(`[行程服务] 快照 partialUpdate 失败: ${snapshotId}, path: ${path}`, e);
+			return { errCode: e.code || -1, errMsg: e.message || '更新失败' };
 		}
 	}
 };

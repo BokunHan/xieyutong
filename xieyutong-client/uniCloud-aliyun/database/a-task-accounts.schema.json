@@ -1,0 +1,33 @@
+{
+	"bsonType": "object",
+	"required": ["name"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"title": "账号名称",
+			"description": "例如：大号、小号、销售A",
+			"trim": "both"
+		},
+		"wx_userid": {
+			"bsonType": "string",
+			"title": "企微UserID",
+			"description": "企业微信通讯录里的账号，如 ZhangSan"
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"title": "更新时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

@@ -160,18 +160,36 @@
 					</view>
 				</view>
 				<view class="p-6">
-					<view class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
+					<view class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4">
 						<view class="bg-cyan-50 hover:bg-cyan-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-system/list')">
 							<view class="flex items-center justify-center mb-3">
 								<i class="fas fa-cogs text-cyan-600 text-2xl"></i>
 							</view>
 							<text class="block text-center text-sm font-medium text-cyan-900">系统管理</text>
 						</view>
-						<view class="bg-indigo-50 hover:bg-indigo-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-regions/list')">
+						<view class="bg-indigo-50 hover:bg-indigo-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-task-orders/list')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-paper-plane text-indigo-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-indigo-900">行中推荐任务</text>
+						</view>
+						<!-- <view class="bg-indigo-50 hover:bg-indigo-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-regions/list')">
 							<view class="flex items-center justify-center mb-3">
 								<i class="fas fa-globe-asia text-indigo-600 text-2xl"></i>
 							</view>
 							<text class="block text-center text-sm font-medium text-indigo-900">区域管理</text>
+						</view> -->
+						<view class="bg-pink-50 hover:bg-pink-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-poi-system/a-poi-system')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-map-marked-alt text-pink-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-pink-900">POI 系统管理</text>
+						</view>
+						<view class="bg-purple-50 hover:bg-purple-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-members/list')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-crown text-purple-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-purple-900">会员管理</text>
 						</view>
 						<view class="bg-blue-50 hover:bg-blue-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-products/list')">
 							<view class="flex items-center justify-center mb-3">
@@ -184,12 +202,6 @@
 								<i class="fas fa-list-alt text-green-600 text-2xl"></i>
 							</view>
 							<text class="block text-center text-sm font-medium text-green-900">订单管理</text>
-						</view>
-						<view class="bg-purple-50 hover:bg-purple-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-members/list')">
-							<view class="flex items-center justify-center mb-3">
-								<i class="fas fa-crown text-purple-600 text-2xl"></i>
-							</view>
-							<text class="block text-center text-sm font-medium text-purple-900">会员管理</text>
 						</view>
 						<view class="bg-red-50 hover:bg-red-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-group-albums/list')">
 							<view class="flex items-center justify-center mb-3">

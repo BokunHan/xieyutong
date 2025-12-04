@@ -1,0 +1,32 @@
+{
+	"bsonType": "object",
+	"required": ["name"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null && ('MANAGE_POI' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"update": "auth.uid != null && ('MANAGE_POI' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"delete": "auth.uid != null && ('MANAGE_POI' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)"
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"title": "标签名称",
+			"description": "例如：网红打卡、历史遗迹、亲子友好",
+			"trim": "both"
+		},
+		"order": {
+			"bsonType": "int",
+			"title": "排序",
+			"description": "数字越大越靠前",
+			"defaultValue": 0
+		},
+		"status": {
+			"bsonType": "bool",
+			"title": "启用状态",
+			"defaultValue": true
+		}
+	}
+}

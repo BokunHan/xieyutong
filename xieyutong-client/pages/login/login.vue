@@ -64,13 +64,21 @@ export default {
 				slogan: '随风漫行 × 向心而生',
 				subslogan: '遇见 | 挑战 | 归属 | 印记',
 				description: '全国旅行品牌，海量目的地待您探索\nTRAVEL ACROSS CHINA'
-			}
+			},
+			redirectType: '',
+			targetOrderId: ''
 		};
 	},
 	async onLoad(options) {
 		// 获取重定向URL参数;
 		if (options.uniIdRedirectUrl) {
 			this.uniIdRedirectUrl = decodeURIComponent(options.uniIdRedirectUrl);
+		}
+
+		// 接收落地页传来的参数
+		if (options.redirect === 'bind' && options.orderId) {
+			this.redirectType = 'bind';
+			this.targetOrderId = options.orderId;
 		}
 
 		// 加载应用配置
@@ -186,10 +194,16 @@ export default {
 
 						// 登录成功后跳转
 						setTimeout(() => {
-							uni.switchTab({
-								url: '/pages/home/home'
-							});
-							// }
+							if (this.redirectType === 'bind' && this.targetOrderId) {
+								console.log('登录成功，跳回绑定页面');
+								uni.redirectTo({
+									url: `/pages/order/bind-confirm?orderId=${this.targetOrderId}`
+								});
+							} else {
+								uni.switchTab({
+									url: '/pages/home/home'
+								});
+							}
 						}, 1500);
 					} else {
 						throw new Error(result.errMsg || '登录失败');
@@ -248,9 +262,17 @@ export default {
 
 						// 登录成功后跳转
 						setTimeout(() => {
-							uni.switchTab({
-								url: '/pages/home/home'
-							});
+							// 判断是否需要跳回绑定页面
+							if (this.redirectType === 'bind' && this.targetOrderId) {
+								console.log('登录成功，跳回绑定页面');
+								uni.redirectTo({
+									url: `/pages/order/bind-confirm?orderId=${this.targetOrderId}`
+								});
+							} else {
+								uni.switchTab({
+									url: '/pages/home/home'
+								});
+							}
 						}, 1500);
 					} else {
 						throw new Error(result.errMsg || '登录失败');

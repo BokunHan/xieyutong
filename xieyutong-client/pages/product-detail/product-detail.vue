@@ -607,7 +607,7 @@ export default {
 		originalPrice() {
 			const basePrice = this.productData.price || 0;
 			// 简单处理，可以根据需要调整原价逻辑
-			return Math.round(basePrice * 1.2);
+			return Math.round(basePrice);
 		},
 		memberLevelText() {
 			const levelMap = { normal: '普通', silver: '银卡', gold: '金卡', diamond: '钻石' };

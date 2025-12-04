@@ -68,7 +68,7 @@ export default {
 			uni.showLoading({ title: '正在提交...' });
 
 			try {
-				const uniIdCo = uniCloud.importObject('uni-id-co');
+				const uniIdCo = uniCloud.importObject('utils');
 				const res = await uniIdCo.updateUserInfo({
 					nickname: this.nickName,
 					avatar: this.avatarUrl,

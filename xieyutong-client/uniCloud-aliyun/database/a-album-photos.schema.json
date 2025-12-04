@@ -34,6 +34,15 @@
 			"bsonType": "string",
 			"description": "压缩图URL"
 		},
+		"media_type": {
+			"bsonType": "string",
+			"description": "媒体类型: image | video",
+			"defaultValue": "image"
+		},
+		"duration": {
+			"bsonType": "number",
+			"description": "视频时长(秒)"
+		},
 		"shooting_time": {
 			"bsonType": "timestamp",
 			"description": "拍摄时间"

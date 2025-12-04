@@ -38,7 +38,7 @@ module.exports = {
 
 		if (checkTokenResult.errCode !== 0) {
 			console.log('token 校验失败:', checkTokenResult.message);
-			throw new Error(checkTokenResult.message || '用户未登录或登录已过期');
+			return { isFavorite: false, favoriteId: null };
 		}
 
 		const userId = checkTokenResult.uid;
@@ -83,7 +83,10 @@ module.exports = {
 
 		if (checkTokenResult.errCode !== 0) {
 			console.log('token 校验失败:', checkTokenResult.message);
-			throw new Error(checkTokenResult.message || '用户未登录或登录已过期');
+			return {
+				status: '',
+				favoriteId: null
+			};
 		}
 
 		const userId = checkTokenResult.uid;

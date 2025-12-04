@@ -1,4 +1,5 @@
 <template>
+	<page-meta :page-style="isPopupOpen ? 'overflow: hidden;' : ''"></page-meta>
 	<view class="page-container">
 		<view class="loading-container" v-if="loading">
 			<view class="loading-spinner"></view>
@@ -61,7 +62,31 @@
 									<text class="type-text">{{ getActivityTypeName(item.elementType) }}</text>
 								</view>
 							</view>
-							<view class="timeline-title">{{ item.title }}</view>
+
+							<view v-if="item.elementType === 'hotel' && item.hotelOptions && item.hotelOptions.length > 0" class="timeline-hotel-list">
+								<view class="hotel-option-item" v-for="(hotel, hIndex) in item.hotelOptions" :key="hIndex">
+									<text v-if="hIndex > 0" class="hotel-prefix">或</text>
+									<text class="hotel-name" :class="{ 'poi-link': hotel.linked_poi_id }" @click="hotel.linked_poi_id ? openPoiPopup(hotel.linked_poi_id) : null">
+										{{ hotel.name }}
+									</text>
+								</view>
+							</view>
+
+							<view v-else-if="item.elementType === 'scenic' && item.scenicSpots && item.scenicSpots.length > 0" class="timeline-title">
+								<block v-for="(spot, sIndex) in item.scenicSpots" :key="sIndex">
+									<text :class="{ 'poi-link': spot.linked_poi_id }" @click="spot.linked_poi_id ? openPoiPopup(spot.linked_poi_id) : null">
+										{{ spot.name }}
+									</text>
+									<text v-if="sIndex < item.scenicSpots.length - 1">、</text>
+								</block>
+							</view>
+
+							<view class="timeline-title" v-else>
+								<text :class="{ 'poi-link': item.activityPoiId }" @click="item.activityPoiId ? openPoiPopup(item.activityPoiId) : null">
+									{{ item.title }}
+								</text>
+							</view>
+
 							<view class="timeline-desc">{{ item.description }}</view>
 							<swiper v-if="item.images && item.images.length > 0" class="timeline-swiper" indicator-dots circular>
 								<swiper-item v-for="(imgUrl, imgIndex) in item.images" :key="imgIndex">
@@ -86,11 +111,47 @@
 				<text class="text-gray-600">请返回上一页重试。</text>
 			</view>
 		</view>
+
+		<uni-popup ref="tipsPopup" type="bottom" @change="onPopupChange">
+			<view class="tips-popup-container">
+				<view class="tips-popup-header" @touchstart="onHeaderDragStart" @touchmove.stop.prevent="onDragMove" @touchend="onHeaderDragEnd">
+					<view class="tips-popup-close" @click="closeTipsPopup">
+						<uni-icons type="closeempty" size="20" color="#999"></uni-icons>
+					</view>
+				</view>
+
+				<swiper v-if="currentPoiMedia && currentPoiMedia.length > 0" class="poi-swiper-native" indicator-dots circular :autoplay="isSwiperAutoplay" @change="onSwiperChange">
+					<swiper-item v-for="(file, index) in currentPoiMedia" :key="index">
+						<image v-if="isImageFile(file)" :src="getEncodedUrl(file.url)" class="poi-swiper-image-native" mode="aspectFill" @click="previewSwiperImage(file.url)" />
+						<video
+							v-if="isVideoFile(file)"
+							:src="getEncodedUrl(file.url)"
+							controls
+							class="poi-swiper-video-native"
+							:id="'video-' + index"
+							@play="onVideoPlay"
+							@pause="onVideoPause"
+							@ended="onVideoPause"></video>
+					</swiper-item>
+				</swiper>
+
+				<view class="tips-popup-content-wrapper" @touchstart="onContentTouchStart" @touchend="onContentTouchEnd">
+					<scroll-view class="tips-popup-content" scroll-y :show-scrollbar="false" @scroll="onContentScroll" @touchmove.stop="dummyAllow">
+						<rich-content :html="popupContent" :noPadding="true" />
+					</scroll-view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
 <script>
+import RichContent from '@/components/rich-content/rich-content.vue';
+
 export default {
+	components: {
+		RichContent
+	},
 	data() {
 		return {
 			statusBarHeight: 0, // 状态栏高度
@@ -113,7 +174,19 @@ export default {
 
 			daySectionTops: [],
 			isClickScrolling: false,
-			tabScrollTarget: ''
+			tabScrollTarget: '',
+
+			popupTitle: '',
+			popupContent: '<p>正在加载...</p>',
+			isPopupOpen: false,
+			currentPoiMedia: [],
+			isPreview: false,
+			isSwiperAutoplay: true,
+			currentSwiperSlide: 0,
+			headerDragData: { y: 0, time: 0 },
+			contentDragData: { y: 0, time: 0 },
+			isDragging: false,
+			isContentAtTop: true
 		};
 	},
 
@@ -241,76 +314,94 @@ export default {
 				return [];
 			}
 
-			// 这个函数的主体逻辑是从您原有的 loadDaySchedule 方法中提取的
 			return activities.map((activity, index) => {
-				// console.log('[转换活动] 处理活动', index + 1, ':', {
-				// 	elementType: activity.elementType,
-				// 	title: activity.title
-				// });
-
-				// 获取活动图片
 				let activityImages = [];
 				if (activity.elementData) {
-					// 景点类型：从scenic_spots获取图片
 					if (activity.elementType === 'scenic' && activity.elementData.scenic_spots && activity.elementData.scenic_spots.length > 0) {
 						activity.elementData.scenic_spots.forEach((spot) => {
 							if (spot.images && spot.images.length > 0) {
-								activityImages.push(...spot.images); // 使用扩展运算符添加所有图片
+								activityImages.push(...spot.images);
 							}
 						});
-					}
-					// 酒店类型：从elementData直接获取
-					else if (activity.elementType === 'hotel' && activity.elementData.image) {
+					} else if (activity.elementType === 'hotel' && activity.elementData.image) {
 						activityImages.push(activity.elementData.image);
-					}
-					// 其他类型：通用图片获取
-					else if (activity.elementData.images && activity.elementData.images.length > 0) {
+					} else if (activity.elementData.images && activity.elementData.images.length > 0) {
 						activityImages = activity.elementData.images;
 					} else if (activity.elementData.image) {
 						activityImages.push(activity.elementData.image);
 					}
 				}
 
-				// 获取具体的活动名称
 				let activityTitle = activity.title || '';
+				let hotelOptions = null;
+				let scenicSpots = null;
+				let activityPoiId = null;
+				let activityMatchStatus = null;
+
 				if (activity.elementData) {
-					// 景点类型：使用景点的具体名称
 					if (activity.elementType === 'scenic' && activity.elementData.scenic_spots && activity.elementData.scenic_spots.length > 0) {
-						const spotNames = activity.elementData.scenic_spots.map((spot) => spot.name).filter((name) => name);
+						scenicSpots = activity.elementData.scenic_spots.map((spot) => ({
+							name: spot.name,
+							linked_poi_id: spot.linked_poi_id || null,
+							match_status: spot.match_status || null
+						}));
+						const spotNames = scenicSpots.map((spot) => spot.name).filter((name) => name);
 						if (spotNames.length > 0) {
 							activityTitle = spotNames.join('、');
 						}
-					}
-					// 酒店类型：使用酒店的具体名称
-					else if (activity.elementType === 'hotel') {
-						if (activity.elementData.hotelName) {
-							activityTitle = activity.elementData.hotelName;
-						} else if (activity.elementData.name) {
-							activityTitle = activity.elementData.name;
+					} else if (activity.elementType === 'hotel') {
+						const hotelData = activity.elementData;
+						let hotelNames = [];
+						const primaryName = hotelData.hotelName || hotelData.name;
+						if (primaryName) {
+							hotelNames.push({
+								name: primaryName,
+								linked_poi_id: activity.linked_poi_id || null,
+								match_status: activity.match_status || null
+							});
 						}
-					}
-					// 餐厅类型：使用餐厅的具体名称
-					else if (activity.elementType === 'restaurant') {
+						if (hotelData.alternativeHotels && Array.isArray(hotelData.alternativeHotels)) {
+							hotelData.alternativeHotels.forEach((altHotel) => {
+								let altHotelName = '';
+								let altPoiId = null;
+								let altMatchStatus = null;
+								if (typeof altHotel === 'object' && altHotel.name) {
+									altHotelName = altHotel.name;
+									altPoiId = altHotel.linked_poi_id || null;
+									altMatchStatus = altHotel.match_status || null;
+								} else if (typeof altHotel === 'string') {
+									altHotelName = altHotel;
+								}
+								if (altHotelName) {
+									hotelNames.push({
+										name: altHotelName,
+										linked_poi_id: altPoiId,
+										match_status: altMatchStatus
+									});
+								}
+							});
+						}
+						if (hotelNames.length > 0) {
+							hotelOptions = hotelNames;
+							activityTitle = hotelNames[0].name;
+						}
+					} else if (activity.elementType === 'restaurant') {
+						activityPoiId = activity.linked_poi_id || null;
+						activityMatchStatus = activity.match_status || null;
 						if (activity.elementData.name) {
 							activityTitle = activity.elementData.name;
 						} else if (activity.elementData.meal_type) {
 							activityTitle = activity.elementData.meal_type;
 						}
-					}
-					// 交通类型：使用路线信息
-					else if (activity.elementType === 'transport') {
+					} else if (activity.elementType === 'transport') {
 						if (activity.elementData.departure && activity.elementData.destination) {
 							activityTitle = `${activity.elementData.departure} → ${activity.elementData.destination}`;
 						}
-					}
-					// 集合/解散类型：使用具体地点
-					else if ((activity.elementType === 'assembly' || activity.elementType === 'dismissal') && activity.elementData.locations) {
+					} else if ((activity.elementType === 'assembly' || activity.elementType === 'dismissal') && activity.elementData.locations) {
 						if (activity.elementData.locations.length > 0) {
 							activityTitle = activity.elementData.locations.join(' / ');
 						}
-					}
-					// 其他类型：使用content或show_name等
-					else if (activity.elementData.show_name) {
+					} else if (activity.elementData.show_name) {
 						activityTitle = activity.elementData.show_name;
 					} else if (activity.elementData.name) {
 						activityTitle = activity.elementData.name;
@@ -319,13 +410,17 @@ export default {
 
 				return {
 					type: this.mapActivityType(activity.elementType),
-					elementType: activity.elementType, // 保留原始类型
+					elementType: activity.elementType,
 					time: activity.time_start_time || activity.time_period || '',
-					title: activityTitle,
 					description: this.buildActivityDescription(activity),
 					images: activityImages,
 					remark: this.formatContent(activity.remark, { emojiBreakStyle: 'newline' }),
-					elementData: activity.elementData || null // 传递完整的elementData
+					elementData: activity.elementData || null,
+					title: activityTitle,
+					hotelOptions: hotelOptions,
+					scenicSpots: scenicSpots,
+					activityPoiId: activityPoiId,
+					activityMatchStatus: activityMatchStatus
 				};
 			});
 		},
@@ -747,6 +842,241 @@ export default {
 				other: '其他'
 			};
 			return typeNameMap[elementType] || '活动';
+		},
+
+		isImageFile(file) {
+			if (!file) return false;
+			return !this.isVideoFile(file);
+		},
+
+		isVideoFile(file) {
+			if (!file) return false;
+			let ext = '';
+			if (file.extname) {
+				ext = file.extname.toLowerCase().replace('.', '');
+			} else if (file.url) {
+				ext = file.url.split('.').pop().toLowerCase();
+			}
+			if (!ext) return false;
+			const videoExts = ['mp4', 'mov', 'webm', 'ogg'];
+			return videoExts.includes(ext);
+		},
+
+		async openPoiPopup(poiId) {
+			if (!poiId) return;
+			this.popupContent = '<div style="padding: 15px;"><p>正在加载...</p></div>';
+			this.currentPoiMedia = [];
+			this.isSwiperAutoplay = true;
+			this.currentSwiperSlide = 0;
+
+			await this.fetchPoiDetails(poiId);
+
+			this.$nextTick(() => {
+				this.$refs.tipsPopup.open();
+				if (this.currentPoiMedia.length > 0) {
+					const firstMedia = this.currentPoiMedia[0];
+					if (this.isVideoFile(firstMedia)) {
+						setTimeout(() => {
+							const videoCtx = uni.createVideoContext('video-0', this);
+							if (videoCtx) {
+								videoCtx.play();
+							}
+						}, 500);
+					}
+				}
+			});
+		},
+
+		async fetchPoiDetails(poiId) {
+			try {
+				const poiService = uniCloud.importObject('a-poi-service');
+				const res = await poiService.getPoiDetails(poiId);
+				if (res.errCode === 0 && res.data) {
+					this.currentPoiMedia = res.data.media || [];
+					this.popupContent = this.formatPoiToHtml(res.data);
+				} else {
+					throw new Error(res.errMsg || '未找到POI详情');
+				}
+			} catch (e) {
+				console.error('fetchPoiDetails failed:', e);
+				this.popupTitle = '加载失败';
+				this.popupContent = `<p style="padding: 15px;">加载POI详情失败: ${e.message}</p>`;
+				this.currentPoiMedia = [];
+			}
+		},
+
+		formatPoiToHtml(poi) {
+			let html = '<div style="padding: 15px;">';
+			html += '<div class="poi-line-1">';
+			if (poi.category_name) {
+				html += `<span class="poi-badge-cat">${poi.category_name}</span>`;
+			}
+			html += `<h1 class="poi-name">${poi.name}</h1>`;
+			html += '</div>';
+			html += '<div class="poi-line-2">';
+			if (poi.region_names && poi.region_names.length > 0) {
+				poi.region_names.forEach((name) => {
+					html += `<span class="poi-badge-region">${name}</span>`;
+				});
+			}
+			if (poi.address_text) {
+				html += `<span class="poi-address">${poi.address_text}</span>`;
+			}
+			html += '</div>';
+			if (poi.tag_names && poi.tag_names.length > 0) {
+				html += '<div class="poi-line-3">';
+				poi.tag_names.forEach((name) => {
+					html += `<span class="poi-badge-tag">${name}</span>`;
+				});
+				html += '</div>';
+			}
+			if ((poi.tag_names && poi.tag_names.length > 0) || (poi.region_names && poi.region_names.length > 0)) {
+				html += '<div class="poi-divider"></div>';
+			}
+			html += '<div class="poi-description">';
+			html += poi.description || '<p>暂无详细介绍</p>';
+			html += '</div>';
+			html += '</div>';
+			return html;
+		},
+
+		closeTipsPopup() {
+			this.$refs.tipsPopup.close();
+			const currentMedia = this.currentPoiMedia[this.currentSwiperSlide];
+			if (currentMedia && this.isVideoFile(currentMedia)) {
+				const videoCtx = uni.createVideoContext('video-' + this.currentSwiperSlide, this);
+				if (videoCtx) {
+					videoCtx.pause();
+				}
+			}
+			this.currentPoiMedia = [];
+			this.isSwiperAutoplay = true;
+		},
+
+		onPopupChange(e) {
+			this.isPopupOpen = e.show;
+			if (e.show) {
+				this.isContentAtTop = true;
+			}
+		},
+
+		onHeaderDragStart(e) {
+			if (e.touches.length !== 1) return;
+			this.headerDragData.y = e.touches[0].clientY;
+			this.headerDragData.time = Date.now();
+			this.isDragging = true;
+		},
+
+		onDragMove(e) {
+			if (!this.isDragging) return;
+		},
+
+		onHeaderDragEnd(e) {
+			if (!this.isDragging) return;
+			this.isDragging = false;
+			const touch = e.changedTouches[0];
+			const deltaY = touch.clientY - this.headerDragData.y;
+			const deltaTime = Date.now() - this.headerDragData.time;
+			const isForcefulSwipe = deltaY > 50 && deltaTime < 300;
+			if (isForcefulSwipe) {
+				this.closeTipsPopup();
+			}
+		},
+
+		dummyAllow() {
+			return;
+		},
+
+		onContentScroll(e) {
+			this.isContentAtTop = e.detail.scrollTop < 20;
+		},
+
+		onContentTouchStart(e) {
+			if (e.touches.length !== 1) return;
+			this.contentDragData.y = e.touches[0].clientY;
+			this.contentDragData.time = Date.now();
+			this.isDragging = true;
+		},
+
+		onContentTouchEnd(e) {
+			if (!this.isDragging) return;
+			this.isDragging = false;
+			const touch = e.changedTouches[0];
+			const deltaY = touch.clientY - this.contentDragData.y;
+			const deltaTime = Date.now() - this.contentDragData.time;
+			const isForcefulSwipe = deltaY > 50 && deltaTime < 300;
+			if (isForcefulSwipe && this.isContentAtTop) {
+				this.closeTipsPopup();
+			}
+		},
+
+		onSwiperChange(e) {
+			const newIndex = e.detail.current;
+			const oldIndex = this.currentSwiperSlide;
+			this.currentSwiperSlide = newIndex;
+
+			const oldMedia = this.currentPoiMedia[oldIndex];
+			if (oldMedia && this.isVideoFile(oldMedia)) {
+				const oldCtx = uni.createVideoContext('video-' + oldIndex, this);
+				if (oldCtx) {
+					oldCtx.pause();
+				}
+			}
+
+			const newMedia = this.currentPoiMedia[newIndex];
+			if (newMedia && this.isVideoFile(newMedia)) {
+				const newCtx = uni.createVideoContext('video-' + newIndex, this);
+				if (newCtx) {
+					newCtx.play();
+				}
+			}
+		},
+
+		previewSwiperImage(currentUrl) {
+			// 1. 从媒体列表中筛选出所有的图片
+			const imageUrls = this.currentPoiMedia
+				.filter((file) => this.isImageFile(file)) // 使用我们已有的辅助函数
+				.map((file) => file.url); // 使用编码后的URL
+
+			if (imageUrls.length === 0) {
+				return; // 没有图片可预览
+			}
+
+			// 2. 找到当前点击的图片在列表中的索引
+			const currentIndex = imageUrls.indexOf(currentUrl);
+
+			// 3. 设置 isPreview 标志，防止 onShow 时页面滚动
+			this.isPreview = true;
+
+			// 4. 调用 uni.previewImage
+			uni.previewImage({
+				urls: imageUrls,
+				current: currentIndex,
+				longPressActions: {
+					itemList: ['保存图片'],
+					success: function (data) {
+						console.log('用户长按了图片', data);
+					},
+					fail: function (err) {
+						console.log(err.errMsg);
+					}
+				}
+			});
+		},
+
+		onVideoPlay() {
+			console.log('Video playing, pausing swiper.');
+			this.isSwiperAutoplay = false;
+		},
+
+		onVideoPause() {
+			console.log('Video paused/ended, resuming swiper.');
+			this.isSwiperAutoplay = true;
+		},
+
+		getEncodedUrl(url) {
+			if (!url) return '';
+			return encodeURI(url);
 		}
 	}
 };
@@ -839,7 +1169,7 @@ export default {
 }
 
 .day-tabs {
-	padding: 16px 0 8px;
+	padding: 16px 0 12px;
 	scrollbar-width: none;
 	white-space: nowrap;
 }
@@ -863,7 +1193,7 @@ export default {
 .day-tab.active {
 	background-color: #eb6d20;
 	color: white;
-	box-shadow: 0 2px 8px rgba(0, 134, 246, 0.3);
+	/* box-shadow: 0 2px 8px rgba(0, 134, 246, 0.3); */
 }
 
 .day-overview {
@@ -1040,5 +1370,189 @@ export default {
 	white-space: pre-wrap;
 	display: block;
 	word-break: break-all;
+}
+
+/* POI 弹窗通用样式 */
+.tips-popup-container {
+	background-color: #ffffff;
+	border-top-left-radius: 16px;
+	border-top-right-radius: 16px;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 80vh;
+}
+.tips-popup-header {
+	padding: 12px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-bottom: 1px solid #f0f0f0;
+	position: relative;
+	min-height: 44px;
+	box-sizing: border-box;
+	flex-shrink: 0;
+}
+.tips-popup-close {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+}
+.tips-popup-close:active {
+	background-color: #f0f0f0;
+}
+.tips-popup-content-wrapper {
+	flex: 1;
+	min-height: 0;
+	position: relative;
+}
+.tips-popup-content {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 100%;
+	width: 100%;
+}
+.tips-popup-content ::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+	-webkit-appearance: none;
+	background: transparent;
+	color: transparent;
+}
+
+/* POI 链接样式 */
+.poi-link {
+	color: #007aff;
+	text-decoration: underline;
+	font-weight: 600;
+}
+.poi-link:active {
+	color: #5856d6;
+}
+
+/* POI 酒店列表 */
+.timeline-hotel-list {
+	margin-bottom: 8px;
+}
+.hotel-option-item {
+	line-height: 1.4;
+	margin-bottom: 4px;
+}
+.hotel-option-item:last-child {
+	margin-bottom: 0;
+}
+.hotel-prefix {
+	font-weight: 600;
+	color: #333;
+	font-size: 16px;
+	margin-right: 4px;
+}
+.hotel-name {
+	font-weight: 600;
+	color: #333;
+	font-size: 16px;
+	word-break: break-word;
+}
+
+/* 原生 Swiper 样式 */
+.poi-swiper-native {
+	width: 100%;
+	height: 200px;
+}
+.poi-swiper-image-native,
+.poi-swiper-video-native {
+	width: 100%;
+	height: 100%;
+}
+
+/* POI 弹窗新布局样式 */
+.tips-popup-content :deep(.poi-line-1) {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+.tips-popup-content :deep(.poi-name) {
+	font-size: 20px;
+	font-weight: 600;
+	color: #000;
+	margin: 0;
+	margin-left: 8px;
+	line-height: 1.3;
+}
+.tips-popup-content :deep(.poi-line-2) {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 10px;
+}
+.tips-popup-content :deep(.poi-address) {
+	font-size: 14px;
+	color: #555;
+	margin-left: 4px;
+}
+.tips-popup-content :deep(.poi-line-3) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+/* 徽章样式 */
+.tips-popup-content :deep(.poi-badge-cat) {
+	background-color: #e0f2fe;
+	color: #0c4a6e;
+	padding: 3px 8px;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+.tips-popup-content :deep(.poi-badge-region) {
+	background-color: #f0fdf4;
+	color: #166534;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 500;
+}
+.tips-popup-content :deep(.poi-badge-tag) {
+	background-color: #fefce8;
+	color: #854d0e;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+/* 分隔线 */
+.tips-popup-content :deep(.poi-divider) {
+	height: 1px;
+	background-color: #f0f0f0;
+	margin: 15px 0;
+}
+
+/* 描述区样式 */
+.tips-popup-content :deep(.poi-description p) {
+	font-size: 15px;
+	line-height: 1.7;
+	color: #333;
+	margin-bottom: 12px;
+}
+.tips-popup-content :deep(.poi-description img) {
+	max-width: 100%;
+	height: auto;
+	border-radius: 8px;
 }
 </style>

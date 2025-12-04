@@ -306,7 +306,7 @@ async function checkExistingProducts(event, context) {
 	console.log(`[商品检查] 开始检查 ${route_ids.length} 个商品ID是否存在...`);
 
 	const db = uniCloud.databaseForJQL({
-		clientInfo: event.clientInfo
+		clientInfo: event
 	});
 	const dbCmd = db.command;
 
@@ -887,7 +887,7 @@ async function syncSnapshot(event, context) {
 		};
 	}
 
-	const db = uniCloud.databaseForJQL({ clientInfo: event.clientInfo });
+	const db = uniCloud.database();
 
 	try {
 		const productRecord = await db.collection('a-products').where(`ctrip_id == '${ctripId}'`).field({ _id: true }).getOne();
@@ -962,6 +962,21 @@ async function syncSnapshot(event, context) {
 
 		// 清洗返回的数据，移除可能导致问题的特殊字符
 		const cleanedData = cleanDataForDatabase(apiResult.data);
+
+		if (cleanedData.itinerary && Array.isArray(cleanedData.itinerary)) {
+			cleanedData.itinerary.forEach((day, dayIndex) => {
+				if (day.activities && Array.isArray(day.activities)) {
+					day.activities.forEach((activity, activityIndex) => {
+						if (!activity.id) {
+							// 只有在ID不存在时才添加
+							activity.id = `act_${ctripId}_${dayIndex}_${activityIndex}_` + Math.random().toString(36).substr(2, 6);
+						}
+					});
+				}
+			});
+		}
+		console.log(`[订单快照同步] 补充 Activity IDs 完成。`);
+
 		cleanedData.product_id = productId;
 		const departureDateObj = new Date(departure_date);
 		const departureTime = departureDateObj.getTime();
@@ -969,18 +984,38 @@ async function syncSnapshot(event, context) {
 		cleanedData.departure_date = departureTimestamp;
 		console.log(`[订单快照同步] 行程数据清洗完成，订单快照URL: ${snapshot_url}`);
 
+		let snapshotRecordId = null;
+
 		try {
-			const existingSnapshot = await db.collection('a-snapshots').where(`order_id == '${orderId}'`).get();
+			const existingSnapshot = await db.collection('a-snapshots').where({ order_id: orderId }).get();
 
 			if (existingSnapshot.data.length > 0) {
-				console.log(`[订单快照同步] 更新现有订单快照记录，ID: ${existingSnapshot.data[0]._id}`);
-				await db.collection('a-snapshots').doc(existingSnapshot.data[0]._id).update(cleanedData);
+				snapshotRecordId = existingSnapshot.data[0]._id;
+				console.log(`[订单快照同步] 更新现有订单快照记录，ID: ${snapshotRecordId}`);
+				await db.collection('a-snapshots').doc(snapshotRecordId).update(cleanedData);
 			} else {
 				console.log(`[订单快照同步] 创建新订单快照记录`);
-				await db.collection('a-snapshots').add(cleanedData);
+				const addResult = await db.collection('a-snapshots').add(cleanedData);
+				snapshotRecordId = addResult.id;
 			}
 
 			console.log(`[订单快照同步] 订单快照同步成功，订单ID: ${orderId}`);
+
+			// --- 开始自动匹配POI ---
+			if (snapshotRecordId) {
+				console.log(`[AutoCalibrate] 触发快照自动校准: ${snapshotRecordId}`);
+				try {
+					const poiService = uniCloud.importObject('a-poi-service');
+					const calibResult = await poiService.autoCalibrateDocument({
+						itinerary_id: snapshotRecordId,
+						collectionName: 'a-snapshots'
+					});
+					console.log(`[AutoCalibrate] 快照校准完成: ${calibResult.updated || 0} 项已自动确认。`);
+				} catch (calibError) {
+					// 校准失败不应中断同步流程，仅记录错误
+					console.error(`[AutoCalibrate] 快照自动校准失败 (ID: ${snapshotRecordId}): ${calibError.message}`);
+				}
+			}
 		} catch (error) {
 			console.error(`[订单快照同步] 订单快照保存失败:`, error);
 		}
@@ -1081,7 +1116,7 @@ async function syncFullProduct(event, context) {
 		console.log('未提供token，使用系统身份执行同步操作');
 	}
 
-	const db = uniCloud.databaseForJQL({ clientInfo: event.clientInfo });
+	const db = uniCloud.database();
 	let syncLogId = null;
 
 	try {
@@ -1292,6 +1327,7 @@ async function syncFullProduct(event, context) {
 							productRecordId = retryProduct.data[0]._id;
 						}
 					} else {
+						console.log('[新增商品数据] 同步商品时新增商品失败: ', error);
 						throw error;
 					}
 				}
@@ -1329,6 +1365,21 @@ async function syncFullProduct(event, context) {
 			// 清洗行程数据，移除特殊字符
 			const cleanedItineraryData = cleanDataForDatabase(rawItineraryData);
 			console.log(`[行程安排同步] 清洗后的行程数据字段:`, Object.keys(cleanedItineraryData));
+
+			// 为活动添加id
+			if (cleanedItineraryData.itinerary && Array.isArray(cleanedItineraryData.itinerary)) {
+				cleanedItineraryData.itinerary.forEach((day, dayIndex) => {
+					if (day.activities && Array.isArray(day.activities)) {
+						day.activities.forEach((activity, activityIndex) => {
+							if (!activity.id) {
+								// 只有在ID不存在时才添加
+								activity.id = `act_${productId}_${dayIndex}_${activityIndex}_` + Math.random().toString(36).substr(2, 6);
+							}
+						});
+					}
+				});
+			}
+			console.log(`[行程安排同步] 补充 Activity IDs 完成。`);
 
 			// 获取商品详情信息用于补充缺失的行程字段
 			let productDetailData = null;
@@ -1393,18 +1444,37 @@ async function syncFullProduct(event, context) {
 			console.log(`[行程安排同步] 行程记录字段:`, Object.keys(itineraryRecord));
 			console.log(`[行程安排同步] 行程天数: ${itineraryRecord.total_days}, 行程项目数量: ${itineraryRecord.itinerary.length}`);
 
+			let itineraryRecordId = null;
+
 			try {
 				if (existingItinerary.data.length > 0) {
-					console.log(`[行程安排同步] 更新现有行程记录，ID: ${existingItinerary.data[0]._id}`);
-					await db.collection('a-itineraries').doc(existingItinerary.data[0]._id).update(itineraryRecord);
+					itineraryRecordId = existingItinerary.data[0]._id;
+					console.log(`[行程安排同步] 更新现有行程记录，ID: ${itineraryRecordId}`);
+					await db.collection('a-itineraries').doc(itineraryRecordId).update(itineraryRecord);
 				} else {
 					console.log(`[行程安排同步] 创建新行程记录`);
-					await db.collection('a-itineraries').add(itineraryRecord);
+					const addResult = await db.collection('a-itineraries').add(itineraryRecord);
+					itineraryRecordId = addResult.id;
 				}
 
 				successCount++;
 				syncResults.itinerary = 'success';
 				console.log(`[行程安排同步] 行程安排同步成功，产品ID: ${productId}`);
+
+				// --- 开始自动匹配POI ---
+				if (itineraryRecordId) {
+					console.log(`[AutoCalibrate] 触发商品行程自动校准: ${itineraryRecordId}`);
+					try {
+						const poiService = uniCloud.importObject('a-poi-service');
+						const calibResult = await poiService.autoCalibrateDocument({
+							itinerary_id: itineraryRecordId,
+							collectionName: 'a-itineraries'
+						});
+						console.log(`[AutoCalibrate] 商品行程校准完成: ${calibResult.updated || 0} 项已自动确认。`);
+					} catch (calibError) {
+						console.error(`[AutoCalibrate] 商品行程自动校准失败 (ID: ${itineraryRecordId}): ${calibError.message}`);
+					}
+				}
 			} catch (error) {
 				console.error(`[行程安排同步] 行程安排保存失败:`, error);
 

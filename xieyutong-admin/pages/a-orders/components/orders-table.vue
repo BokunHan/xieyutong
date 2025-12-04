@@ -190,28 +190,28 @@
 											<view class="flex items-center">
 												<i class="fas fa-user text-gray-400 mr-2"></i>
 												<text class="text-sm text-gray-900 font-mono cursor-pointer hover:text-blue-600 transition-colors" @click="copyToClipboard(item.user_id[0].mobile)">
-													{{ item.user_id[0].mobile || '号码未留' }}
+													{{ item.user_id && item.user_id[0] ? item.user_id[0].mobile : '号码未留' }}
 												</text>
 											</view>
 										</td>
 
 										<td class="px-4 py-4">
 											<view class="flex flex-col space-y-1" v-if="item.travel_users && item.travel_users.length">
-												<span v-for="user in item.travel_users" :key="user.id" class="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+												<view v-for="user in item.travel_users" :key="user.id" class="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
 													<i class="fas fa-user-tag mr-1 text-emerald-600"></i>
 													{{ user.mobile || '号码缺失' }}
-												</span>
+												</view>
 											</view>
 											<text v-else class="text-xs text-gray-400">未指定</text>
 										</td>
 
 										<td class="px-4 py-4">
 											<view class="flex flex-col space-y-1" v-if="item.staves && item.staves.length">
-												<span v-for="staff in item.staves" :key="staff.id" class="text-xs text-gray-700 bg-yellow-100 px-2 py-0.5 rounded">
+												<view v-for="staff in item.staves" :key="staff.id" class="text-xs text-gray-700 bg-yellow-100 px-2 py-0.5 rounded">
 													<i class="fas fa-user-shield mr-1 text-yellow-700"></i>
 													<text v-if="formatRoleText(staff.role)" class="font-semibold mr-1">[{{ formatRoleText(staff.role) }}]</text>
 													{{ staff.mobile || '号码缺失' }}
-												</span>
+												</view>
 											</view>
 											<text v-else class="text-xs text-gray-400">未分配</text>
 										</td>
@@ -241,9 +241,9 @@
 										</td>
 
 										<td class="px-4 py-4">
-											<text class="text-xs text-gray-500">
+											<view class="text-xs text-gray-500">
 												<uni-dateformat :threshold="[0, 0]" :date="item.departure_date" format="MM-dd"></uni-dateformat>
-											</text>
+											</view>
 										</td>
 
 										<td class="px-4 py-4">
@@ -254,20 +254,26 @@
 										</td>
 
 										<td class="px-4 py-4">
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="getStatusClass(item.status)">
+											<view class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="getStatusClass(item.status)">
 												<i :class="getStatusIcon(item.status)" class="mr-1"></i>
 												{{ getStatusText(item.status) }}
-											</span>
+											</view>
 										</td>
 
 										<td class="px-4 py-4">
-											<text class="text-xs text-gray-500">
+											<view class="text-xs text-gray-500">
 												<uni-dateformat :threshold="[0, 0]" :date="item.created_at" format="MM-dd hh:mm"></uni-dateformat>
-											</text>
+											</view>
 										</td>
 
 										<td class="px-4 py-4">
 											<view class="flex items-center justify-center">
+												<button
+													@click="handleShowQr(item)"
+													class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors duration-200 flex items-center">
+													<i class="fas fa-qrcode mr-1"></i>
+													邀请
+												</button>
 												<button
 													@click="openEditDialog(item)"
 													class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors duration-200 flex items-center">
@@ -354,6 +360,7 @@
 										label-key="mobile"
 										value-key="_id"
 										placeholder="输入手机号搜索并添加"
+										:clearOnSelect="true"
 										@input="searchTravelers"
 										@change="onTravelerSelect"
 										@click="loadDefaultTravelers" />
@@ -386,6 +393,7 @@
 										label-key="displayText"
 										value-key="_id"
 										placeholder="搜索向导/管家(手机号/昵称)"
+										:clearOnSelect="true"
 										@input="searchStaff"
 										@change="onStaffSelect"
 										@click="loadDefaultStaff" />
@@ -414,6 +422,41 @@
 				</view>
 			</view>
 		</uni-popup>
+
+		<uni-popup ref="qrPopup" type="center" :mask-click="true">
+			<view class="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center justify-center w-80 relative">
+				<view class="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-gray-600" @click="closeQrPopup">
+					<i class="fas fa-times text-lg"></i>
+				</view>
+
+				<view class="text-2xl font-bold text-gray-800 mb-2">扫码加入行程</view>
+				<view class="text-md text-gray-600 mb-6 text-center">
+					行程同步电子讲解
+					<br />
+					获得旅行精彩相册
+				</view>
+
+				<view v-if="qrLoading" class="w-48 h-48 flex items-center justify-center bg-gray-50 rounded-lg mb-6">
+					<i class="fas fa-spinner fa-spin text-emerald-500 text-2xl"></i>
+				</view>
+
+				<image v-else-if="qrCodeBase64" :src="qrCodeBase64" class="w-48 h-48 mb-6 rounded-lg shadow-sm border border-gray-100" mode="aspectFit"></image>
+
+				<view v-else class="w-48 h-48 flex items-center justify-center bg-gray-50 rounded-lg mb-6 text-gray-400 text-sm">获取失败</view>
+
+				<view class="flex w-full space-x-3">
+					<button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200 transition-colors" @click="closeQrPopup">关闭</button>
+					<a
+						v-if="qrCodeBase64"
+						:href="qrCodeBase64"
+						:download="currentQrFileName"
+						class="flex-1 bg-emerald-600 text-white py-2 rounded-lg text-sm hover:bg-emerald-700 transition-colors flex items-center justify-center decoration-none">
+						<i class="fas fa-download mr-1"></i>
+						下载
+					</a>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
@@ -426,6 +469,7 @@ const dbOrderBy = 'created_at desc'; // 默认按创建时间倒序
 const dbSearchFields = ['order_no', 'user_id', 'contact_info']; // 模糊搜索字段
 const pageSize = 15;
 const pageCurrent = 1;
+const orderService = uniCloud.importObject('a-order-service');
 
 const orderByMapping = {
 	ascending: 'asc',
@@ -506,7 +550,11 @@ export default {
 			staffSearchTimer: null,
 
 			dialogReady: false,
-			formRules: {}
+			formRules: {},
+
+			qrCodeBase64: '',
+			qrLoading: false,
+			currentQrFileName: 'invite_code.png'
 		};
 	},
 	mounted() {
@@ -820,7 +868,7 @@ export default {
 		},
 
 		// =============================================
-		// FIX 4: 编辑弹窗相关方法
+		// 编辑弹窗相关方法
 		// =============================================
 		openEditDialog(item) {
 			this.dialogReady = false;
@@ -828,7 +876,13 @@ export default {
 
 			// 填充表单
 			this.formData.order_no = item.order_no;
-			this.formData.user_id = item.user_id;
+
+			if (Array.isArray(item.user_id) && item.user_id.length > 0) {
+				this.formData.user_id = item.user_id[0].mobile || '未知号码';
+			} else {
+				this.formData.user_id = '用户数据缺失';
+			}
+
 			this.formData.departure_date = item.departure_date;
 			this.formData.duration_days = item.duration_days || 0;
 
@@ -1267,6 +1321,33 @@ export default {
 				...this.formData,
 				staves: newStaffArray
 			};
+		},
+
+		// 显示二维码逻辑
+		async handleShowQr(item) {
+			this.qrCodeBase64 = '';
+			this.qrLoading = true;
+			this.currentQrFileName = `${item.order_no || 'invite_code'}.png`;
+			this.$refs.qrPopup.open();
+
+			try {
+				const res = await orderService.getInviteQRCode(item.order_no);
+
+				if (res.errCode === 0) {
+					this.qrCodeBase64 = res.base64;
+				} else {
+					uni.showToast({ title: res.errMsg || '生成失败', icon: 'none' });
+				}
+			} catch (e) {
+				console.error(e);
+				uni.showToast({ title: '网络请求失败', icon: 'none' });
+			} finally {
+				this.qrLoading = false;
+			}
+		},
+
+		closeQrPopup() {
+			this.$refs.qrPopup.close();
 		}
 	}
 };

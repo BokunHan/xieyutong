@@ -1,4 +1,5 @@
 const uniIdCommon = require('uni-id-common');
+const createConfig = require('uni-config-center');
 const db = uniCloud.database();
 const dbCmd = db.command;
 const $ = dbCmd.aggregate;
@@ -79,6 +80,42 @@ const _buildWhereQuery = function (userId, collectionType, isGuide, tabIndex) {
 	return dbCmd.and([baseWhere, statusWhere]);
 };
 
+// 内部方法：获取微信 AccessToken (简化版，建议复用公共模块)
+const _getWxAccessToken = async function () {
+	let appid, secret;
+
+	try {
+		// 1. 获取 uni-id 的配置
+		const uniIdConfig = createConfig({
+			pluginId: 'uni-id' // 指定读取 uni-id 目录下的 config.json
+		}).config();
+
+		// 2. 提取 mp-weixin 下的配置
+		if (uniIdConfig['mp-weixin'] && uniIdConfig['mp-weixin'].oauth && uniIdConfig['mp-weixin'].oauth.weixin) {
+			appid = uniIdConfig['mp-weixin'].oauth.weixin.appid;
+			secret = uniIdConfig['mp-weixin'].oauth.weixin.appsecret;
+		}
+	} catch (e) {
+		console.error('读取 uni-id 配置失败:', e);
+	}
+
+	// 校验是否成功获取
+	if (!appid || !secret) {
+		throw new Error('未在 uni-id/config.json 中找到 mp-weixin 的 appid 或 appsecret 配置');
+	}
+
+	// 3. 请求微信接口
+	// 建议此处添加缓存逻辑（uniCloud.redis 或 数据库缓存），避免频繁调用
+	const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`;
+	const res = await uniCloud.httpclient.request(url, { dataType: 'json' });
+
+	if (res.data && res.data.access_token) {
+		return res.data.access_token;
+	}
+
+	throw new Error('获取Access Token失败: ' + (res.data.errmsg || '未知错误'));
+};
+
 module.exports = {
 	async _before() {
 		this.uniIdCommon = uniIdCommon.createInstance({ context: this });
@@ -90,6 +127,7 @@ module.exports = {
 			};
 		}
 		this.uid = checkResult.uid;
+		this.role = checkResult.role;
 	},
 
 	async createOrder(orderData) {
@@ -254,5 +292,148 @@ module.exports = {
 			console.error('getOrders error:', error);
 			return { orders: [], snapshots: [], hasMore: false };
 		}
+	},
+
+	/**
+	 * 向导生成邀请二维码
+	 * @param {String} id 订单ID
+	 */
+	async getInviteQRCode(id) {
+		if (!this.uid) throw new Error('未登录');
+
+		// 1. 动态查找记录 (确定是哪个表的)
+		let targetCollection = '';
+		let targetRecord = null;
+
+		// A. 先试着从 a-orders 找
+		const orderRes = await db.collection('a-orders').where({ order_no: id }).get();
+		if (orderRes.data && orderRes.data.length > 0) {
+			targetCollection = 'a-orders';
+			targetRecord = orderRes.data[0];
+		} else {
+			// B. 没找到，去 a-snapshots 找
+			const snapshotRes = await db.collection('a-snapshots').where({ order_id: id }).get();
+			if (snapshotRes.data && snapshotRes.data.length > 0) {
+				targetCollection = 'a-snapshots';
+				targetRecord = snapshotRes.data[0];
+			}
+		}
+
+		if (!targetRecord) throw new Error('订单或快照不存在');
+
+		// 2. 验证权限
+		// 无论是订单还是快照，schema里都有 staves 字段，逻辑通用
+		const isStaff = targetRecord.staves && targetRecord.staves.some((s) => s.id === this.uid);
+		const isAdmin = this.role.includes('admin') || this.role.includes('super_admin');
+
+		if (!isStaff && !isAdmin) {
+			throw new Error('无权操作此订单');
+		}
+
+		// 3. 获取微信 Access Token
+		const accessToken = await _getWxAccessToken();
+
+		// 4. 生成小程序码
+		// 场景值直接传 ID。
+		// 关键点：扫码端(bindUserToOrder)也必须具备“双表查找”的能力，否则不知道去哪个表绑定用户。
+		const scene = `oid=${id}`;
+		const page = 'pages/order/bind-confirm';
+
+		try {
+			const result = await uniCloud.httpclient.request(`https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${accessToken}`, {
+				method: 'POST',
+				contentType: 'json',
+				data: {
+					scene: scene,
+					page: page,
+					width: 430,
+					check_path: false,
+					env_version: 'release'
+				},
+				dataType: 'buffer'
+			});
+
+			if (result.headers['content-type'].includes('image')) {
+				return {
+					errCode: 0,
+					base64: 'data:image/png;base64,' + result.data.toString('base64')
+				};
+			} else {
+				const err = JSON.parse(result.data.toString());
+				throw new Error(err.errmsg || '生成二维码失败');
+			}
+		} catch (e) {
+			console.error(e);
+			return { errCode: 500, errMsg: e.message };
+		}
+	},
+
+	/**
+	 * 客户绑定订单/快照 (支持双表)
+	 * @param {String} id 订单ID 或 快照ID
+	 */
+	async bindUserToOrder(id) {
+		if (!this.uid) return { errCode: 401, errMsg: '请先登录' };
+
+		// 1. 获取用户信息
+		const userRes = await db.collection('uni-id-users').doc(this.uid).field({ mobile: 1, nickname: 1 }).get();
+		if (!userRes.data || userRes.data.length === 0) {
+			console.log('用户不存在，查询ID: ', this.uid);
+			return { errCode: 404, errMsg: '用户不存在' };
+		}
+
+		const userInfo = {
+			id: this.uid,
+			mobile: userRes.data[0].mobile || '',
+			name: userRes.data[0].nickname || '用户'
+		};
+
+		// 2. 确定目标表 (a-orders 还是 a-snapshots)
+		let targetCollection = '';
+		let targetWhere = '';
+
+		// 先检查是不是普通订单
+		const orderCheck = await db.collection('a-orders').where({ order_no: id }).get();
+		if (orderCheck.data && orderCheck.data.length > 0) {
+			targetCollection = 'a-orders';
+			targetWhere = { order_no: id };
+		} else {
+			// 再检查是不是快照
+			const snapshotCheck = await db.collection('a-snapshots').where({ order_id: id }).get();
+			if (snapshotCheck.data && snapshotCheck.data.length > 0) {
+				targetCollection = 'a-snapshots';
+				targetWhere = { order_id: id };
+			}
+		}
+
+		if (!targetCollection) {
+			return { errCode: 404, errMsg: '未找到对应的订单或快照' };
+		}
+
+		// 3. 执行绑定 (动态集合名称)
+		// 两个表的字段结构里都有 travel_users，所以逻辑通用
+		const updateRes = await db
+			.collection(targetCollection)
+			.where(targetWhere)
+			.update({
+				travel_users: dbCmd.addToSet(userInfo)
+			});
+
+		// 4. 绑定到相册 (a-group-albums)
+		// 假设相册也是通过 order_id 关联的 (注意：如果你快照也有相册，这里的逻辑可能也要适配，暂时按原样处理关联)
+		const albumRes = await db.collection('a-group-albums').where({ order_id: id }).get();
+		if (albumRes.data && albumRes.data.length > 0) {
+			await db
+				.collection('a-group-albums')
+				.where({ order_id: id })
+				.update({
+					members: dbCmd.addToSet(userInfo)
+				});
+		}
+
+		return {
+			errCode: 0,
+			errMsg: '绑定成功'
+		};
 	}
 };

@@ -444,14 +444,15 @@ export default {
 		// 原价计算
 		originalPrice() {
 			const basePrice = this.productData.price || 0;
-			if (basePrice > 1) return Math.round(basePrice * 1.2);
-			else return (basePrice * 1.2).toFixed(2);
+			// if (basePrice > 1) return Math.round(basePrice * 1.2);
+			if (basePrice > 1) return Math.round(basePrice);
+			else return basePrice.toFixed(2);
 		},
 
 		originalChildPrice() {
 			const basePrice = this.productData.child_price || 0;
-			if (basePrice > 1) return Math.round(basePrice * 1.2);
-			else return (basePrice * 1.2).toFixed(2);
+			if (basePrice > 1) return Math.round(basePrice);
+			else return basePrice.toFixed(2);
 		},
 
 		// 会员等级文字

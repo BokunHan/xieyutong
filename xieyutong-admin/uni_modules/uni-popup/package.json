@@ -1,7 +1,7 @@
 {
   "id": "uni-popup",
   "displayName": "uni-popup 弹出层",
-  "version": "1.9.1",
+  "version": "1.9.11",
   "description": " Popup 组件，提供常用的弹层",
   "keywords": [
     "uni-ui",
@@ -9,12 +9,12 @@
     "弹窗",
     "popup",
     "弹框"
-  ],
+],
   "repository": "https://github.com/dcloudio/uni-ui",
   "engines": {
     "HBuilderX": "",
-    "uni-app": "^3.1.0",
-    "uni-app-x": "^3.1.0"
+    "uni-app": "^4.07",
+    "uni-app-x": ""
   },
   "directories": {
     "example": "../../temps/example_temps"
@@ -38,9 +38,9 @@
     },
     "npmurl": "https://www.npmjs.com/package/@dcloudio/uni-ui",
     "type": "component-vue",
-    "darkmode": "-",
-    "i18n": "-",
-    "widescreen": "-"
+    "darkmode": "x",
+    "i18n": "x",
+    "widescreen": "x"
   },
   "uni_modules": {
     "dependencies": [
@@ -50,36 +50,36 @@
     "encrypt": [],
     "platforms": {
       "cloud": {
-        "tcb": "√",
-        "aliyun": "√",
+        "tcb": "x",
+        "aliyun": "x",
         "alipay": "x"
       },
       "client": {
         "uni-app": {
           "vue": {
-            "vue2": "-",
-            "vue3": "-"
+            "vue2": "√",
+            "vue3": "√"
           },
           "web": {
-            "safari": "-",
-            "chrome": "-"
+            "safari": "√",
+            "chrome": "√"
           },
           "app": {
-            "vue": "-",
-            "nvue": "-",
-            "android": "-",
-            "ios": "-",
-            "harmony": "-"
+            "vue": "√",
+            "nvue": "√",
+            "android": "√",
+            "ios": "√",
+            "harmony": "√"
           },
           "mp": {
-            "weixin": "-",
-            "alipay": "-",
-            "toutiao": "-",
-            "baidu": "-",
+            "weixin": "√",
+            "alipay": "√",
+            "toutiao": "√",
+            "baidu": "√",
             "kuaishou": "-",
             "jd": "-",
             "harmony": "-",
-            "qq": "-",
+            "qq": "√",
             "lark": "-"
           },
           "quickapp": {
@@ -89,16 +89,16 @@
         },
         "uni-app-x": {
           "web": {
-            "safari": "-",
-            "chrome": "-"
+            "safari": "√",
+            "chrome": "√"
           },
           "app": {
-            "android": "-",
-            "ios": "-",
-            "harmony": "-"
+            "android": "√",
+            "ios": "√",
+            "harmony": "√"
           },
           "mp": {
-            "weixin": "-"
+            "weixin": "√"
           }
         }
       }

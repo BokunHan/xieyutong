@@ -25,4 +25,31 @@
 // 	}]))
 // 	.get()
 
-db.collection('a-region-content').doc('6910019e213929eabfee98de').get()
+// db.collection('a-region-content').doc('6910019e213929eabfee98de').get()
+
+db.collection('a-itineraries')
+	.aggregate()
+	.unwind('$itinerary') // 拆分 itinerary 数组
+	.unwind('$itinerary.activities') // 拆分 activities 数组
+	.project({
+		// 投射我们需要的字段
+		_id: 0,
+		itinerary_id: '$_id',
+		product_id: '$product_id',
+		ctrip_id: '$ctrip_id',
+		day: '$itinerary.day',
+		activity_id: '$itinerary.activities.id',
+		elementType: '$itinerary.activities.elementType',
+
+		linked_poi_id: '$itinerary.activities.linked_poi_id',
+		match_status: '$itinerary.activities.match_status',
+
+		// 提取用于匹配的原始字符串
+		scenic_spots: '$itinerary.activities.elementData.scenic_spots',
+		restaurant_location: '$itinerary.activities.elementData.location',
+		restaurant_remark: '$itinerary.activities.elementData.remark',
+		hotel_name: '$itinerary.activities.elementData.hotelName',
+		alternativeHotels: '$itinerary.activities.elementData.alternativeHotels'
+	})
+	.limit(3)
+	.end()

@@ -1,0 +1,125 @@
+{
+	"bsonType": "object",
+	"required": ["order_id", "account_name"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，自动生成"
+		},
+		"order_id": {
+			"bsonType": "string",
+			"title": "订单号",
+			"trim": "both"
+		},
+		"account_name": {
+			"bsonType": "string",
+			"title": "执行账号",
+			"description": "指定由哪个本地账号发送",
+			"foreignKey": "a-task-accounts.name"
+		},
+		"target_group_id": {
+			"bsonType": "string",
+			"title": "目标群ID",
+			"foreignKey": "a-task-groups._id"
+		},
+		"crawl_status": {
+			"bsonType": "string",
+			"title": "抓取状态",
+			"enum": [{
+					"value": "pending",
+					"text": "待抓取"
+				},
+				{
+					"value": "processing",
+					"text": "抓取中"
+				},
+				{
+					"value": "done",
+					"text": "已完成"
+				},
+				{
+					"value": "failed",
+					"text": "失败"
+				}
+			],
+			"defaultValue": "pending"
+		},
+		"snapshot_status": {
+			"bsonType": "string",
+			"title": "快照状态",
+			"enum": [{
+					"value": "pending",
+					"text": "等待"
+				},
+				{
+					"value": "syncing",
+					"text": "同步中"
+				},
+				{
+					"value": "done",
+					"text": "已完成"
+				},
+				{
+					"value": "failed",
+					"text": "失败"
+				},
+				{
+					"value": "skipped",
+					"text": "跳过"
+				}
+			],
+			"defaultValue": "pending"
+		},
+		"ai_status": {
+			"bsonType": "string",
+			"title": "AI生成状态",
+			"enum": [{
+					"value": "pending",
+					"text": "等待"
+				},
+				{
+					"value": "processing",
+					"text": "处理中"
+				},
+				{
+					"value": "done",
+					"text": "已生成"
+				}
+			],
+			"defaultValue": "pending"
+		},
+		"raw_data": {
+			"bsonType": "array",
+			"title": "抓取原始数据",
+			"description": "爬虫回传的JSON数据"
+		},
+		"error_msg": {
+			"bsonType": "string",
+			"title": "错误信息",
+			"description": "记录抓取或AI处理过程中的错误"
+		},
+		"ai_process_time": {
+			"bsonType": "timestamp",
+			"title": "AI处理时间"
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"title": "创建时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"title": "更新时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

@@ -1,0 +1,106 @@
+{
+	"bsonType": "object",
+	"required": ["name", "category_id"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null && ('MANAGE_POI' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"update": "auth.uid != null && ('MANAGE_POI' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)",
+		"delete": "auth.uid != null && ('MANAGE_POI' in auth.permission || 'admin' in auth.role || 'super_admin' in auth.role)"
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"title": "POI名称",
+			"description": "地点的主名称",
+			"trim": "both"
+		},
+		"aliases": {
+			"bsonType": "array",
+			"title": "别名/俗称",
+			"description": "用于搜索匹配，例如 ['故宫博物院', '紫禁城']",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"category_id": {
+			"bsonType": "string",
+			"title": "POI分类",
+			"description": "关联POI分类表",
+			"foreignKey": "a-poi-categories._id",
+			"enum": {
+				"collection": "a-poi-categories",
+				"field": "_id as value, name as text",
+				"where": "status == true",
+				"orderby": "order desc"
+			}
+		},
+		"region_ids": {
+			"bsonType": "array",
+			"title": "所属区域",
+			"description": "关联一个或多个区域",
+			"items": {
+				"bsonType": "string"
+			},
+			"foreignKey": "a-regions._id",
+			"enum": {
+				"collection": "a-regions",
+				"field": "_id as value, name as text",
+				"where": "status == true",
+				"orderby": "order asc"
+			},
+			"componentForEdit": {
+				"name": "uni-data-picker",
+				"props": {
+					"multiple": true,
+					"tree": true
+				}
+			}
+		},
+		"media": {
+			"bsonType": "array",
+			"title": "媒体库(图/视频)",
+			"description": "用于详情页展示",
+			"items": {
+				"bsonType": "file",
+				"fileMediaType": "all"
+			}
+		},
+		"description": {
+			"bsonType": "string",
+			"title": "富文本介绍",
+			"description": "详细的图文介绍",
+			"componentForEdit": {
+				"name": "editor"
+			}
+		},
+		"address_text": {
+			"bsonType": "string",
+			"title": "详细地址",
+			"description": "行政区划文本，例如：北京市东城区景山前街4号"
+		},
+		"tags": {
+			"bsonType": "array",
+			"title": "POI标签",
+			"description": "关联一个或多个标签",
+			"items": {
+				"bsonType": "string"
+			},
+			"foreignKey": "a-poi-tags._id",
+			"enum": {
+				"collection": "a-poi-tags",
+				"field": "_id as value, name as text",
+				"where": "status == true",
+				"orderby": "order desc"
+			},
+			"componentForEdit": {
+				"name": "uni-data-checkbox",
+				"props": {
+					"multiple": true
+				}
+			}
+		}
+	}
+}

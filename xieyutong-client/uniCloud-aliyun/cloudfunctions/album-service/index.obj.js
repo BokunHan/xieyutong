@@ -610,7 +610,7 @@ module.exports = {
 	 * @returns {object} - 返回上传结果
 	 */
 	async uploadPhotos(params) {
-		let { albumId, file, shootingTime, is_guide } = params;
+		let { albumId, file, shootingTime, is_guide, mediaType = 'image', posterFile, duration } = params;
 
 		// 1. 验证用户身份
 		const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
@@ -647,7 +647,8 @@ module.exports = {
 
 		// 服务器端文件大小校验
 		const fileID = file.fileID;
-		const maxSize = 10 * 1024 * 1024; // 10MB
+		// 图片限制 20MB，视频限制 100MB
+		const maxSize = mediaType === 'video' ? 100 * 1024 * 1024 : 20 * 1024 * 1024;
 		let fileSize = 0;
 
 		try {
@@ -671,10 +672,14 @@ module.exports = {
 					fileList: [fileID]
 				});
 
+				if (posterFile && posterFile.fileID) {
+					await uniCloud.deleteFile({ fileList: [posterFile.fileID] });
+				}
+
 				// 返回错误，阻止数据库写入
 				return {
 					errCode: 'FILE_TOO_LARGE',
-					errMsg: '文件大小超过10MB，已被服务器拒绝'
+					errMsg: `文件大小超过${maxSize / 1024 / 1024}MB，已被服务器拒绝`
 				};
 			}
 
@@ -698,9 +703,11 @@ module.exports = {
 				album_id: albumId,
 				user_id: userId,
 				original_url: file.fileID,
-				compressed_url: file.fileID, // 暂时使用原图URL
+				compressed_url: mediaType === 'video' && posterFile ? posterFile.fileID : file.fileID,
 				shooting_time: shootingTime || Date.now(),
 				is_guide: !!is_guide,
+				media_type: mediaType,
+				duration: duration || 0,
 				create_date: currentTime
 			};
 			const addRes = await photosDb.add(photoData);

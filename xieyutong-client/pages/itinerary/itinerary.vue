@@ -1,5 +1,6 @@
 <template>
-	<view class="page-container" :class="{ 'stop-scrolling': isPopupOpen }">
+	<page-meta :page-style="isPopupOpen ? 'overflow: hidden;' : ''"></page-meta>
+	<view class="page-container">
 		<!-- 状态栏占位 -->
 		<view class="status-bar-placeholder" :style="{ height: statusBarHeight + 100 + 'rpx' }"></view>
 
@@ -21,22 +22,21 @@
 					<view class="exit-btn" @click="exitItinerary">退出行程</view>
 				</view>
 
-				<view class="grid grid-cols-3 gap-3 my-4">
+				<view class="my-4">
 					<view class="theme-card bg-blue-50" @click="openTipsPopup('tips')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
 						<view class="theme-icon-wrapper bg-blue-100">
 							<!-- <text class="fa fa-suitcase-rolling text-blue-500"></text> -->
 							<image src="/static/icons/suitcase-rolling.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 						<view class="theme-card-title">
-							<text>出行</text>
-							<text>提示</text>
+							<text>西藏出行提示</text>
 						</view>
 					</view>
 
-					<view class="theme-card bg-red-50" @click="openTipsPopup('precautions')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
-						<view class="theme-icon-wrapper bg-red-100">
-							<!-- <text class="fa fa-exclamation-triangle text-red-500"></text> -->
-							<image src="/static/icons/exclamation-triangle.svg" class="w-5 h-5" mode="aspectFit" />
+					<!-- 	<view class="theme-card bg-red-50" @click="openTipsPopup('precautions')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
+						<view class="theme-icon-wrapper bg-red-100"> -->
+					<!-- <text class="fa fa-exclamation-triangle text-red-500"></text> -->
+					<!-- <image src="/static/icons/exclamation-triangle.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 						<view class="theme-card-title">
 							<text>注意</text>
@@ -45,15 +45,15 @@
 					</view>
 
 					<view class="theme-card bg-green-50" @click="openTipsPopup('must_read')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
-						<view class="theme-icon-wrapper bg-green-100">
-							<!-- <text class="fa fa-check-circle text-green-500"></text> -->
-							<image src="/static/icons/check-circle.svg" class="w-5 h-5" mode="aspectFit" />
+						<view class="theme-icon-wrapper bg-green-100"> -->
+					<!-- <text class="fa fa-check-circle text-green-500"></text> -->
+					<!-- <image src="/static/icons/check-circle.svg" class="w-5 h-5" mode="aspectFit" />
 						</view>
 						<view class="theme-card-title">
 							<text>出行前</text>
 							<text>必读</text>
 						</view>
-					</view>
+					</view>-->
 				</view>
 
 				<!-- 天气信息区域 -->
@@ -168,15 +168,30 @@
 							</view>
 						</view>
 						<view v-if="item.elementType === 'hotel' && item.hotelOptions && item.hotelOptions.length > 0" class="timeline-hotel-list">
-							<view class="hotel-option-item" v-for="(hotelName, hIndex) in item.hotelOptions" :key="hIndex">
+							<view class="hotel-option-item" v-for="(hotel, hIndex) in item.hotelOptions" :key="hIndex">
 								<text v-if="hIndex > 0" class="hotel-prefix">或</text>
-								<text class="hotel-name">{{ hotelName }}</text>
+								<text class="hotel-name" :class="{ 'poi-link': hotel.linked_poi_id }" @click="hotel.linked_poi_id ? openPoiPopup(hotel.linked_poi_id) : null">
+									{{ hotel.name }}
+								</text>
 								<text class="hotel-rating-icons">💎💎💎💎💎</text>
 							</view>
 						</view>
-						<view class="timeline-title" v-else>
-							{{ item.title }}
+
+						<view v-else-if="item.elementType === 'scenic' && item.scenicSpots && item.scenicSpots.length > 0" class="timeline-title">
+							<block v-for="(spot, sIndex) in item.scenicSpots" :key="sIndex">
+								<text :class="{ 'poi-link': spot.linked_poi_id }" @click="spot.linked_poi_id ? openPoiPopup(spot.linked_poi_id) : null">
+									{{ spot.name }}
+								</text>
+								<text v-if="sIndex < item.scenicSpots.length - 1">、</text>
+							</block>
 						</view>
+
+						<view class="timeline-title" v-else>
+							<text :class="{ 'poi-link': item.activityPoiId }" @click="item.activityPoiId ? openPoiPopup(item.activityPoiId) : null">
+								{{ item.title }}
+							</text>
+						</view>
+
 						<view class="timeline-desc">{{ item.description }}</view>
 						<!-- <image v-if="item.image" :src="item.image" :alt="item.title" class="timeline-image" mode="aspectFill" /> -->
 						<swiper v-if="item.images && item.images.length > 0" class="timeline-swiper" indicator-dots circular>
@@ -245,7 +260,6 @@
 		<uni-popup ref="tipsPopup" type="bottom" @change="onPopupChange">
 			<view class="tips-popup-container">
 				<view class="tips-popup-header" @touchstart="onHeaderDragStart" @touchmove.stop.prevent="onDragMove" @touchend="onHeaderDragEnd">
-					<!-- <view class="tips-popup-title">{{ popupTitle }}</view> -->
 					<view class="tips-popup-close" @click="closeTipsPopup">
 						<uni-icons type="closeempty" size="20" color="#999"></uni-icons>
 					</view>
@@ -253,7 +267,38 @@
 
 				<view class="tips-popup-content-wrapper" @touchstart="onContentTouchStart" @touchend="onContentTouchEnd">
 					<scroll-view class="tips-popup-content" scroll-y :show-scrollbar="false" @scroll="onContentScroll" @touchmove.stop="dummyAllow">
-						<rich-content :html="popupContent" />
+						<swiper
+							v-if="currentPoiMedia && currentPoiMedia.length > 0"
+							class="poi-swiper-native"
+							:style="{ height: swiperHeight }"
+							indicator-dots
+							circular
+							:autoplay="isSwiperAutoplay"
+							@change="onSwiperChange">
+							<swiper-item v-for="(file, index) in currentPoiMedia" :key="index">
+								<image
+									v-if="isImageFile(file)"
+									:src="getEncodedUrl(file.url)"
+									class="poi-swiper-image-native"
+									mode="aspectFit"
+									@click="previewSwiperImage(file.url)"
+									@load="(e) => onMediaLoad(e, index, 'image')" />
+								<video
+									v-if="isVideoFile(file)"
+									:src="getEncodedUrl(file.url)"
+									controls
+									show-center-play-btn
+									object-fit="contain"
+									class="poi-swiper-video-native"
+									:id="'video-' + index"
+									@play="onVideoPlay"
+									@pause="onVideoPause"
+									@ended="onVideoPause"
+									@loadedmetadata="(e) => onMediaLoad(e, index, 'video')"></video>
+							</swiper-item>
+						</swiper>
+
+						<rich-content :html="popupContent" :noPadding="true" @linkTap="handleRichTextLink" />
 					</scroll-view>
 				</view>
 			</view>
@@ -273,6 +318,7 @@ export default {
 			orderId: null,
 			orderType: 'mp',
 			statusBarHeight: 0, // 状态栏高度
+			swiperHeight: '400rpx',
 			hasItinerary: false, // 控制显示状态
 			isPreview: false,
 			loading: true, // 加载状态
@@ -333,6 +379,10 @@ export default {
 			popupTitle: '',
 			popupContent: '<p>正在加载...</p>',
 			isPopupOpen: false,
+			currentPoiMedia: [],
+			isPreview: false,
+			isSwiperAutoplay: true,
+			currentSwiperSlide: 0,
 			headerDragData: { y: 0, time: 0 },
 			contentDragData: { y: 0, time: 0 },
 			isDragging: false,
@@ -695,8 +745,6 @@ export default {
 						remark: activity.remark
 					});
 
-					let hotelOptions = null;
-
 					// 获取活动图片
 					let activityImages = [];
 					if (activity.elementData) {
@@ -729,9 +777,20 @@ export default {
 
 					// 获取具体的活动名称
 					let activityTitle = activity.title || '';
+					let hotelOptions = null;
+					let scenicSpots = null;
+					let activityPoiId = null;
+					let activityMatchStatus = null;
+
 					if (activity.elementData) {
 						// 景点类型：使用景点的具体名称
 						if (activity.elementType === 'scenic' && activity.elementData.scenic_spots && activity.elementData.scenic_spots.length > 0) {
+							scenicSpots = activity.elementData.scenic_spots.map((spot) => ({
+								name: spot.name,
+								linked_poi_id: spot.linked_poi_id || null,
+								match_status: spot.match_status || null
+							}));
+
 							const spotNames = activity.elementData.scenic_spots.map((spot) => spot.name).filter((name) => name);
 							if (spotNames.length > 0) {
 								activityTitle = spotNames.join('、');
@@ -745,33 +804,49 @@ export default {
 							// 1. 获取主酒店名称
 							const primaryName = hotelData.hotelName || hotelData.name;
 							if (primaryName) {
-								hotelNames.push(primaryName);
+								hotelNames.push({
+									name: primaryName,
+									linked_poi_id: activity.linked_poi_id || null, // 主酒店POI在 activity 根级
+									match_status: activity.match_status || null
+								});
 							}
 
 							// 2. 获取备选酒店名称
 							if (hotelData.alternativeHotels && Array.isArray(hotelData.alternativeHotels)) {
 								hotelData.alternativeHotels.forEach((altHotel) => {
 									let altHotelName = '';
+									let altPoiId = null;
+									let altMatchStatus = null;
+
 									// 兼容备选酒店是对象数组或字符串数组
 									if (typeof altHotel === 'object' && altHotel.name) {
 										altHotelName = altHotel.name;
+										altPoiId = altHotel.linked_poi_id || null;
+										altMatchStatus = altHotel.match_status || null;
 									} else if (typeof altHotel === 'string') {
 										altHotelName = altHotel;
 									}
 
 									if (altHotelName) {
-										hotelNames.push(altHotelName);
+										hotelNames.push({
+											name: altHotelName,
+											linked_poi_id: altPoiId,
+											match_status: altMatchStatus
+										});
 									}
 								});
 							}
 
 							if (hotelNames.length > 0) {
 								hotelOptions = hotelNames;
-								activityTitle = hotelNames[0];
+								activityTitle = hotelNames[0].name;
 							}
 						}
 						// 餐厅类型：使用餐厅的具体名称
 						else if (activity.elementType === 'restaurant') {
+							activityPoiId = activity.linked_poi_id || null;
+							activityMatchStatus = activity.match_status || null;
+
 							if (activity.elementData.name) {
 								activityTitle = activity.elementData.name;
 							} else if (activity.elementData.meal_type) {
@@ -807,7 +882,11 @@ export default {
 						images: activityImages,
 						remark: this.formatContent(activity.remark, { emojiBreakStyle: 'newline' }),
 						elementData: activity.elementData || null, // 传递完整的elementData
-						hotelOptions: hotelOptions
+						title: activityTitle,
+						hotelOptions: hotelOptions,
+						scenicSpots: scenicSpots,
+						activityPoiId: activityPoiId,
+						activityMatchStatus: activityMatchStatus
 					};
 				});
 				console.log('[加载日程] 转换完成，活动数量:', this.currentDaySchedule.length);
@@ -2262,16 +2341,121 @@ export default {
 			}
 		},
 
+		// 点击 POI 链接时调用
+		async openPoiPopup(poiId) {
+			if (!poiId) return;
+			this.popupContent = '<div style="padding: 15px;"><p>正在加载...</p></div>';
+			this.currentPoiMedia = [];
+			this.isSwiperAutoplay = true; // 重置 swiper 状态
+			this.currentSwiperSlide = 0;
+			this.swiperHeight = '400rpx';
+
+			await this.fetchPoiDetails(poiId);
+
+			this.$nextTick(() => {
+				if (this.currentPoiMedia.length > 0) {
+					this.updateSwiperHeight(0);
+				}
+
+				// 打开弹窗
+				this.$refs.tipsPopup.open();
+
+				// 检查 slide 0 是否为视频，如果是则在弹窗打开后播放
+				if (this.currentPoiMedia.length > 0) {
+					const firstMedia = this.currentPoiMedia[0];
+					if (this.isVideoFile(firstMedia)) {
+						// 延迟播放，等待弹窗动画结束
+						setTimeout(() => {
+							const videoCtx = uni.createVideoContext('video-0', this);
+							if (videoCtx) {
+								videoCtx.play();
+							}
+						}, 500); // 500ms 延迟
+					}
+				}
+			});
+		},
+
+		// 从云函数获取 POI 详情
+		async fetchPoiDetails(poiId) {
+			try {
+				const poiService = uniCloud.importObject('a-poi-service');
+				const res = await poiService.getPoiDetails(poiId);
+
+				if (res.errCode === 0 && res.data) {
+					this.currentPoiMedia = res.data.media || [];
+					console.log('currentPoiMedia', this.currentPoiMedia);
+					// this.popupTitle = res.data.name; // 用POi名称设置弹窗标题
+					this.popupContent = this.formatPoiToHtml(res.data);
+				} else {
+					throw new Error(res.errMsg || '未找到POI详情');
+				}
+			} catch (e) {
+				console.error('fetchPoiDetails failed:', e);
+				this.popupTitle = '加载失败';
+				this.popupContent = `<p>加载POI详情失败: ${e.message}</p>`;
+			}
+		},
+
+		// 将 POI JSON 数据格式化为 HTML 字符串
+		formatPoiToHtml(poi) {
+			// 我们自己控制 padding，因为 rich-content 已经被 noPadding="true"
+			let html = '<div style="padding: 15px;">';
+
+			// --- 1. Line 1: Category + Name ---
+			html += '<div class="poi-line-1">';
+			if (poi.category_name) {
+				html += `<span class="poi-badge-cat">${poi.category_name}</span>`;
+			}
+			html += `<h1 class="poi-name">${poi.name}</h1>`;
+			html += '</div>';
+
+			// --- 2. Line 2: Region + Address ---
+			html += '<div class="poi-line-2">';
+			if (poi.region_names && poi.region_names.length > 0) {
+				// 后端已反转数组 (父到子)，这里直接使用
+				poi.region_names.forEach((name) => {
+					html += `<span class="poi-badge-region">${name}</span>`;
+				});
+			}
+			if (poi.address_text) {
+				html += `<span class="poi-address">${poi.address_text}</span>`;
+			}
+			html += '</div>';
+
+			// --- 3. Line 3: POI Tags ---
+			if (poi.tag_names && poi.tag_names.length > 0) {
+				html += '<div class="poi-line-3">';
+				poi.tag_names.forEach((name) => {
+					html += `<span class="poi-badge-tag">${name}</span>`;
+				});
+				html += '</div>';
+			}
+
+			// --- 4. 分隔线 ---
+			if ((poi.tag_names && poi.tag_names.length > 0) || (poi.region_names && poi.region_names.length > 0)) {
+				html += '<div class="poi-divider"></div>';
+			}
+
+			// --- 5. Description ---
+			html += '<div class="poi-description">';
+			html += poi.description || '<p>暂无详细介绍</p>';
+			html += '</div>';
+
+			html += '</div>'; // 关闭 padding div
+			return html;
+		},
+
 		// 打开弹窗并触发内容加载
 		async openTipsPopup(type) {
 			// 根据类型设置标题
-			if (type === 'tips') {
-				this.popupTitle = '出行提示';
-			} else if (type === 'precautions') {
-				this.popupTitle = '注意事项';
-			} else if (type === 'must_read') {
-				this.popupTitle = '出行前必读';
-			}
+			// if (type === 'tips') {
+			// 	this.popupTitle = '出行提示';
+			// } else if (type === 'precautions') {
+			// 	this.popupTitle = '注意事项';
+			// } else if (type === 'must_read') {
+			// 	this.popupTitle = '出行前必读';
+			// }
 
 			this.popupContent = '<p>正在加载...</p>';
 			this.$refs.tipsPopup.open();
@@ -2279,9 +2463,142 @@ export default {
 			await this.fetchPopupContent(type);
 		},
 
+		onMediaLoad(e, index, type) {
+			// e.detail 在图片和视频事件中都包含 width 和 height
+			const { width, height } = e.detail;
+
+			if (!width || !height) return;
+
+			// 计算宽高比
+			const ratio = height / width;
+
+			// 根据屏幕宽度 (750rpx) 计算自适应高度
+			// 公式：高度 = 750 * (原高 / 原宽)
+			let calcHeight = 750 * ratio;
+
+			// 【关键】设置最大/最小高度限制
+			// 最小 400rpx (防止横条太细)
+			// 最大 1000rpx (防止竖图超出屏幕可视范围)
+			const minHeight = 400;
+			const maxHeight = 1000;
+
+			if (calcHeight < minHeight) calcHeight = minHeight;
+			if (calcHeight > maxHeight) calcHeight = maxHeight;
+
+			// 将计算出的高度缓存到当前的 media 对象中
+			// 这样下次滑回来时，不用重新计算
+			this.$set(this.currentPoiMedia[index], '_calcHeight', calcHeight + 'rpx');
+
+			// 如果当前正在展示这一页，立即更新 Swiper 高度
+			if (index === this.currentSwiperSlide) {
+				this.swiperHeight = calcHeight + 'rpx';
+			}
+		},
+
+		onSwiperChange(e) {
+			const newIndex = e.detail.current;
+			const oldIndex = this.currentSwiperSlide;
+			this.currentSwiperSlide = newIndex;
+
+			this.updateSwiperHeight(newIndex);
+
+			// 1. 暂停上一个 slide 的视频（如果存在）
+			const oldMedia = this.currentPoiMedia[oldIndex];
+			// (根据你的反馈，使用 extname)
+			if (this.isVideoFile(oldMedia)) {
+				const oldCtx = uni.createVideoContext('video-' + oldIndex, this);
+				if (oldCtx) {
+					oldCtx.pause();
+				}
+			}
+
+			// 2. 自动播放当前 slide 的视频（如果存在）
+			const newMedia = this.currentPoiMedia[newIndex];
+			if (this.isVideoFile(newMedia)) {
+				const newCtx = uni.createVideoContext('video-' + newIndex, this);
+				if (newCtx) {
+					newCtx.play(); // 播放将自动触发 onVideoPlay，暂停 swiper
+				}
+			}
+		},
+
+		updateSwiperHeight(index) {
+			const media = this.currentPoiMedia[index];
+
+			// 1. 如果这个资源已经加载过并计算了高度，直接使用
+			if (media._calcHeight) {
+				this.swiperHeight = media._calcHeight;
+				return;
+			}
+
+			// 2. 如果还没加载完（或者第一次显示），使用默认策略
+			if (this.isVideoFile(media)) {
+				// 视频默认先给个 16:9 的高度，等 loadedmetadata 触发后再自动撑开
+				this.swiperHeight = '422rpx';
+			} else {
+				// 图片默认高度
+				this.swiperHeight = '400rpx';
+			}
+		},
+
+		previewSwiperImage(currentUrl) {
+			// 1. 从媒体列表中筛选出所有的图片
+			const imageUrls = this.currentPoiMedia
+				.filter((file) => this.isImageFile(file)) // 使用我们已有的辅助函数
+				.map((file) => file.url); // 使用编码后的URL
+
+			if (imageUrls.length === 0) {
+				return; // 没有图片可预览
+			}
+
+			// 2. 找到当前点击的图片在列表中的索引
+			const currentIndex = imageUrls.indexOf(currentUrl);
+
+			// 3. 设置 isPreview 标志，防止 onShow 时页面滚动
+			this.isPreview = true;
+
+			// 4. 调用 uni.previewImage
+			uni.previewImage({
+				urls: imageUrls,
+				current: currentIndex,
+				longPressActions: {
+					itemList: ['保存图片'],
+					success: function (data) {
+						console.log('用户长按了图片', data);
+					},
+					fail: function (err) {
+						console.log(err.errMsg);
+					}
+				}
+			});
+		},
+
+		// 视频开始播放时触发
+		onVideoPlay() {
+			console.log('Video playing, pausing swiper.');
+			this.isSwiperAutoplay = false; // 暂停 Swiper 轮播
+		},
+
+		// 视频暂停或结束时触发
+		onVideoPause() {
+			console.log('Video paused/ended, resuming swiper.');
+			this.isSwiperAutoplay = true; // 恢复 Swiper 轮播
+		},
+
 		// 关闭弹窗
 		closeTipsPopup() {
 			this.$refs.tipsPopup.close();
+
+			const currentMedia = this.currentPoiMedia[this.currentSwiperSlide];
+			if (currentMedia && (currentMedia.extname.includes('mp4') || currentMedia.extname.includes('mov'))) {
+				const videoCtx = uni.createVideoContext('video-' + this.currentSwiperSlide, this);
+				if (videoCtx) {
+					videoCtx.pause();
+				}
+			}
+
+			this.currentPoiMedia = [];
+			this.isSwiperAutoplay = true;
 		},
 
 		// 从数据库获取内容
@@ -2291,13 +2608,13 @@ export default {
 				const res = await db.collection('a-region-content').where({ type: type }).get();
 				if (res.result.data && res.result.data.length > 0) {
 					const data = res.result.data[0];
-					this.popupContent = data.content;
+					this.popupContent = `<div style="padding: 15px;">${data.content}</div>`;
 				} else {
-					this.popupContent = '<p>未找到内容</p>';
+					this.popupContent = '<p style="padding: 15px;">未找到内容</p>';
 				}
 			} catch (e) {
 				console.error(e);
-				this.popupContent = '<p>内容加载失败</p>';
+				this.popupContent = '<p style="padding: 15px;">内容加载失败</p>';
 			}
 		},
 
@@ -2377,6 +2694,68 @@ export default {
 				console.log('Swipe down on content top detected, closing popup.');
 				this.closeTipsPopup();
 			}
+		},
+
+		getEncodedUrl(url) {
+			if (!url) return '';
+			try {
+				// 1. 先解码 (如果本身未编码，解码不会有副作用)
+				// 2. 再编码 (确保中文和空格被正确处理)
+				return encodeURI(decodeURI(url));
+			} catch (e) {
+				// 如果解码出错，说明格式极度异常，直接返回原样或做基础编码
+				console.error('URL parsing error:', e);
+				return encodeURI(url);
+			}
+		},
+
+		isImageFile(file) {
+			if (!file) return false;
+			return !this.isVideoFile(file);
+		},
+
+		isVideoFile(file) {
+			if (!file) return false;
+
+			let ext = '';
+
+			if (file.extname) {
+				ext = file.extname.toLowerCase();
+			} else if (file.url) {
+				ext = file.url.split('.').pop().toLowerCase();
+			}
+
+			if (!ext) return false;
+
+			const videoExts = ['mp4', 'mov', 'webm', 'ogg'];
+			return videoExts.includes(ext);
+		},
+
+		handleRichTextLink(e) {
+			console.log('[富文本点击] 捕获链接点击:', e);
+
+			// 获取 href 属性
+			// mp-html 的事件对象通常包含 href，有时在 detail 中，根据版本略有不同，做个兼容
+			const href = e.href || (e.detail && e.detail.href);
+
+			if (href && typeof href === 'string') {
+				// 检查是否以 'poi:' 开头
+				if (href.startsWith('poi:')) {
+					// 提取 ID (去掉前4个字符 'poi:')
+					const poiId = href.substring(4);
+
+					console.log('[富文本点击] 识别到POI链接, ID:', poiId);
+
+					if (poiId) {
+						// 调用已有的打开弹窗方法
+						this.openPoiPopup(poiId);
+					}
+				} else {
+					// 如果是普通 http 链接，可以选择是否允许跳转
+					// uni.navigateTo({ url: ... }) 或者复制链接等
+					console.log('[富文本点击] 普通链接:', href);
+				}
+			}
 		}
 	}
 };
@@ -2436,10 +2815,10 @@ export default {
 	background-color: #f8f9fa;
 	min-height: 100vh;
 }
-.page-container.stop-scrolling {
+/* .page-container.stop-scrolling {
 	height: 100vh;
 	overflow: hidden;
-}
+} */
 
 .content-area {
 	min-height: 100vh;
@@ -2482,11 +2861,11 @@ export default {
 }
 
 .theme-card {
-	display: flex;
+	display: inline-flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
-	padding: 10px 12px;
+	padding: 10px 16px;
 	border-radius: 12px;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 	border: 1px solid #f0f0f0;
@@ -2515,10 +2894,11 @@ export default {
 .theme-card-title {
 	display: flex;
 	flex-direction: column;
-	font-size: 12px;
-	font-weight: 500;
+	font-size: 16px;
+	font-weight: 600;
 	color: #333;
 	line-height: 1.3;
+	letter-spacing: 1px;
 }
 
 .day-tabs {
@@ -2845,6 +3225,157 @@ export default {
 	white-space: pre-wrap;
 	display: block;
 	word-break: break-all;
+}
+
+/* POI 链接样式 */
+.poi-link {
+	color: #007aff; /* iOS 蓝色 */
+	text-decoration: underline;
+	font-weight: 600; /* 让链接稍微加粗以示区别 */
+}
+/* 模拟按下的效果 */
+.poi-link:active {
+	color: #5856d6;
+}
+
+.poi-swiper-native {
+	width: 100%;
+	transition: height 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+	background-color: #000;
+	flex-shrink: 0;
+	margin-bottom: 10px;
+}
+.poi-swiper-image-native {
+	width: 100%;
+	height: 100%;
+	background-color: #f8f9fa;
+}
+
+.poi-swiper-video-native {
+	width: 100%;
+	height: 100%;
+}
+
+/* POI 弹窗内容的样式 */
+/* 使用 :deep() 穿透到 rich-content (mp-html) 组件内部 */
+.tips-popup-content :deep(.poi-line-1) {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap; /* 允许换行 */
+	margin-bottom: 10px;
+}
+.tips-popup-content :deep(.poi-name) {
+	font-size: 20px;
+	font-weight: 600;
+	color: #000;
+	margin: 0; /* 重置 h1 默认边距 */
+	margin-left: 8px;
+	line-height: 1.3;
+}
+.tips-popup-content :deep(.poi-line-2) {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px; /* 徽章和地址之间的间距 */
+	margin-bottom: 10px;
+}
+.tips-popup-content :deep(.poi-address) {
+	font-size: 14px;
+	color: #555;
+	margin-left: 4px; /* 地址和徽章的间距 */
+}
+.tips-popup-content :deep(.poi-line-3) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px; /* 标签之间的间距 */
+}
+.tips-popup-content :deep(.poi-swiper) {
+	width: 100%;
+	height: 200px; /* 轮播图高度 */
+	border-radius: 8px;
+	overflow: hidden;
+	margin-bottom: 15px;
+}
+.tips-popup-content :deep(.poi-swiper-image),
+.tips-popup-content :deep(.poi-swiper-video) {
+	width: 100%;
+	height: 100%;
+}
+.tips-popup-content :deep(video) {
+	/* 确保视频也撑满 */
+	width: 100%;
+	height: 100%;
+}
+.tips-popup-content :deep(.poi-meta) {
+	padding-bottom: 10px;
+	border-bottom: 1px solid #f0f0f0;
+	margin-bottom: 10px;
+}
+.tips-popup-content :deep(.poi-meta-item) {
+	font-size: 14px;
+	line-height: 1.8;
+	display: flex;
+	align-items: flex-start;
+}
+.tips-popup-content :deep(.poi-meta-label) {
+	font-weight: 600;
+	color: #333;
+	flex-shrink: 0;
+	margin-right: 8px;
+	width: 40px; /* 标签对齐 */
+}
+.tips-popup-content :deep(.poi-meta-value) {
+	color: #555;
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 4px; /* 徽章之间的间距 */
+}
+/* 元数据徽章样式 */
+.tips-popup-content :deep(.poi-badge-cat) {
+	background-color: #e0f2fe; /* blue-100 */
+	color: #0c4a6e; /* blue-900 */
+	padding: 3px 8px;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+.tips-popup-content :deep(.poi-badge-region) {
+	background-color: #f0fdf4; /* green-50 */
+	color: #166534; /* green-900 */
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 500;
+}
+.tips-popup-content :deep(.poi-badge-tag) {
+	background-color: #fefce8; /* yellow-50 */
+	color: #854d0e; /* yellow-900 */
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 500;
+}
+.tips-popup-content :deep(.poi-divider) {
+	height: 1px;
+	background-color: #f0f0f0;
+	margin: 15px 0;
+}
+.tips-popup-content :deep(.poi-description) {
+	padding-top: 10px;
+}
+/* 确保富文本中的 P 标签有正确样式 */
+.tips-popup-content :deep(.poi-description p) {
+	font-size: 15px;
+	line-height: 1.7;
+	color: #333;
+	margin-bottom: 12px;
+}
+/* 确保富文本中的图片样式正确 */
+.tips-popup-content :deep(.poi-description img) {
+	max-width: 100%;
+	height: auto;
+	border-radius: 8px;
 }
 
 .tips-popup-container {

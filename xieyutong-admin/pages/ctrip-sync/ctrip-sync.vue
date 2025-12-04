@@ -4,7 +4,8 @@
 			<view class="max-w-7xl mx-auto px-6 py-4">
 				<view class="flex items-center justify-between">
 					<view class="flex items-center">
-						<i class="fas fa-sync-alt text-blue-600 text-2xl mr-4"></i>
+						<button type="default" size="mini" @click="goBack">返回</button>
+						<i class="fas fa-sync-alt text-blue-600 text-2xl mx-4"></i>
 						<view>
 							<text class="text-2xl font-bold text-gray-900" style="font-family: 'Microsoft YaHei', sans-serif">携程商品同步</text>
 							<text class="text-sm text-gray-500 block mt-1">输入商品ID，一键同步商品全部线路</text>
@@ -318,6 +319,9 @@ export default {
 		}
 	},
 	methods: {
+		goBack() {
+			uni.navigateBack();
+		},
 		// 步骤1：获取商品线路ID
 		async getRouteIds() {
 			if (!this.mainProductId.trim()) {

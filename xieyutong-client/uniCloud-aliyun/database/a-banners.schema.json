@@ -1,114 +1,134 @@
 {
-  "bsonType": "object",
-  "required": ["image", "title", "status"],
-  "permission": {
-    "read": true,
-    "create": "'admin' in auth.role || 'super_admin' in auth.role",
-    "update": "'admin' in auth.role || 'super_admin' in auth.role",
-    "delete": "'admin' in auth.role || 'super_admin' in auth.role"
-  },
-  "properties": {
-    "_id": {
-      "description": "ID，系统自动生成"
-    },
-    "image": {
-      "bsonType": "string",
-      "title": "轮播图图片",
-      "description": "轮播图图片URL地址",
-      "trim": "both",
-      "maxLength": 500
-    },
-    "title": {
-      "bsonType": "string",
-      "title": "轮播图标题",
-      "description": "轮播图显示的主标题",
-      "trim": "both",
-      "maxLength": 100
-    },
-    "subtitle": {
-      "bsonType": "string",
-      "title": "轮播图副标题",
-      "description": "轮播图显示的副标题",
-      "trim": "both",
-      "maxLength": 200
-    },
-    "button_name": {
-      "bsonType": "string",
-      "title": "按钮文字",
-      "description": "轮播图上按钮的显示文字",
-      "trim": "both",
-      "maxLength": 20,
-      "defaultValue": "立即探索"
-    },
-    "url": {
-      "bsonType": "string",
-      "title": "链接地址",
-      "description": "跳转链接地址。小程序页面链接格式如：/pages/product/product?id=123；外部网页链接格式如：https://mp.weixin.qq.com/s/xxxxx",
-      "trim": "both",
-      "maxLength": 500
-    },
-    "link_type": {
-      "bsonType": "int",
-      "title": "链接类型",
-      "description": "链接类型：1-小程序页面，2-外部网页（如公众号文章）",
-      "defaultValue": 1,
-      "enum": [1, 2]
-    },
-    "sort_order": {
-      "bsonType": "int",
-      "title": "排序权重",
-      "description": "轮播图排序权重，数值越大排序越靠前",
-      "defaultValue": 0,
-      "minimum": 0
-    },
-    "status": {
-      "bsonType": "int",
-      "title": "状态",
-      "description": "轮播图状态：0-下架，1-上架",
-      "defaultValue": 1,
-      "enum": [0, 1]
-    },
-    "start_date": {
-      "bsonType": "timestamp",
-      "title": "开始时间",
-      "description": "轮播图展示开始时间，为空表示立即开始"
-    },
-    "end_date": {
-      "bsonType": "timestamp",
-      "title": "结束时间",
-      "description": "轮播图展示结束时间，为空表示永久有效"
-    },
-    "remark": {
-      "bsonType": "string",
-      "title": "备注",
-      "description": "轮播图备注信息，仅管理员可见",
-      "trim": "both",
-      "maxLength": 500
-    },
-    "created_by": {
-      "bsonType": "string",
-      "title": "创建人",
-      "description": "创建人ID",
-      "forceDefaultValue": {
-        "$env": "uid"
-      },
-      "foreignKey": "uni-id-users._id"
-    },
-    "created_at": {
-      "bsonType": "timestamp",
-      "title": "创建时间",
-      "description": "创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updated_at": {
-      "bsonType": "timestamp",
-      "title": "更新时间",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    }
-  }
-} 
+	"bsonType": "object",
+	"required": ["image", "status"],
+	"permission": {
+		"read": true,
+		"create": "'admin' in auth.role || 'super_admin' in auth.role",
+		"update": "'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"media_type": {
+			"bsonType": "string",
+			"title": "媒体类型",
+			"description": "资源类型：image-图片，video-视频",
+			"defaultValue": "image",
+			"enum": ["image", "video"]
+		},
+		"object_position": {
+			"bsonType": "object",
+			"title": "样式配置",
+			"description": "存储背景位置和缩放比例",
+			"properties": {
+				"backgroundPosition": {
+					"bsonType": "string"
+				},
+				"backgroundSize": {
+					"bsonType": "string"
+				}
+			}
+		},
+		"image": {
+			"bsonType": "string",
+			"title": "轮播图图片",
+			"description": "轮播图图片URL地址",
+			"trim": "both",
+			"maxLength": 500
+		},
+		"title": {
+			"bsonType": "string",
+			"title": "轮播图标题",
+			"description": "轮播图显示的主标题",
+			"trim": "both",
+			"maxLength": 100
+		},
+		"subtitle": {
+			"bsonType": "string",
+			"title": "轮播图副标题",
+			"description": "轮播图显示的副标题",
+			"trim": "both",
+			"maxLength": 200
+		},
+		"button_name": {
+			"bsonType": "string",
+			"title": "按钮文字",
+			"description": "轮播图上按钮的显示文字",
+			"trim": "both",
+			"maxLength": 20,
+			"defaultValue": "立即探索"
+		},
+		"url": {
+			"bsonType": "string",
+			"title": "链接地址",
+			"description": "跳转链接地址。小程序页面链接格式如：/pages/product/product?id=123；外部网页链接格式如：https://mp.weixin.qq.com/s/xxxxx",
+			"trim": "both",
+			"maxLength": 500
+		},
+		"link_type": {
+			"bsonType": "int",
+			"title": "链接类型",
+			"description": "链接类型：1-小程序页面，2-外部网页（如公众号文章）",
+			"defaultValue": 1,
+			"enum": [1, 2]
+		},
+		"sort_order": {
+			"bsonType": "int",
+			"title": "排序权重",
+			"description": "轮播图排序权重，数值越大排序越靠前",
+			"defaultValue": 0,
+			"minimum": 0
+		},
+		"status": {
+			"bsonType": "int",
+			"title": "状态",
+			"description": "轮播图状态：0-下架，1-上架",
+			"defaultValue": 1,
+			"enum": [0, 1]
+		},
+		"start_date": {
+			"bsonType": "timestamp",
+			"title": "开始时间",
+			"description": "轮播图展示开始时间，为空表示立即开始"
+		},
+		"end_date": {
+			"bsonType": "timestamp",
+			"title": "结束时间",
+			"description": "轮播图展示结束时间，为空表示永久有效"
+		},
+		"remark": {
+			"bsonType": "string",
+			"title": "备注",
+			"description": "轮播图备注信息，仅管理员可见",
+			"trim": "both",
+			"maxLength": 500
+		},
+		"created_by": {
+			"bsonType": "string",
+			"title": "创建人",
+			"description": "创建人ID",
+			"forceDefaultValue": {
+				"$env": "uid"
+			},
+			"foreignKey": "uni-id-users._id"
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"title": "创建时间",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"title": "更新时间",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

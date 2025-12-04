@@ -157,6 +157,11 @@
 							"bsonType": "object",
 							"required": ["elementType", "title"],
 							"properties": {
+								"id": {
+									"bsonType": "string",
+									"title": "活动唯一ID",
+									"description": "用于POI匹配和更新，程序自动生成"
+								},
 								"elementType": {
 									"bsonType": "string",
 									"description": "活动类型",

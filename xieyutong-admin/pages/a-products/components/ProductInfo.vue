@@ -16,7 +16,7 @@
 					<tr class="hover:bg-gray-50 transition-colors">
 						<td class="px-8 py-6 whitespace-nowrap font-semibold text-gray-900 bg-gray-50 w-48">
 							<i class="fas fa-fingerprint text-blue-500 mr-3"></i>
-							携程商品ID
+							商品ID
 						</td>
 						<td class="px-8 py-6">
 							<uni-easyinput v-model="localData.ctrip_id" @input="handleUserInput" :styles="inputStyles" placeholder="请输入携程商品ID" :clearable="true" />

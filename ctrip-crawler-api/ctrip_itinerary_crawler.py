@@ -106,8 +106,8 @@ def parse_ctrip_content_v3(markdown_content, source_url):
     current_day = None
     current_day_data = None
 
-    # for line in lines:
-    #     print(line)
+    for line in lines:
+        print(line)
     
     # 提取行程天数
     for i, line in enumerate(lines):
@@ -310,7 +310,7 @@ def create_assembly_activity(lines):
                         assembly_type = "上门接"
                 
                 # 提取地点列表 - 处理接机/站的情况
-                elif "免费接区域" in current_line:
+                if "免费接区域" in current_line:
                     # 从"免费接区域: "后面提取地点信息
                     location_info = current_line.split(":", 1)[1].strip() if ":" in current_line else ""
                     # 提取地区名称
@@ -789,6 +789,8 @@ def create_hotel_activity(time_str, activity_type, day_title, lines, index):
         if not line:
             i += 1
             continue
+
+        # print(line)
             
         # 如果遇到下一个时间活动，停止
         if re.match(r'^\d{2}:\d{2}\s*[·•]', line) or re.match(r'^(全天|上午|下午|晚上)\s*[·•]', line):
@@ -822,9 +824,11 @@ def create_hotel_activity(time_str, activity_type, day_title, lines, index):
                 
                 hotel_image = image_url
 
-        elif re.match(r'^.+型酒店$', line) and len(line) < 10:
+        elif re.match(r'^[\u4e00-\u9fa5]+型[\u4e00-\u9fa5]+$', line) and len(line) < 10 and '或' not in line:
+            print("hotel_type: ", line)
+            print("hotel_name: ", lines[i - 1])
             hotel_name_raw = lines[i - 1].strip()
-            junk_pattern = r'[^\u4e00-\u9fa5a-zA-Z0-9]+$'
+            junk_pattern = r'[^a-zA-Z0-9\u4e00-\u9fa5\.\-\(\)（）\s]+$'
             hotel_name = re.sub(junk_pattern, '', hotel_name_raw)
 
         # 检查是否是自选酒店提示
@@ -871,8 +875,12 @@ def create_hotel_activity(time_str, activity_type, day_title, lines, index):
         
         # 检查是否是备选酒店
         elif line.startswith("或"):
-            alt_hotel = line.replace("或", "").strip()
-            alternative_hotels.append(alt_hotel)
+            line_content = line.replace("或", "", 1).strip()
+            names = line_content.split("或")
+            for name in names:
+                name = name.strip()
+                if name:
+                    alternative_hotels.append({'name': name})
         
         # 提取酒店备注
         elif len(line) > 20:

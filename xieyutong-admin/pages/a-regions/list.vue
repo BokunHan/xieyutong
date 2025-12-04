@@ -1,12 +1,16 @@
 <template>
-	<view>
+	<view class="px-5 py-3">
 		<view class="uni-header">
 			<view class="uni-group">
-				<view class="uni-title"></view>
+				<button type="default" size="mini" @click="goBack">返回</button>
+				<view class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center ml-5">
+					<i class="fas fa-globe-asia text-white text-xs"></i>
+				</view>
+				<view class="uni-title ml-2">区域管理</view>
 				<view class="uni-sub-title"></view>
 			</view>
 			<view class="uni-group">
-				<input class="uni-search" type="text" v-model="query" @confirm="search" placeholder="请输入搜索内容" />
+				<input class="uni-search" type="text" v-model="query" @confirm="search" placeholder="请输入区域名称或标识" />
 				<button class="uni-button" type="default" size="mini" @click="search">搜索</button>
 				<button class="uni-button" type="default" size="mini" @click="navigateTo('./add')">新增</button>
 				<button class="uni-button" type="default" size="mini" :disabled="!selectedIndexs.length" @click="delTable">批量删除</button>
@@ -25,16 +29,14 @@
 				:orderby="orderby"
 				:getcount="true"
 				:page-size="options.pageSize"
-				:page-current="options.pageCurrent"
-				v-slot:default="{ data, pagination, loading, error, options }"
+				v-slot:default="{ loading, error, options }"
 				:options="options"
 				loadtime="manual"
 				@load="onqueryload">
-				<uni-table ref="table" :loading="loading" :emptyText="error.message || '没有更多数据'" border stripe type="selection" @selection-change="selectionChange">
+				<uni-table ref="table" :loading="loading" :emptyText="error.message || '没有更多数据'" border stripe type="selection" @selection-change="selectionChange" :data="treeData">
 					<uni-tr>
-						<uni-th align="center" filter-type="search" @filter-change="filterChange($event, 'name')" sortable @sort-change="sortChange($event, 'name')">区域名称</uni-th>
+						<uni-th align="left" filter-type="search" @filter-change="filterChange($event, 'name')" sortable @sort-change="sortChange($event, 'name')">区域名称</uni-th>
 						<uni-th align="center" filter-type="search" @filter-change="filterChange($event, 'slug')" sortable @sort-change="sortChange($event, 'slug')">唯一标识</uni-th>
-						<uni-th align="center" sortable @sort-change="sortChange($event, 'parent_id')">父级区域</uni-th>
 						<uni-th align="center" sortable @sort-change="sortChange($event, 'cover_image')">区域封面图</uni-th>
 						<uni-th align="center" filter-type="search" @filter-change="filterChange($event, 'description')" sortable @sort-change="sortChange($event, 'description')">
 							区域简介
@@ -43,10 +45,20 @@
 						<uni-th align="center" sortable @sort-change="sortChange($event, 'status')">启用状态</uni-th>
 						<uni-th align="center">操作</uni-th>
 					</uni-tr>
-					<uni-tr v-for="(item, index) in data" :key="index">
-						<uni-td align="center">{{ item.name }}</uni-td>
+					<uni-tr v-for="(item, index) in treeData" :key="index">
+						<uni-td align="left">
+							<view @click="toggleExpand(item, index)" class="tree-table-row">
+								<text :style="{ 'padding-left': item.level * 20 + 'px' }"></text>
+								<view class="icon-container">
+									<uni-icons v-if="item.children && item.children.length > 0" :type="item.expand ? 'bottom' : 'right'" size="14" color="#999"></uni-icons>
+									<text v-else class="icon-arrow-placeholder"></text>
+								</view>
+
+								<text>{{ item.name }}</text>
+							</view>
+						</uni-td>
+
 						<uni-td align="center">{{ item.slug }}</uni-td>
-						<uni-td align="center">{{ item.parent_id }}</uni-td>
 						<uni-td align="center">
 							<uni-file-picker
 								v-if="item.cover_image && item.cover_image.fileType == 'image'"
@@ -64,20 +76,24 @@
 							<view class="uni-group">
 								<button @click="navigateTo('./edit?id=' + item._id, false)" class="uni-button" size="mini" type="primary">修改</button>
 								<button
-									@click="navigateTo('../a-region-content/list?region_id=' + item._id + '&region_name=' + item.name, false)"
+									@click="navigateTo('../a-regions/a-region-content/list?region_id=' + item._id + '&region_name=' + item.name, false)"
 									class="uni-button green-button"
 									size="mini"
 									type="default">
 									提示管理
 								</button>
+								<!-- <button
+									@click="navigateTo('../a-poi-system/a-poi-database/list?region_id=' + item._id + '&region_name=' + item.name, false)"
+									class="uni-button"
+									size="mini"
+									type="primary">
+									POI管理
+								</button> -->
 								<button @click="confirmDelete(item._id)" class="uni-button" size="mini" type="warn">删除</button>
 							</view>
 						</uni-td>
 					</uni-tr>
 				</uni-table>
-				<view class="uni-pagination-box">
-					<uni-pagination show-icon :page-size="pagination.size" v-model="pagination.current" :total="pagination.count" @change="onPageChanged" />
-				</view>
 			</unicloud-db>
 		</view>
 	</view>
@@ -87,12 +103,9 @@
 import { enumConverter, filterToWhere } from '../../js_sdk/validator/a-regions.js';
 
 const db = uniCloud.database();
-// 表查询配置
-const dbOrderBy = ''; // 排序字段
-const dbSearchFields = []; // 模糊搜索字段，支持模糊搜索的字段列表。联表查询格式: 主表字段名.副表字段名，例如用户表关联角色表 role.role_name
-// 分页配置
-const pageSize = 20;
-const pageCurrent = 1;
+const dbOrderBy = 'order desc';
+const dbSearchFields = ['name', 'slug'];
+const pageSize = 500; // 一次性加载所有数据以构建树
 
 const orderByMapping = {
 	ascending: 'asc',
@@ -110,10 +123,11 @@ export default {
 			selectedIndexs: [],
 			options: {
 				pageSize,
-				pageCurrent,
 				filterData: {},
 				...enumConverter
 			},
+			treeData: [], // 4. 最终渲染的数据
+			rawData: [], // 5. 存储原始列表数据
 			imageStyles: {
 				width: 64,
 				height: 64
@@ -124,7 +138,7 @@ export default {
 				fields: {
 					区域名称: 'name',
 					唯一标识: 'slug',
-					父级区域: 'parent_id',
+					父级区域: 'parent_name', // 导出时使用处理过的父级名称
 					区域封面图: 'cover_image',
 					区域简介: 'description',
 					排序权重: 'order',
@@ -141,9 +155,70 @@ export default {
 		this.$refs.udb.loadData();
 	},
 	methods: {
-		onqueryload(data) {
-			this.exportExcelData = data;
+		goBack() {
+			uni.navigateBack();
 		},
+		onqueryload(data) {
+			this.rawData = data; // 存储原始数据
+			this.exportExcelData = this.buildExcelData(data);
+			this.treeData = this.buildTree(data);
+		},
+
+		buildTree(data, parentId = '', level = 0) {
+			let tree = [];
+			data.forEach((item) => {
+				if (item.parent_id === parentId) {
+					const node = { ...item };
+					node.level = level;
+					node.expand = false; // 默认不展开
+					// 确保 children 属性存在
+					node.children = this.buildTree(data, item._id, level + 1);
+					tree.push(node);
+				}
+			});
+			// 排序
+			tree.sort((a, b) => b.order - a.order);
+			return tree;
+		},
+
+		toggleExpand(item, index) {
+			if (!item.children || !item.children.length) {
+				return;
+			}
+			item.expand = !item.expand;
+			if (item.expand) {
+				// 展开：将子节点插入到当前项的后面
+				this.treeData.splice(index + 1, 0, ...item.children);
+			} else {
+				// 折叠：移除所有子孙节点
+				const childCount = this.getChildCount(item);
+				this.treeData.splice(index + 1, childCount);
+			}
+		},
+
+		getChildCount(item) {
+			let count = 0;
+			if (item.children && item.children.length) {
+				count += item.children.length;
+				if (item.expand) {
+					item.children.forEach((child) => {
+						count += this.getChildCount(child);
+					});
+				}
+			}
+			return count;
+		},
+
+		buildExcelData(data) {
+			const dataMap = new Map(data.map((item) => [item._id, item.name]));
+			return data.map((item) => {
+				return {
+					...item,
+					parent_name: dataMap.get(item.parent_id) || '顶级区域'
+				};
+			});
+		},
+
 		getWhere() {
 			const query = this.query.trim();
 			if (!query) {
@@ -164,15 +239,7 @@ export default {
 				clear
 			});
 		},
-		onPageChanged(e) {
-			this.selectedIndexs.length = 0;
-			this.$refs.table.clearSelection();
-			this.$refs.udb.loadData({
-				current: e.current
-			});
-		},
 		navigateTo(url, clear) {
-			// clear 表示刷新列表时是否清除页码，true 表示刷新并回到列表第 1 页，默认为 true
 			uni.navigateTo({
 				url,
 				events: {
@@ -182,27 +249,36 @@ export default {
 				}
 			});
 		},
-		// 多选处理
 		selectedItems() {
-			var dataList = this.$refs.udb.dataList;
-			return this.selectedIndexs.map((i) => dataList[i]._id);
+			return this.selectedIndexs.map((i) => this.treeData[i]._id);
 		},
-		// 批量删除
 		delTable() {
 			this.$refs.udb.remove(this.selectedItems(), {
 				success: (res) => {
 					this.$refs.table.clearSelection();
+					this.loadData(); // 删除后重新加载
 				}
 			});
 		},
-		// 多选
 		selectionChange(e) {
 			this.selectedIndexs = e.detail.index;
 		},
 		confirmDelete(id) {
+			// 11. 删除时需要考虑子节点
+			const children = this.buildTree(this.rawData, id);
+			if (children.length > 0) {
+				uni.showModal({
+					title: '删除失败',
+					content: '该区域下有子区域，请先删除子区域。',
+					showCancel: false
+				});
+				return;
+			}
+
 			this.$refs.udb.remove(id, {
 				success: (res) => {
 					this.$refs.table.clearSelection();
+					this.loadData(); // 删除后重新加载
 				}
 			});
 		},
@@ -211,7 +287,7 @@ export default {
 			if (e.order) {
 				this.orderby = name + ' ' + orderByMapping[e.order];
 			} else {
-				this.orderby = '';
+				this.orderby = dbOrderBy;
 			}
 			this.$refs.table.clearSelection();
 			this.$nextTick(() => {
@@ -239,19 +315,34 @@ export default {
 
 <style>
 .green-button {
-	background-color: #4caf50 !important; /* 更高级的绿色 */
-	color: #fff !important; /* 确保文字颜色为白色 */
-	border-color: #4caf50 !important; /* 边框颜色与背景色一致 */
+	background-color: #4caf50 !important;
+	color: #fff !important;
+	border-color: #4caf50 !important;
 }
-
-/* 如果需要hover或active状态的颜色变化 */
 .green-button:active {
-	background-color: #43a047 !important; /* 点击时的深绿色 */
+	background-color: #43a047 !important;
 	border-color: #43a047 !important;
 }
-
-/* 如果在非h5端，需要调整hover效果 */
 .green-button:hover {
-	opacity: 0.9; /* 鼠标悬停时的透明度变化 */
+	opacity: 0.9;
+}
+
+.tree-table-row {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	padding: 8px 0;
+}
+.icon-container {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	line-height: 20px; /* 辅助垂直居中 */
+	text-align: center; /* 辅助水平居中 */
+}
+.icon-arrow-placeholder {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
 }
 </style>

@@ -1,5 +1,27 @@
 <template>
 	<view class="album-detail-page">
+		<view class="custom-tabbar">
+			<view class="tab-item" @click="switchTab('/pages/home/home')">
+				<image src="/static/tab_icons/home.png" class="tab-icon" mode="aspectFit" />
+				<text class="tab-text">首页</text>
+			</view>
+
+			<view class="tab-item" @click="switchTab('/pages/itinerary/itinerary')">
+				<image src="/static/tab_icons/itinerary.png" class="tab-icon" mode="aspectFit" />
+				<text class="tab-text">行程</text>
+			</view>
+
+			<view class="tab-item active">
+				<image src="/static/tab_icons/album_cur.png" class="tab-icon" mode="aspectFit" />
+				<text class="tab-text">相册</text>
+			</view>
+
+			<view class="tab-item" @click="switchTab('/pages/profile/profile')">
+				<image src="/static/tab_icons/my.png" class="tab-icon" mode="aspectFit" />
+				<text class="tab-text">我的</text>
+			</view>
+		</view>
+
 		<view class="header-section" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back-button" @click="goBack">
 				<uni-icons type="left" size="22" color="#333"></uni-icons>
@@ -21,18 +43,24 @@
 		</view>
 
 		<scroll-view :scroll-y="true" class="photo-scroll-view">
-			<view class="content-wrapper">
+			<view class="content-wrapper" style="padding-bottom: 160rpx">
 				<view v-if="loading" class="loading-state">
 					<text>加载中...</text>
 				</view>
 
 				<view v-else-if="!currentDayPhotos || currentDayPhotos.length === 0" class="empty-state">
+					<image src="/static/icons/images-gray.svg" class="images-icon" mode="aspectFit" />
 					<text class="empty-text">今天还没有人上传照片哦</text>
 				</view>
 
 				<view v-else class="photo-grid">
-					<view v-for="(photo, index) in filteredPhotos" :key="photo._id" class="photo-item" @click="previewImage(photo)" @longpress="handleLongPress(photo)">
+					<view v-for="(photo, index) in filteredPhotos" :key="photo._id" class="photo-item" @click="previewMediaItem(photo, index)" @longpress="handleLongPress(photo)">
 						<image class="photo-image" :src="photo.compressed_url" mode="aspectFill" />
+
+						<view v-if="photo.media_type === 'video'" class="video-icon-overlay">
+							<uni-icons type="videocam-filled" size="30" color="rgba(255,255,255,0.5)"></uni-icons>
+							<text class="video-duration" v-if="photo.duration">{{ formatDuration(photo.duration) }}</text>
+						</view>
 					</view>
 				</view>
 			</view>
@@ -140,6 +168,17 @@ export default {
 			uni.navigateBack();
 		},
 
+		switchTab(url) {
+			uni.switchTab({
+				url: url,
+				fail: (err) => {
+					console.error('跳转 Tab 失败', err);
+					// 如果目标不是 Tab 页面，尝试用 redirectTo
+					uni.redirectTo({ url });
+				}
+			});
+		},
+
 		async loadUserId() {
 			if (this.loading) {
 				return;
@@ -208,160 +247,118 @@ export default {
 		},
 
 		handleUpload() {
-			uni.chooseImage({
-				count: 9, // 最多选择9张
-				sizeType: ['original', 'compressed'],
+			uni.chooseMedia({
+				count: 9,
+				mediaType: ['image', 'video'], // 同时支持图片和视频
 				sourceType: ['album', 'camera'],
+				maxDuration: 60, // 视频最大时长(秒)
 				success: async (res) => {
-					const maxSize = 10 * 1024 * 1024;
+					const tempFiles = res.tempFiles;
+
+					// 大小校验 (视频放宽到100MB, 图片20MB)
 					const validFiles = [];
-					const invalidFileNames = [];
-					for (const tempFile of res.tempFiles) {
-						if (tempFile.size > maxSize) {
-							// 文件过大，记录下来
-							let fileName = tempFile.path.split('/').pop();
-							invalidFileNames.push(fileName);
+					for (const file of tempFiles) {
+						const limit = file.fileType === 'video' ? 100 * 1024 * 1024 : 20 * 1024 * 1024;
+						if (file.size > limit) {
+							uni.showToast({ title: '部分文件过大已跳过', icon: 'none' });
 						} else {
-							// 文件大小合格，加入待上传列表
-							validFiles.push(tempFile);
+							validFiles.push(file);
 						}
 					}
 
-					if (invalidFileNames.length > 0) {
-						uni.showToast({
-							title: `${invalidFileNames.length}张图片超过10MB，已自动跳过。`,
-							icon: 'none',
-							duration: 3000
-						});
-					}
+					if (validFiles.length === 0) return;
 
-					// 2. 如果没有合格的文件，则直接停止
-					if (validFiles.length === 0) {
-						console.log('[页面] 没有符合大小的文件可上传');
-						return;
-					}
-
-					uni.showLoading({ title: '上传中 0/ ' + validFiles.length });
+					uni.showLoading({ title: '上传中...' });
 					let uploadedCount = 0;
 
-					// 使用 Promise.all 来并行处理所有文件的上传，速度更快
-					const uploadPromises = validFiles.map((tempFile) => {
-						return new Promise(async (resolve, reject) => {
-							try {
-								console.log('[页面] 准备上传临时文件:', tempFile);
+					const uploadPromises = validFiles.map(async (tempFile) => {
+						try {
+							const isVideo = tempFile.fileType === 'video';
+							// 1. 上传主文件 (图片或视频)
+							let extension = tempFile.tempFilePath.split('.').pop();
+							// 简单的后缀处理
+							if (!extension || extension.length > 5) extension = isVideo ? 'mp4' : 'jpg';
 
-								// 0. 解析拍摄时间
-								let shootingTime = Date.now();
-								try {
-									// 将EXIF解析包装在Promise中
-									const exifTime = await new Promise((exifResolve, exifReject) => {
-										// 设置一个超时，防止EXIF库卡死
-										const timer = setTimeout(() => {
-											exifReject(new Error('EXIF parsing timed out'));
-										}, 1500); // 1.5秒超时
+							const randomName = `${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${extension}`;
+							const cloudPath = `album-photos/${this.albumId}/${randomName}`;
 
-										exif.getData(tempFile, function () {
-											clearTimeout(timer);
-											try {
-												const dateTimeOriginal = exif.getTag(this, 'DateTimeOriginal');
-												if (!dateTimeOriginal) {
-													return exifResolve(null);
-												}
+							const uploadRes = await uniCloud.uploadFile({
+								filePath: tempFile.tempFilePath,
+								cloudPath: cloudPath
+							});
 
-												const [datePart, timePart] = dateTimeOriginal.split(' ');
-												const [year, month, day] = datePart.split(':');
-												const [hours, minutes, seconds] = timePart.split(':');
-												const date = new Date(year, month - 1, day, hours, minutes, seconds);
-												const time = date.getTime();
-
-												if (!isNaN(time)) {
-													console.log('[EXIF] 解析到拍摄时间:', date.toLocaleString());
-													exifResolve(time);
-												} else {
-													exifResolve(null);
-												}
-											} catch (e) {
-												// 捕获回调内部错误
-												exifReject(e);
-											}
-										});
-									});
-
-									// 如果成功解析到时间，则使用
-									if (exifTime) {
-										shootingTime = exifTime;
-									}
-								} catch (exifError) {
-									console.warn('[EXIF] 解析失败，使用当前时间:', exifError);
-								}
-
-								// 1. 从临时路径中提取文件后缀名
-								const filePath = tempFile.path;
-								// 使用正则表达式匹配最后一个点之后的内容作为后缀
-								const extensionMatch = /\.([a-zA-Z0-9]+)$/.exec(filePath);
-								const extension = extensionMatch ? extensionMatch[0] : '.jpg'; // 如果没有匹配到，默认为.jpg
-
-								// 2. 生成一个唯一的、随机的文件名 (时间戳 + 8位随机字符串)
-								const randomString = Math.random().toString(36).substring(2, 10);
-								const fileName = `${shootingTime}-${randomString}${extension}`;
-
-								// 3. 构造完整、正确的云端存储路径
-								const cloudPath = `album-photos/${this.albumId}/${fileName}`;
-								console.log('[页面] 生成的 CloudPath:', cloudPath);
-
-								// 4. 上传文件到云存储
-								const uploadResult = await uniCloud.uploadFile({
-									filePath: filePath,
-									cloudPath: cloudPath // 使用新生成的路径
+							// 2. 如果是视频，尝试上传封面图 (chooseMedia 会返回 thumbTempFilePath)
+							let posterUploadRes = null;
+							if (isVideo && tempFile.thumbTempFilePath) {
+								const posterName = `${randomName}_poster.jpg`;
+								posterUploadRes = await uniCloud.uploadFile({
+									filePath: tempFile.thumbTempFilePath,
+									cloudPath: `album-photos/${this.albumId}/${posterName}`
 								});
-								console.log(`[页面] 文件 ${fileName} 上传成功:`, uploadResult);
-
-								// 5. 调用云对象方法，将文件信息写入数据库
-								await albumService.uploadPhotos({
-									albumId: this.albumId,
-									file: uploadResult,
-									shootingTime: shootingTime,
-									is_guide: this.userRole.includes('guide')
-								});
-
-								// 更新上传进度
-								uploadedCount++;
-								uni.showLoading({ title: `上传中 ${uploadedCount}/${res.tempFiles.length}` });
-
-								resolve(); // 当前文件处理成功
-							} catch (e) {
-								console.error('[页面] 单个文件上传处理失败:', e);
-								reject(e); // 当前文件处理失败
 							}
-						});
+
+							// 3. 提交到数据库
+							await albumService.uploadPhotos({
+								albumId: this.albumId,
+								file: uploadRes,
+								posterFile: posterUploadRes, // 传递封面图信息
+								mediaType: isVideo ? 'video' : 'image',
+								duration: tempFile.duration, // 视频时长
+								shootingTime: Date.now(),
+								is_guide: this.userRole.includes('guide')
+							});
+
+							uploadedCount++;
+						} catch (e) {
+							console.error('上传失败', e);
+						}
 					});
 
-					try {
-						// 等待所有文件的上传和数据库写入操作完成
-						await Promise.all(uploadPromises);
-						uni.hideLoading();
-						uni.showToast({
-							title: '上传完成',
-							icon: 'success'
-						});
-						this.fetchAlbumDetails(); // 全部成功后，刷新照片列表
-					} catch (error) {
-						// 如果有任何一个文件上传失败，则进入这里
-						uni.hideLoading();
-						uni.showToast({
-							title: '部分文件上传失败',
-							icon: 'none'
-						});
-					}
+					await Promise.all(uploadPromises);
+					uni.hideLoading();
+					uni.showToast({ title: '上传完成', icon: 'success' });
+					this.fetchAlbumDetails();
 				},
 				fail: (err) => {
-					// 用户取消选择图片时，不弹出提示
-					if (err.errMsg && err.errMsg.indexOf('cancel') === -1) {
-						console.error('[页面] 选择图片失败:', err);
-						uni.showToast({
-							title: '选择图片失败',
-							icon: 'none'
-						});
+					console.log('选择媒体失败', err);
+				}
+			});
+		},
+
+		// 格式化秒数
+		formatDuration(seconds) {
+			if (!seconds) return '';
+			const m = Math.floor(seconds / 60);
+			const s = Math.floor(seconds % 60);
+			return `${m}:${s < 10 ? '0' + s : s}`;
+		},
+
+		// 预览逻辑
+		previewMediaItem(currentPhoto, index) {
+			// 构造 sources 数组，适配 uni.previewMedia
+			const sources = this.filteredPhotos.map((p) => ({
+				url: p.original_url,
+				type: p.media_type === 'video' ? 'video' : 'image',
+				poster: p.media_type === 'video' ? p.video_poster_url || p.compressed_url : ''
+			}));
+
+			// 找到当前点击项在 filteredPhotos 中的真实 index
+			// 注意：这里需要确保 filteredPhotos 和 sources 是一一对应的
+			const currentIndex = this.filteredPhotos.indexOf(currentPhoto);
+
+			uni.previewMedia({
+				sources: sources,
+				current: currentIndex,
+				success: () => {
+					console.log('预览打开成功');
+				},
+				fail: (err) => {
+					console.error('预览打开失败l', err);
+					// 降级处理：如果 previewMedia 不支持（某些旧环境），回退到 previewImage (只看图片)
+					if (currentPhoto.media_type !== 'video') {
+						this.previewImage(currentPhoto);
+					} else {
+						uni.showToast({ title: '当前环境不支持预览视频', icon: 'none' });
 					}
 				}
 			});
@@ -381,7 +378,7 @@ export default {
 					console.log('Preview index changed:', index);
 				},
 				longPressActions: {
-					itemList: ['保存照片', '分享照片', '删除照片'],
+					itemList: ['保存', '分享', '删除'],
 					success: (res) => {
 						// 根据当前索引获取照片信息
 						const currentPhotoOnPreview = this.filteredPhotos[this.currentPreviewIndex];
@@ -403,7 +400,7 @@ export default {
 								// 用户点击了“删除”但不是自己的照片
 								// uni.closePreviewImage(); // 关闭预览
 								uni.showToast({
-									title: '只能删除自己的照片',
+									title: '只能删除自己的文件',
 									icon: 'none'
 								});
 							}
@@ -417,25 +414,29 @@ export default {
 		},
 
 		handleLongPress(photo) {
-			console.log(`[页面] 长按照片: user_id: ${photo.user_id}, currentUid: ${this.currentUid}`);
+			console.log(`[页面] 长按文件: user_id: ${photo.user_id}, currentUid: ${this.currentUid}`);
 			// 动态构建菜单
-			let itemList = ['保存照片', '分享照片'];
+			let itemList = ['保存'];
 			if (photo.user_id === this.currentUid || this.userRole.includes('guide')) {
-				itemList.push('删除照片');
+				itemList.push('删除');
 			}
 
-			console.log(`[页面] 长按照片:`, photo);
+			if (photo.media_type !== 'video') {
+				itemList.push('分享');
+			}
+
+			console.log(`[页面] 长按文件:`, photo);
 			uni.showActionSheet({
 				itemList: itemList,
 				itemColor: '#000000', // 默认颜色
 				success: (res) => {
 					const tappedItem = itemList[res.tapIndex];
 
-					if (tappedItem === '保存照片') {
+					if (tappedItem === '保存') {
 						this.downloadPhoto(photo);
-					} else if (tappedItem === '分享照片') {
+					} else if (tappedItem === '分享') {
 						this.shareSinglePhoto(photo);
-					} else if (tappedItem === '删除照片') {
+					} else if (tappedItem === '删除') {
 						// 此时已确认是自己的照片
 						this.deletePhoto(photo);
 					}
@@ -449,47 +450,59 @@ export default {
 				url: photo.original_url || photo.compressed_url,
 				success: (res) => {
 					if (res.statusCode === 200) {
-						uni.saveImageToPhotosAlbum({
-							filePath: res.tempFilePath,
-							success: () => {
-								uni.hideLoading();
-								uni.showToast({
-									title: '已保存到相册',
-									icon: 'success'
-								});
-							},
-							fail: (saveErr) => {
-								uni.hideLoading();
-								// 检查是否是权限问题
-								if (saveErr.errMsg && (saveErr.errMsg.indexOf('auth') > -1 || saveErr.errMsg.indexOf('Auth') > -1)) {
-									uni.showModal({
-										title: '保存失败',
-										content: '您未授权保存图片到相册，请在小程序设置中打开“相册”权限。',
-										showCancel: true,
-										confirmText: '去设置',
-										success: (modalRes) => {
-											if (modalRes.confirm) {
-												uni.openSetting(); // 打开设置界面
-											}
-										}
-									});
-								} else {
-									console.error('Save image error:', saveErr);
-									uni.showToast({ title: '保存失败', icon: 'none' });
-								}
-							}
-						});
+						if (photo.media_type === 'video') {
+							// 保存视频
+							uni.saveVideoToPhotosAlbum({
+								filePath: res.tempFilePath,
+								success: () => {
+									uni.hideLoading();
+									uni.showToast({ title: '视频已保存', icon: 'success' });
+								},
+								fail: (err) => this.handleSaveFail(err)
+							});
+						} else {
+							// 保存图片
+							uni.saveImageToPhotosAlbum({
+								filePath: res.tempFilePath,
+								success: () => {
+									uni.hideLoading();
+									uni.showToast({ title: '图片已保存', icon: 'success' });
+								},
+								fail: (err) => this.handleSaveFail(err)
+							});
+						}
 					} else {
 						uni.hideLoading();
-						uni.showToast({ title: '图片下载失败', icon: 'none' });
+						uni.showToast({ title: '下载失败', icon: 'none' });
 					}
 				},
 				fail: (err) => {
 					uni.hideLoading();
 					console.error('Download error:', err);
-					uni.showToast({ title: '图片下载失败', icon: 'none' });
+					uni.showToast({ title: '下载失败', icon: 'none' });
 				}
 			});
+		},
+
+		handleSaveFail(err) {
+			uni.hideLoading();
+			// 检查是否是权限问题
+			if (err.errMsg && (err.errMsg.includes('auth') || err.errMsg.includes('deny') || err.errMsg.includes('scope'))) {
+				uni.showModal({
+					title: '保存失败',
+					content: '需要您的相册授权才能保存文件，请去设置中开启。',
+					showCancel: true,
+					confirmText: '去设置',
+					success: (modalRes) => {
+						if (modalRes.confirm) {
+							uni.openSetting();
+						}
+					}
+				});
+			} else {
+				console.error('Save media error:', err);
+				uni.showToast({ title: '保存失败', icon: 'none' });
+			}
 		},
 
 		shareSinglePhoto(photo) {
@@ -511,13 +524,13 @@ export default {
 							}
 						});
 					} else {
-						uni.showToast({ title: '图片下载失败', icon: 'none' });
+						uni.showToast({ title: '文件下载失败', icon: 'none' });
 					}
 				},
 				fail: (err) => {
 					uni.hideLoading();
 					console.error('Download error:', err);
-					uni.showToast({ title: '图片下载失败', icon: 'none' });
+					uni.showToast({ title: '文件下载失败', icon: 'none' });
 				}
 			});
 		},
@@ -525,7 +538,7 @@ export default {
 		deletePhoto(photo) {
 			uni.showModal({
 				title: '确认删除',
-				content: '删除后将无法恢复，确定要删除这张照片吗？',
+				content: '删除后将无法恢复，确定要删除该文件吗？',
 				confirmColor: '#FF0000',
 				success: async (modalRes) => {
 					if (modalRes.confirm) {
@@ -559,6 +572,12 @@ export default {
 </script>
 
 <style scoped>
+.images-icon {
+	width: 140rpx;
+	height: 124rpx;
+	margin-bottom: 60rpx;
+}
+
 .header-section {
 	background-color: #f8f8f8;
 	position: relative;
@@ -739,11 +758,12 @@ export default {
 .fab-container {
 	position: fixed;
 	right: 40rpx;
-	bottom: 120rpx;
+	bottom: calc(160rpx + constant(safe-area-inset-bottom));
+	bottom: calc(160rpx + env(safe-area-inset-bottom));
 	display: flex;
 	flex-direction: column-reverse;
 	align-items: center;
-	z-index: 10;
+	z-index: 1000;
 }
 
 .fab-button {
@@ -768,5 +788,70 @@ export default {
 
 .share-fab {
 	background-color: #1aad19; /* 微信绿 */
+}
+
+/* 自定义 Tabbar 容器 */
+.custom-tabbar {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 100rpx; /* 标准 Tabbar 高度 */
+	background-color: #ffffff;
+	border-top: 1rpx solid #eeeeee;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	z-index: 999;
+	/* 适配 iPhone X 等全面屏底部安全区 */
+	padding-bottom: constant(safe-area-inset-bottom);
+	padding-bottom: env(safe-area-inset-bottom);
+	box-shadow: 0 -1rpx 5rpx rgba(0, 0, 0, 0.02);
+}
+
+.tab-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	height: 100%;
+}
+
+.tab-icon {
+	width: 52rpx; /* 标准图标大小 */
+	height: 52rpx;
+}
+
+.tab-text {
+	font-size: 22rpx;
+	color: #999999;
+}
+
+/* 激活状态样式 */
+.tab-item.active .tab-text {
+	color: #eb6d20; /* 你的主题色 */
+}
+
+.video-icon-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, 0.2); /* 轻微变暗 */
+}
+
+.video-duration {
+	font-size: 20rpx;
+	color: rgba(255, 255, 255, 0.5);
+	margin-top: 4rpx;
+	background-color: rgba(0, 0, 0, 0.5);
+	padding: 2rpx 8rpx;
+	border-radius: 8rpx;
 }
 </style>

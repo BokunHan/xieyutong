@@ -1,0 +1,46 @@
+{
+	"bsonType": "object",
+	"required": ["chat_id", "name"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，自动生成"
+		},
+		"chat_id": {
+			"bsonType": "string",
+			"description": "企业微信群唯一ID",
+			"title": "群ID"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "群名称",
+			"title": "群名称",
+			"trim": "both"
+		},
+		"member_count": {
+			"bsonType": "int",
+			"title": "群人数"
+		},
+		"owner": {
+			"bsonType": "string",
+			"title": "群主"
+		},
+		"account_name": {
+			"bsonType": "string",
+			"title": "归属本地账号",
+			"description": "例如：大号、小号"
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"title": "更新时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

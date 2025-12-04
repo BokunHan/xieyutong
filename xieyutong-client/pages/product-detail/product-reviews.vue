@@ -365,7 +365,7 @@ export default {
 /* 内容区域 */
 .content-area {
 	/* 留出顶部导航栏空间 */
-	padding-top: calc(84rpx + var(--status-bar-height));
+	padding-top: calc(120rpx + var(--status-bar-height));
 	padding-bottom: 20px;
 }
 

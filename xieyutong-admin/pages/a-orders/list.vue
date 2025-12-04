@@ -11,10 +11,10 @@
 						</view>
 					</view>
 					<view class="flex items-center space-x-3">
-						<text class="text-sm text-gray-500">
+						<view class="text-sm text-gray-500">
 							<i class="fas fa-clock mr-1"></i>
 							{{ currentTime }}
-						</text>
+						</view>
 					</view>
 				</view>
 			</view>
@@ -85,7 +85,7 @@ export default {
 	data() {
 		return {
 			currentTab: 0,
-			tabs: ['携程订单快照', '小程序订单'],
+			tabs: ['订单快照', '小程序订单'],
 			currentTime: '',
 			// 模拟统计数据
 			statistics: {

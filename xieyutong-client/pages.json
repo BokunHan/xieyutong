@@ -190,6 +190,12 @@
 			"style": {
 				"navigationBarTitleText": "行程相关提示"
 			}
+		},
+		{
+			"path": "pages/order/bind-confirm",
+			"style": {
+				"navigationBarTitleText": "绑定确认"
+			}
 		}
 	],
 	"globalStyle": {
