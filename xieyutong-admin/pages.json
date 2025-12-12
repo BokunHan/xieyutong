@@ -466,6 +466,12 @@
 			"style": {
 				"navigationBarTitleText": "消息发送队列"
 			}
+		},
+		{
+			"path": "pages/a-task-orders/settings",
+			"style": {
+				"navigationBarTitleText": "任务消息设置"
+			}
 		}
 	],
 	"subPackages": [{

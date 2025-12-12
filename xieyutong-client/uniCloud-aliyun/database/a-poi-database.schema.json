@@ -101,6 +101,12 @@
 					"multiple": true
 				}
 			}
-		}
+		},
+		"route_map_image": {
+			"bsonType": "file",
+			"title": "游览线路图",
+			"description": "POI内部游览线路示意图",
+			"fileMediaType": "image"
+		},
 	}
 }

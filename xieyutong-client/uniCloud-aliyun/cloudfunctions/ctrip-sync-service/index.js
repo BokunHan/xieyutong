@@ -890,7 +890,7 @@ async function syncSnapshot(event, context) {
 	const db = uniCloud.database();
 
 	try {
-		const productRecord = await db.collection('a-products').where(`ctrip_id == '${ctripId}'`).field({ _id: true }).getOne();
+		const productRecord = await db.collection('a-products').where({ ctrip_id: ctripId }).field({ _id: true }).getOne();
 
 		if (productRecord.data.length > 0) {
 			productId = productRecord.data[0]._id;
@@ -1122,7 +1122,7 @@ async function syncFullProduct(event, context) {
 	try {
 		// 首先获取或创建商品记录以获取 product_id
 		let productRecordId = null;
-		const existingProduct = await db.collection('a-products').where(`ctrip_id == '${productId}'`).get();
+		const existingProduct = await db.collection('a-products').where({ ctrip_id: productId }).get();
 
 		if (existingProduct.data.length > 0) {
 			productRecordId = existingProduct.data[0]._id;
@@ -1322,7 +1322,7 @@ async function syncFullProduct(event, context) {
 					productRecordId = productResult.id;
 				} catch (error) {
 					if (error.message && error.message.includes('ctrip_id_unique')) {
-						const retryProduct = await db.collection('a-products').where(`ctrip_id == '${productId}'`).get();
+						const retryProduct = await db.collection('a-products').where({ ctrip_id: productId }).get();
 						if (retryProduct.data.length > 0) {
 							productRecordId = retryProduct.data[0]._id;
 						}
@@ -1396,7 +1396,7 @@ async function syncFullProduct(event, context) {
 			}
 
 			// 保存或更新行程信息
-			const existingItinerary = await db.collection('a-itineraries').where(`ctrip_id == '${productId}'`).get();
+			const existingItinerary = await db.collection('a-itineraries').where({ ctrip_id: productId }).get();
 
 			// 从商品详情补充缺失的字段
 			const fallbackTitle = productDetailData?.title || '';
@@ -1509,7 +1509,7 @@ async function syncFullProduct(event, context) {
 			console.log(`[预订须知同步] 清洗后的预订须知数据字段:`, Object.keys(cleanedBookingData));
 
 			// 保存或更新预订须知
-			const existingBooking = await db.collection('a-booking-policies').where(`ctrip_id == '${productId}'`).get();
+			const existingBooking = await db.collection('a-booking-policies').where({ ctrip_id: productId }).get();
 
 			const bookingRecord = {
 				ctrip_id: productId,

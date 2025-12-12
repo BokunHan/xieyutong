@@ -242,10 +242,11 @@ def process_child_page(tab):
                 continue
 
             action_name = cols[0].text
+            score = cols[1].text
             start_time = cols[4].text
             end_time = cols[5].text
 
-            print(f"  ⚡ [第{i + 1}行] 抓取: {action_name}")
+            print(f"  ⚡ [第{i + 1}行] 抓取: {action_name} | 分数: {score}")
 
             view_btn = cols[6].ele('tag:a')
             if not view_btn: continue
@@ -264,6 +265,7 @@ def process_child_page(tab):
             if template_data['text'] or template_data['image']:
                 results.append({
                     "name": action_name,
+                    "score": score,
                     "start": start_time,
                     "end": end_time,
                     "template": template_data
@@ -343,9 +345,19 @@ def run_crawler(target_order_id=None):
 
     if page:
         try:
+            print("    🖥️ 正在激活浏览器窗口...")
+            # 1. 先把窗口设为“正常大小” (这一步能把最小化的窗口“拉”起来)
+            page.set.window.normal()
+            time.sleep(0.2)
+
+            # 2. 再设为“最大化” (最大化动作通常拥有极高的系统优先级，能强制覆盖其他窗口)
+            page.set.window.max()
+            time.sleep(0.2)
+
+            # 3. 补一个 JS 聚焦，确保输入焦点在页面上
             page.run_js('window.focus()')
-        except:
-            pass
+        except Exception as e:
+            print(f"    ⚠️ 窗口激活尝试受阻 (不影响抓取): {e}")
 
     try:
         print("    🔄 正在刷新页面以获取最新数据...")

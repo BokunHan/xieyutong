@@ -572,18 +572,129 @@ const serviceModule = {
 		if (!taskId) return { errCode: 400, errMsg: '缺少 Task ID' };
 		console.log(`[RPA] 开始智能生成任务: ${taskId}`);
 
+		// ================= 配置区域 =================
+		const CONFIG = {
+			// 白名单：只有标题包含这些关键词的任务才会被处理
+			// 如果想放行所有，可以把这个数组设为 null 或 []，并在下方逻辑中去掉判断
+			allowedKeywords: [
+				'准备清单',
+				'确认交通信息',
+				'酒店周边提醒',
+				'酒店内相关服务披露',
+				'特殊景点',
+				'确认司机/导游',
+				'确认餐饮信息',
+				'高海拔注意事项',
+				'摄影需求',
+				'长者关怀',
+				'目的地建议携带',
+				'明日提醒',
+				'自由活动玩法推荐',
+				'伴手礼/特色商品推荐',
+				'餐厅推荐',
+				'落地关怀'
+			],
+
+			// 内容覆写：精确匹配任务名（或关键词），强制替换为指定文本
+			contentOverrides: {
+				特殊景点:
+					'明天就要出行啦~记得随身携带好身份证件哦~西藏地域辽阔，车程都相对较长，今天可以为自己备一些巧克力士力架或葡萄糖,西藏会消耗较多体力,这些高热量食品能较快的补充人体所需能量。随车多备件厚外套,旅途中上下车风大，温差大，以便及时添衣预防感冒。我们为您们在车上准备了随车备品:氧气罐、矿泉水等,如果有身体不适咱们就及时吸氧哦~',
+				确认餐饮信息: '我们想了解一下您的口味偏好。请问您对饮食有具体的偏好吗？是否有饮食禁忌或特殊要求，如有请告知我们，以便届时师傅可以为您推荐更合适的餐饮选择~'
+			},
+
+			// 自定义新增任务：每次生成都会强制插入这些任务
+			customTasks: [
+				{
+					task_name: '长者关怀',
+					start_time_offset: -5, // 距离行程开始第几天 (0代表出发当天)
+					send_hour: '08:33:25', // 发送时间
+					payload: [
+						{
+							type: 'text',
+							data: '您好，非常感谢您选择我们的西藏私家团出行。注意到咱们这次有长者随行，西藏是一片值得用心感受的净土，同时长辈的健康与安全也是我们的幸挂。由于高原环境的特殊性，为了让您的旅程更加安心、舒适，我们特别为您升级了【长者关怀服务】，并提前与您沟通以下注意事项，感谢您的理解与配合❤️'
+						}
+					]
+				},
+				{
+					task_name: '长者关怀',
+					start_time_offset: -5, // 距离行程开始第几天 (0代表出发当天)
+					send_hour: '08:35:37', // 发送时间
+					payload: [
+						{
+							type: 'text',
+							data: '西藏平均海拔较高，初到者可能出现轻微头痛、气短、乏力等高原反应。我们已为您和家人升级以下配置:\n1.随车升级配置:额外增加血气仪、医用气气瓶，供您随时监测身体状况;\n2.专业团队守护:管家和司机全程关注您的状态，及时提供帮助;\n3.行前健康关怀:行程出发前免费提供血压、血气基础检测。\n【特别说明】高原反应因人而异，我们的工作人员虽具备基础应急能力，但并非专业医护人员。若您感到明显不适，请务必第一时间告知我们，我们将协助您前往就近医疗机构。'
+						}
+					]
+				},
+				{
+					task_name: '长者关怀',
+					start_time_offset: -5, // 距离行程开始第几天 (0代表出发当天)
+					send_hour: '08:36:52', // 发送时间
+					payload: [
+						{
+							type: 'text',
+							data: '如有高血压、心脏病、呼吸系统疾病等基础病，高原环境可能对您的身体提出更高要求。出于对您的负责，我们温馨建议您:\n1.行前确认:请咨询您的医生进行必要体检，确保身体状况适合高原旅行;\n2.提前告知: 若您有特殊健康情况，请务必提前告知我们，将为您提供更细致的服务安排。\n为了让您的旅程更加顺利，我们会在您抵达后，请您与司机师傅共同签署一份安全责任书。以代表您已充分了解高原旅行的注意事项，并便于我们为您提供更周全的保障。'
+						}
+					]
+				}
+			],
+
+			// AI 模板配置：针对不同类型的任务，提供给 AI 的提示词模板
+			aiTemplates: {
+				weather_packing: `任务目标：根据查询到的天气（{weather_data}），为前往“{destination}”的旅客生成出行建议。
+
+=== 输出格式演示 (请严格模仿) ===
+🧥【穿衣建议】
+近期气温较低，早晚温差大。建议您穿着厚外套、羽绒服，内搭毛衣。午后气温回升可适当减衣，注意防感冒。
+🎒【必带物品】
+1. 证件类：身份证、边防证
+2. 生活类：墨镜、防晒霜、润唇膏、保温杯
+3. 电子类：充电宝、相机
+💝【贴心提示】
+西藏海拔高，气候条件特殊，请务必注意保暖，避免感冒。活动时节奏放缓，多喝水，保证休息。祝您在雪域高原拥有一段平安、愉快而难忘的旅程！✨
+
+=== 生成要求 ===
+1. 语气要温暖贴心。
+2. 根据真实天气数据调整建议内容。
+3. 直接输出正文，不要包含任何客套话。`,
+				tomorrow_brief: `任务目标：根据提供的【真实数据】，严格模仿【参考范文】的格式、Emoji使用和语气生成一段明日提醒。
+
+=== 参考范文 (请学习此格式) ===
+明日提醒：
+🌄 【行程】
+拉萨/林芝（机场接机）-雅鲁藏布大峡谷-南迦巴瓦峰观日落-索松村
+🚗 【行车】
+总车程约490公里，行车时间约6-7小时（具体视路况而定）。
+🏞️ 【景点简介】
+江河汇流：观赏尼洋河与雅鲁藏布江交汇的壮丽景象。
+雅鲁藏布大峡谷：游览世界第一大峡谷，体验自然奇观。
+南迦巴瓦峰：十人九不遇羞女峰，有机会观赏日落时分“日照金山”（视天气情况而定）。
+索松村：直面南迦巴瓦峰的绝佳观景村落。
+🏨 【入住信息】
+索松村平措康桑雪里桃花度假庄园 | 海拔约3000米
+🌡️ 【天气与海拔提示】
+明日气温约0-7℃，昼夜温差大，请注意防风保暖。
+
+在旅途中有任何问题都可以与我们联系反馈，我们将第一时间为您们解决~
+=== 参考范文结束 ===
+
+=== 真实数据 (请用这些内容替换范文) ===
+{real_data_content}
+
+=== 生成要求 ===
+1. 必须保留范文中的所有标题（如🌄 【行程】）和Emoji。
+2. 仅替换内容，不要改变结构。
+3. 直接输出结果，不要包含任何客套话。`
+			}
+		};
+		// ===============================================================
+
 		try {
 			// ================= 1. 数据准备 =================
 			const taskRes = await db.collection('a-task-orders').doc(taskId).get();
 			if (!taskRes.data || taskRes.data.length === 0) return { errCode: 404, errMsg: '任务不存在' };
 			const taskOrder = taskRes.data[0];
 			const executeAccount = taskOrder.account_name || '';
-
-			// let groupName = '默认群';
-			// if (taskOrder.target_group_id) {
-			// 	const gRes = await db.collection('a-task-groups').doc(taskOrder.target_group_id).get();
-			// 	if (gRes.data && gRes.data.length > 0) groupName = gRes.data[0].name;
-			// }
 			let groupName = taskOrder.order_id; // 直接搜索订单号来确定目标群
 
 			const snapshotRes = await db.collection('a-snapshots').where({ order_id: taskOrder.order_id }).limit(1).get();
@@ -601,15 +712,170 @@ const serviceModule = {
 
 			const finalQueue = [];
 			const aiRequests = [];
+			const dailyScheduleTracker = {};
 
 			// 计数器 { "Day1_line": 0, "Day1_photo": 0 }
 			let dayCounters = {};
+
+			console.log('flights: ', flights);
+
+			// 调用 a-weather 云函数查询天气
+			let weatherText = '暂无天气数据';
+			try {
+				const wRes = await uniCloud.callFunction({
+					name: 'a-weather',
+					data: {
+						action: 'getWeatherByCityName',
+						cityName: snapshot.destination_city || '拉萨', // 默认城市
+						extensions: 'all' // 获取预报
+					}
+				});
+
+				if (wRes.result.errCode === 0 && wRes.result.data?.casts) {
+					const allCasts = wRes.result.data.casts;
+
+					// 1. 计算出发日期的 YYYY-MM-DD (修正时区，确保是北京时间)
+					const depObj = new Date(snapshot.departure_date);
+					const localDepTime = depObj.getTime() + depObj.getTimezoneOffset() * 60 * 1000;
+					const localDepDate = new Date(localDepTime);
+					const Y = localDepDate.getFullYear();
+					const M = String(localDepDate.getMonth() + 1).padStart(2, '0');
+					const D = String(localDepDate.getDate()).padStart(2, '0');
+					const targetDateStr = `${Y}-${M}-${D}`; // 目标日期：出发当天
+
+					console.log(`[RPA] 正在匹配天气，出发日期: ${targetDateStr}`);
+
+					// 2. 在预报列表中查找出发日期
+					const startIndex = allCasts.findIndex((c) => c.date === targetDateStr);
+
+					let targetCasts = [];
+					if (startIndex !== -1) {
+						// 3. 如果找到了，就从出发日期开始取 3 天
+						targetCasts = allCasts.slice(startIndex, startIndex + 3);
+					} else {
+						// 4. 如果没找到（通常是因为行程在4天以后，或者已经是过去式）
+						// 为了不误导用户，这里可以选择置空，或者记录日志
+						console.warn(`[RPA] 天气预报范围(${allCasts[0].date}~${allCasts[allCasts.length - 1].date}) 未覆盖出发日期 ${targetDateStr}`);
+						// 这种情况下，weatherText 保持默认的 '暂无天气数据' 也许比给错的要好
+						// 或者你可以根据需求决定是否要 fallback 到 allCasts.slice(0, 3)
+					}
+
+					if (targetCasts.length > 0) {
+						const forecasts = targetCasts.map((c) => `${c.date}: ${c.dayweather}, ${c.nighttemp}~${c.daytemp}℃`).join('; ');
+						weatherText = forecasts;
+					}
+				}
+			} catch (e) {
+				console.error('[RPA] 天气查询失败:', e);
+			}
+
+			// 辅助函数：判断是否在白名单
+			const isAllowed = (name) => {
+				if (!CONFIG.allowedKeywords || CONFIG.allowedKeywords.length === 0) return true;
+				return CONFIG.allowedKeywords.some((kw) => name.includes(kw));
+			};
+
+			// 辅助函数：处理文本换行和格式化
+			const processTextPayload = (text) => {
+				if (!text) return text;
+				let processed = cleanText(text);
+
+				// 替换旅行者名称（如果有这个需求，保持现有逻辑）
+				processed = replaceTravelers(processed, travelers);
+
+				// 核心：强制在数字序号前加换行，以应对微信/小程序排版问题
+				// (\d+): 匹配一个或多个数字 (如 1, 2)
+				// (?:\ufe0f)?: 匹配可选的 emoji 变体选择符 (如 2️)
+				// \.: 匹配句点
+				// $1: 替换为换行符 + 捕获到的匹配内容
+				processed = processed.replace(/(\d+(?:\ufe0f)?\.)/g, '\n$1');
+
+				// 清理多余的连续换行
+				processed = processed.replace(/\n\n+/g, '\n\n');
+
+				return processed;
+			};
+
+			const allNamesToQuery = new Set();
+
+			// 收集景点名和酒店名
+			itinerary.forEach((day) => {
+				if (day.activities) {
+					day.activities.forEach((act) => {
+						if (act.elementType === 'scenic' && act.elementData?.scenic_spots) {
+							act.elementData.scenic_spots.forEach((s) => allNamesToQuery.add(s.name));
+						}
+						if (act.elementType === 'hotel' && act.elementData?.hotelName) {
+							allNamesToQuery.add(act.elementData.hotelName);
+						}
+					});
+				}
+			});
+
+			let settingsMap = {}; // 格式: { "KeyName": [item1, item2] }
+			if (allNamesToQuery.size > 0) {
+				const settingRes = await db.collection('a-task-settings').limit(1000).get();
+
+				if (settingRes.data) {
+					settingRes.data.forEach((item) => {
+						if (!settingsMap[item.key]) settingsMap[item.key] = [];
+						settingsMap[item.key].push(item);
+					});
+				}
+			}
+
+			const totalDays = itinerary.length;
+			const existingReminderDays = new Set();
+
+			// 1. 记录已有的明日提醒是第几天
+			rawTasks.forEach((t) => {
+				if (t.name && t.name.includes('明日提醒')) {
+					const dIndex = getTripDayIndex(t.start, snapshot.departure_date);
+					existingReminderDays.add(dIndex);
+				}
+			});
+
+			// 2. 遍历行程 Day 1 到 Day N-1，缺失则补全
+			for (let i = 1; i < totalDays; i++) {
+				if (!existingReminderDays.has(i)) {
+					// 计算日期：出发日期 + (第i天 - 1)
+					const d = new Date(snapshot.departure_date);
+					d.setDate(d.getDate() + (i - 1));
+
+					// 格式化为 YYYY-MM-DD
+					const Y = d.getFullYear();
+					const M = String(d.getMonth() + 1).padStart(2, '0');
+					const D = String(d.getDate()).padStart(2, '0');
+
+					// 生成随机时间 17:00 - 17:59
+					const randMin = Math.floor(Math.random() * 60);
+					const timeStr = `${Y}-${M}-${D} 17:${String(randMin).padStart(2, '0')}:00`;
+
+					console.log(`[RPA] 自动补全 Day ${i} 的明日提醒: ${timeStr}`);
+
+					// 插入到 rawTasks 队列，等待下方循环处理
+					rawTasks.push({
+						name: '明日提醒',
+						start: timeStr,
+						end: timeStr,
+						template: { text: '', image: '' }, // 内容为空，交由后续 AI 生成逻辑填充
+						score: ''
+					});
+				}
+			}
 
 			// ================= 2. 任务遍历与分流 =================
 			for (const task of rawTasks) {
 				if (task.order_context) continue;
 
 				const taskName = task.name || '未命名任务';
+				const taskScore = task.score || '';
+
+				// if (!isAllowed(taskName)) {
+				// 	console.log(`[RPA] 任务 "${taskName}" 不在白名单中，跳过。`);
+				// 	continue;
+				// }
+
 				const startStr = task.start || '';
 				const endStr = task.end || '';
 				const cleanStart = startStr.split('\n')[0];
@@ -623,6 +889,60 @@ const serviceModule = {
 				let templateText = cleanText(task.template?.text || '');
 				let templateImage = task.template?.image || '';
 
+				let finalSendTimeStr = '';
+				const datePart = cleanStart.split(' ')[0]; // 获取 YYYY-MM-DD
+
+				// 逻辑分支 A: 明日提醒 (17:00 - 18:00)
+				if (taskName.includes('明日提醒')) {
+					const h = 17;
+					const m = Math.floor(Math.random() * 60); // 0-59随机分
+					// 简单拼凑时间字符串
+					finalSendTimeStr = `${datePart} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+				}
+				// 逻辑分支 B: 普通任务
+				else {
+					// 解析原始建议时间
+					let targetDate = new Date(cleanStart);
+					let h = targetDate.getHours();
+
+					// 规则(1): 强制修正到 09:00 - 21:00
+					if (h < 9 || h >= 21) {
+						targetDate.setHours(9, 0, 0, 0);
+					}
+
+					// 获取修正后的基础时间戳
+					let baseTimeMs = targetDate.getTime() + Math.floor(Math.random() * 10 * 60 * 1000);
+
+					// 规则(3): 防重叠逻辑
+					// 如果这一天已经安排过任务，新任务必须在 (上个任务时间 + 30分钟) 之后
+					const lastTimeForThisDay = dailyScheduleTracker[datePart];
+					if (lastTimeForThisDay) {
+						const minNextTime = lastTimeForThisDay + Math.floor(Math.random() * 20 * 60 * 1000); // 上个任务 + 30分钟内随机
+						if (baseTimeMs < minNextTime) {
+							baseTimeMs = minNextTime; // 顺延
+						}
+					}
+
+					// 规则(2): 在基准时间后的 30分钟内随机
+					// const randomDelayMs = Math.floor(Math.random() * 30 * 60 * 1000);
+					const finalTimeMs = baseTimeMs;
+
+					// 更新该日期的占用记录
+					dailyScheduleTracker[datePart] = finalTimeMs;
+
+					// 转回格式化字符串
+					const d = new Date(finalTimeMs);
+					// 注意：这里需处理时区，如果服务器是UTC，需+8，如果是本地时间直接转
+					// 简单做法：
+					const Y = d.getFullYear();
+					const M = String(d.getMonth() + 1).padStart(2, '0');
+					const D = String(d.getDate()).padStart(2, '0');
+					const H = String(d.getHours()).padStart(2, '0');
+					const Min = String(d.getMinutes()).padStart(2, '0');
+					const S = String(d.getSeconds()).padStart(2, '0');
+					finalSendTimeStr = `${Y}-${M}-${D} ${H}:${Min}:${S}`;
+				}
+
 				templateText = replaceTravelers(templateText, travelers);
 
 				// 规则：凡是出现 "1." "2️." (含Emoji变体) 等序号，强制在前面加换行
@@ -632,36 +952,194 @@ const serviceModule = {
 
 				let processedPayload = [];
 				let skipTask = false;
+				let isAiTask = false;
 
-				// -----------------------------------------------------
-				// A. DeepSeek 处理类 (4类)
-				// -----------------------------------------------------
-				// 这里的判断逻辑需要覆盖全面，防止任务漏网
-				if (
-					taskName.includes('目的地建议携带') ||
-					(taskName.includes('出行提醒') && !taskName.includes('大交通')) ||
-					taskName.includes('大交通出行提醒') ||
-					taskName.includes('明日提醒')
-				) {
-					// 准备 AI 上下文
-					let aiContext = {};
-					let isAiTask = true;
+				// 判断是否内容覆写
+				let isOverridden = false;
+				for (const [key, value] of Object.entries(CONFIG.contentOverrides)) {
+					if (taskName.includes(key)) {
+						processedPayload.push({ type: 'text', data: value });
+						isOverridden = true;
+						break;
+					}
+				}
 
-					if (taskName.includes('目的地建议携带')) {
+				if (!isOverridden) {
+					// --- 正常逻辑处理 ---
+
+					// 明日提醒 + 路线导览图 (Route Map Image)
+					if (taskName.includes('明日提醒')) {
+						const nextDay = dayIndex + 1;
+						const nextDayData = itinerary.find((d) => d.day === nextDay);
+
+						if (nextDayData) {
+							// 预处理：收集需要查询的 POI ID
+							const poiIdsToFetch = [];
+							const scenicSpotsList = []; // 暂存景点引用，方便后续回填
+							let hotelInfoStr = '待定';
+
+							if (nextDayData.activities) {
+								nextDayData.activities.forEach((act) => {
+									// 收集景点 ID
+									if (act.elementType === 'scenic' && act.elementData?.scenic_spots) {
+										act.elementData.scenic_spots.forEach((spot) => {
+											scenicSpotsList.push(spot); // 存下来引用
+											if (spot.linked_poi_id) {
+												poiIdsToFetch.push(spot.linked_poi_id);
+											}
+										});
+									}
+									// 收集酒店名称
+									if (act.elementType === 'hotel') {
+										hotelInfoStr = act.elementData?.hotelName || '待定';
+									}
+								});
+							}
+
+							// 数据库查询：批量获取 POI 详情 (Description & Image)
+							const poiDetailMap = {}; // ID -> { description, image }
+							if (poiIdsToFetch.length > 0) {
+								try {
+									const dbCmd = db.command;
+									const poiRes = await db
+										.collection('a-poi-database')
+										.where({ _id: dbCmd.in(poiIdsToFetch) })
+										.field({ description: true, route_map_image: true })
+										.get();
+
+									if (poiRes.data) {
+										poiRes.data.forEach((p) => {
+											poiDetailMap[p._id] = p;
+										});
+									}
+								} catch (e) {
+									console.error('[RPA] POI数据库查询失败:', e);
+								}
+							}
+
+							// 构建喂给 AI 的“真实数据”字符串
+							const routeStr = nextDayData.day_title || '无详细路线';
+
+							// 构建景点列表字符串
+							const spotsDescriptionStr = scenicSpotsList
+								.map((spot) => {
+									let desc = '暂无简介';
+									// 如果有关联POI且查到了数据
+									if (spot.linked_poi_id && poiDetailMap[spot.linked_poi_id]) {
+										const rawDesc = poiDetailMap[spot.linked_poi_id].description || '';
+
+										// 【优化】去除 HTML 标签，并限制长度！
+										// 1. 去除 HTML 标签
+										let cleanDesc = rawDesc.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+										// 2. 截断文本 (例如只取前 200 字)，AI 写摘要足够了
+										if (cleanDesc.length > 200) {
+											cleanDesc = cleanDesc.substring(0, 200) + '...';
+										}
+										desc = cleanDesc || '暂无简介';
+									}
+									return `${spot.name}：${desc}`;
+								})
+								.join('\n');
+
+							// --- 查找景点特殊注意事项 ---
+							let specialNoticeStr = '';
+							scenicSpotsList.forEach((spot) => {
+								// 检查景点名是否包含该Key
+								Object.keys(settingsMap).forEach((key) => {
+									if (spot.name.includes(key)) {
+										// 筛选 category 为 'notice' 的数据
+										const notices = settingsMap[key].filter((x) => x.category === 'notice');
+										notices.forEach((n) => {
+											specialNoticeStr += `${n.content}\n`; // 拼接内容
+										});
+									}
+								});
+							});
+
+							weatherText = '暂无天气数据';
+							const strPieces = routeStr.split(' ');
+							const locations = strPieces[0].split('-');
+							const cityName = locations[locations.length - 1];
+							console.log('cityName: ', cityName);
+							try {
+								const wRes = await uniCloud.callFunction({
+									name: 'a-weather',
+									data: {
+										action: 'getWeatherByCityName',
+										cityName: cityName || '拉萨', // 默认城市
+										extensions: 'all' // 获取预报
+									}
+								});
+
+								if (wRes.result.errCode === 0 && wRes.result.data?.casts) {
+									// 提取未来几天天气，简化成字符串喂给 AI
+									const forecasts = wRes.result.data.casts
+										.slice(0, 3)
+										.map((c) => `${c.date}: ${c.dayweather}, ${c.nighttemp}~${c.daytemp}℃`)
+										.join('; ');
+									weatherText = forecasts;
+								}
+							} catch (e) {
+								console.error('[RPA] 天气查询失败:', e);
+							}
+
+							const isLastDayTarget = nextDay === totalDays;
+							const realDataBlock = `
+							        [行程路线]：${routeStr}
+							        [景点详情]：\n${spotsDescriptionStr}
+							        ${isLastDayTarget ? '' : `[入住酒店]：${hotelInfoStr}`}
+							        [天气预报]：${weatherText}
+											${specialNoticeStr ? `[特别提示]：\n${specialNoticeStr}` : ''}
+							        `;
+
+							let promptTemplate = CONFIG.aiTemplates.tomorrow_brief;
+							if (isLastDayTarget) {
+								promptTemplate = promptTemplate.replace(/🏨 【入住信息】[\s\S]*?(?=🌡️)/, '');
+							}
+
+							// 设置 AI 上下文
+							isAiTask = true;
+							aiContext = {
+								type: 'tomorrow_brief',
+								template: promptTemplate,
+								params: {
+									real_data_content: realDataBlock
+								}
+							};
+
+							// 处理图片 (Route Map Image)
+							// 只有当 a-poi-database 里查到了图片，才添加到 payload
+							scenicSpotsList.forEach((spot) => {
+								if (spot.linked_poi_id && poiDetailMap[spot.linked_poi_id]) {
+									const poiData = poiDetailMap[spot.linked_poi_id];
+									if (poiData.route_map_image && poiData.route_map_image.url) {
+										console.log(`[RPA] 发现路线导览图: ${spot.name}`);
+										processedPayload.push({ type: 'image', data: poiData.route_map_image.url });
+									}
+								}
+							});
+						} else {
+							continue; // 没有明天行程，跳过
+						}
+					}
+
+					// 天气查询 + AI 模板
+					else if (taskName.includes('目的地建议携带')) {
+						isAiTask = true;
+
 						aiContext = {
 							type: 'weather_packing',
-							date: getTripDate(departureDate, 1),
-							destination: snapshot.destination_city || '目的地',
-							travelers: travelers.map((t) => ({ gender: t.gender_type, age: t.name }))
+							template: CONFIG.aiTemplates.weather_packing,
+							params: {
+								weather_data: weatherText,
+								destination: snapshot.destination_city || '西藏'
+							}
 						};
-					} else if (taskName.includes('出行提醒') && !taskName.includes('大交通')) {
-						const day1 = itinerary.find((d) => d.day === 1);
-						aiContext = {
-							type: 'trip_start',
-							date: getTripDate(departureDate, 1),
-							first_day_schedule: day1 ? day1.day_title : '自由活动'
-						};
-					} else if (taskName.includes('大交通')) {
+					} else if (taskName.includes('交通信息')) {
+						if (flights.length === 0) continue;
+
+						let finalMsg = task.template?.text || '';
+
 						let targetFlights = flights;
 						if (isReturnPhase) {
 							// 简单判断：过滤掉起飞日期是出发日期的航班，或者取数组后半部分
@@ -678,355 +1156,192 @@ const serviceModule = {
 						} else {
 							targetFlights = flights.slice(0, 1); // 仅去程
 						}
-						aiContext = {
-							type: 'transport',
-							flights: targetFlights,
-							origin: isLastDay ? snapshot.destination_city : '出发地',
-							destination: isLastDay ? '出发地' : snapshot.destination_city
-						};
-					} else if (taskName.includes('明日提醒')) {
-						const nextDay = itinerary.find((d) => d.day === dayIndex + 1);
-						if (!nextDay) {
-							// 如果确实没有明天的行程（比如最后一天），则跳过
-							// 但为了保险，如果是“最后一天提醒”，可能需要不同处理
-							// 这里简单处理：如果找不到下一天行程，就不发明日提醒
-							skipTask = true;
-							isAiTask = false;
-						} else {
-							aiContext = {
-								type: 'tomorrow_brief',
-								date: getTripDate(departureDate, dayIndex + 1),
-								day_num: dayIndex + 1,
-								schedule: nextDay.day_title,
-								highlights: nextDay.day_highlights,
-								hotel: nextDay.activities?.find((a) => a.elementType === 'hotel')?.elementData?.hotelName
-							};
+
+						if (targetFlights.length > 0) {
+							const f = targetFlights[0];
+							finalMsg = finalMsg
+								.replace(/#航班号#/g, f.flight_no || '')
+								.replace(/#起飞时间#/g, f.dep_time || '')
+								.replace(/#落地时间#/g, f.arr_time || '')
+								.replace(/#出发城市#/g, f.route?.split('-')[0] || '')
+								.replace(/#抵达城市#/g, f.route?.split('-')[1] || '')
+								.replace(/#.*?#/g, ''); // 移除所有未替换的占位符
 						}
+						console.log('flights: ', flights);
+						console.log('finalMsg: ', finalMsg);
+
+						if (finalMsg) processedPayload.push({ type: 'text', data: processTextPayload(finalMsg) });
+
+						// aiContext = {
+						// 	type: 'transport',
+						// 	flights: targetFlights,
+						// 	origin: isLastDay ? snapshot.destination_city : '出发地',
+						// 	destination: isLastDay ? '出发地' : snapshot.destination_city
+						// };
+					} else {
+						// 普通任务，直接用原来的模板
+						let templateText = cleanText(task.template?.text || '');
+						templateText = replaceTravelers(templateText, travelers);
+						if (templateText) {
+							const finalContent = processTextPayload(templateText);
+							processedPayload.push({ type: 'text', data: finalContent });
+						}
+						if (task.template?.image) processedPayload.push({ type: 'image', data: task.template.image });
 					}
+				}
 
-					if (!skipTask && isAiTask) {
-						// 兜底 Payload：先把原始模板放进去，status 设为 pending_ai
-						// 这样即使 AI 挂了，后续过滤器也能把它当做普通任务发出去
-						let fallbackPayload = [];
-						if (templateText) fallbackPayload.push({ type: 'text', data: templateText });
-						if (templateImage) fallbackPayload.push({ type: 'image', data: templateImage });
-
+				// 入队逻辑 (AI 任务或普通任务)
+				if (isAiTask) {
+					if (aiContext) {
+						// 添加到 AI 请求列表
 						aiRequests.push({
 							task_idx: finalQueue.length,
 							task_name: taskName,
-							original_text: templateText,
-							context: aiContext
+							context: aiContext // 包含模板和天气数据
 						});
 
+						// 占位
 						finalQueue.push({
 							task_id: taskId,
 							account_name: executeAccount,
 							group_name: groupName,
 							task_name: taskName,
+							score: taskScore,
 							start_time: cleanStart,
 							end_time: cleanEnd,
-							payload: fallbackPayload, // 填入兜底数据
-							status: 'pending_ai',
-							send_time: adjustSendTime(cleanStart, cleanEnd),
+							status: 'manual_stop',
+							payload: processedPayload, // 这里可能已经包含 route_map_image
+							send_time: finalSendTimeStr, // 假设你有这个函数
 							created_at: Date.now()
 						});
 					}
-					continue; // 处理完 AI 类，直接进入下一次循环
+				} else if (processedPayload.length > 0) {
+					finalQueue.push({
+						task_id: taskId,
+						account_name: executeAccount,
+						group_name: groupName,
+						task_name: taskName,
+						score: taskScore,
+						start_time: cleanStart,
+						end_time: cleanEnd,
+						status: 'manual_stop',
+						payload: processedPayload,
+						send_time: finalSendTimeStr,
+						created_at: Date.now()
+					});
+				}
+			}
+
+			// --- 根据酒店生成额外服务/周边消息 ---
+			let prevDayHotel = '';
+
+			// 按天遍历行程
+			for (const dayItem of itinerary) {
+				// 1. 找当天的酒店名称
+				let currentHotel = '';
+				if (dayItem.activities) {
+					const hotelAct = dayItem.activities.find((a) => a.elementType === 'hotel');
+					if (hotelAct && hotelAct.elementData?.hotelName) {
+						currentHotel = hotelAct.elementData.hotelName;
+					}
 				}
 
-				// -----------------------------------------------------
-				// B. 规则处理类 (JS 逻辑)
-				// -----------------------------------------------------
+				// 2. 如果有酒店，且跟昨天不一样 (Day1 prevDayHotel为空，也会触发)
+				if (currentHotel && currentHotel !== prevDayHotel) {
+					let hotelTasks = [];
 
-				if (taskName.includes('伴手礼')) {
-					templateText = templateText.replace(/【.*?】/g, '').trim();
-
-					try {
-						// 1. 计算目标时间：行程结束前2天的 10:00
-						const tripEndDate = new Date(departureDate);
-						tripEndDate.setDate(tripEndDate.getDate() + snapshot.total_days - 2);
-						tripEndDate.setHours(10, 0, 0, 0);
-
-						// 2. 获取任务原始有效范围
-						const originalStart = new Date(cleanStart);
-						const originalEnd = cleanEnd ? new Date(cleanEnd) : new Date('2099-12-31'); // 如果没有截止时间，视为无限长
-
-						// 3. 只有当目标时间在任务有效期内时，才修改
-						if (tripEndDate >= originalStart && tripEndDate <= originalEnd) {
-							const y = tripEndDate.getFullYear();
-							const m = String(tripEndDate.getMonth() + 1).padStart(2, '0');
-							const d = String(tripEndDate.getDate()).padStart(2, '0');
-							cleanStart = `${y}-${m}-${d} 10:00:00`;
+					// 遍历 settingsMap 中所有的 key
+					Object.keys(settingsMap).forEach((key) => {
+						// 如果 行程中的酒店名 包含 配置表里的key (例如 "拉萨瑞吉酒店".includes("瑞吉"))
+						if (currentHotel.includes(key)) {
+							// 将该 key 下的所有任务合并进来
+							hotelTasks = hotelTasks.concat(settingsMap[key]);
 						}
-						// 否则保持 cleanStart 原值（即不改动）
-					} catch (e) {
-						console.error('伴手礼时间计算错误:', e);
-					}
-				}
-
-				if (taskName.includes('随车备品') || taskName.includes('图片展示')) {
-					// 假设模板中有 "示例1... 示例2..."，这里根据季节重写文案
-					// 如果原模板是通用文本，这里可以根据季节强制覆盖或追加提示
-					let supplyMsg = '尊敬的客人您好，车内已为您准备了矿泉水、纸巾和充电线。';
-					if (season === 'winter') {
-						supplyMsg += '冬日寒冷，我们还特意准备了暖宝宝和保温壶，助您温暖出行。';
-					} else if (season === 'summer') {
-						supplyMsg += '夏日炎炎，车内备有防晒喷雾和清凉湿巾，祝您旅途清爽。';
-					} else {
-						supplyMsg += '还准备了舒适的U型枕和当地特色零食，供您途中休憩享用。';
-					}
-					// 替换原有模板内容
-					templateText = supplyMsg;
-				}
-
-				if (taskName.includes('值机提醒')) {
-					if (flights.length > 0) {
-						const f = flights[0]; // 默认取去程
-						templateText = `【值机提醒】\n尊敬的旅客，您的航班 ${f.flight_no} (${f.route}) 现已开放值机。\n起飞时间：${f.dep_time}\n请及时在航司APP或小程序选座。`;
-					}
-				}
-
-				// 规则 3 & 4: 航班信息
-				else if (templateText.includes('航班') || templateText.includes('#航班号#')) {
-					if (flights.length > 0) {
-						const f = flights[0];
-						templateText = templateText
-							.replace(/#航班号#/g, f.flight_no || '')
-							.replace(/#起飞时间#/g, f.dep_time || '')
-							.replace(/#落地时间#/g, f.arr_time || '')
-							.replace(/#出发城市#/g, f.route?.split('-')[0] || '')
-							.replace(/#抵达城市#/g, f.route?.split('-')[1] || '')
-							.replace(/#.*?#/g, '');
-					}
-				}
-
-				// 规则 5: 景区线路图 & 最佳拍摄点 (独立计数器)
-				if (taskName.includes('线路图') || taskName.includes('最佳拍摄点')) {
-					const dayData = itinerary.find((d) => d.day === dayIndex);
-					const scenicSpots = [];
-					if (dayData && dayData.activities) {
-						dayData.activities.forEach((act) => {
-							if (act.elementType === 'scenic' && act.elementData?.scenic_spots) {
-								scenicSpots.push(...act.elementData.scenic_spots);
-							}
-						});
-					}
-
-					// 区分两种任务类型的计数器 Key
-					const typeKey = taskName.includes('线路图') ? 'line' : 'photo';
-					const counterKey = `${dayKey}_${typeKey}`;
-					if (dayCounters[counterKey] === undefined) dayCounters[counterKey] = 0;
-
-					const spotIdx = dayCounters[counterKey];
-
-					if (spotIdx < scenicSpots.length) {
-						const spot = scenicSpots[spotIdx];
-						templateText = `【${spot.name}】${typeKey === 'line' ? '游览线路图' : '最佳拍摄点推荐'} \n您可以参考下图进行游览。`;
-						if (spot.images && spot.images.length > 0) {
-							templateImage = spot.images[0];
-						}
-						dayCounters[counterKey]++; // 计数 +1
-					} else {
-						skipTask = true; // 景点不够分了
-					}
-				}
-
-				if (taskName.includes('告知客人') && (taskName.includes('门票') || taskName.includes('餐厅'))) {
-					let tickets = [];
-					let reserves = [];
-					// 扫描整个行程
-					itinerary.forEach((d) => {
-						d.activities?.forEach((a) => {
-							if (a.elementType === 'scenic' && a.elementData?.scenic_spots) {
-								a.elementData.scenic_spots.forEach((s) => {
-									if (s.ticket_included) tickets.push(`${s.name}`);
-								});
-							}
-							if (a.elementType === 'restaurant' && a.elementData) {
-								let rName = a.elementData.name;
-								const rRemark = a.elementData.remark || '';
-
-								// 忽略通用名称，尝试从备注提取
-								if (!rName || ['午餐', '晚餐', '早餐', '正餐'].includes(rName)) {
-									const lines = rRemark.split(/[\n\r]+/);
-									const targetLine = lines.find((l) => l.includes('前往餐厅') || l.includes('用餐地点'));
-
-									if (targetLine) {
-										// 提取冒号后的内容： "前往餐厅：平措康桑...·观景餐厅"
-										const parts = targetLine.split(/[：:]/);
-										if (parts.length > 1) {
-											rName = parts[1].trim();
-										}
-									} else {
-										rName = null; // 没名字就不显示了，避免显示“午餐”
-									}
-								}
-								// 如果是“自理”，跳过
-								if (rName && rName.includes('自理')) return;
-
-								if (rName) {
-									reserves.push(`${d.day}日${a.elementData.meal_type || '用餐'}：${rName}`);
-								}
-							}
-						});
 					});
 
-					let msg = '';
-					if (tickets.length) msg += `🎫 已为您预约门票：${tickets.join('、')}\n`;
-					if (reserves.length) msg += `🍽️ 已为您预留餐厅：${reserves.join('、')}\n`;
+					// 如果匹配到了任务
+					if (hotelTasks.length > 0) {
+						// 4. 计算时间：取当天已安排的最后一条消息时间，往后顺延
+						// 计算日期字符串 YYYY-MM-DD
+						const currentDepDate = new Date(departureDate);
+						currentDepDate.setDate(currentDepDate.getDate() + (dayItem.day - 1));
+						const dateKey = currentDepDate.toISOString().split('T')[0];
 
-					if (!msg) skipTask = true; // 没东西就不发
-					else templateText = msg + '请您届时出示证件使用。';
-				}
+						// 获取当天最后的时间戳，如果没有则默认 20:00
+						let lastTimeMs = dailyScheduleTracker[dateKey];
+						if (!lastTimeMs) {
+							// 如果当天完全没任务，设为 20:00
+							const d = new Date(currentDepDate);
+							d.setHours(20, 0, 0, 0);
+							lastTimeMs = d.getTime();
+						}
 
-				// 规则 6: 餐厅预约
-				else if (taskName.includes('餐厅预定')) {
-					templateText = templateText.replace(/预约凭证/g, '');
-					const dayData = itinerary.find((d) => d.day === dayIndex);
-					const restaurant = dayData?.activities?.find((a) => a.elementType === 'restaurant');
+						// 5. 生成任务
+						hotelTasks.forEach((setting, idx) => {
+							// 每条消息间隔 5 分钟
+							const sendTimeMs = lastTimeMs + (idx + 1) * 5 * 60 * 1000;
 
-					if (restaurant && restaurant.elementData) {
-						const rName = restaurant.elementData.name || '当地精选餐厅';
-						const rAddr = restaurant.elementData.address || restaurant.elementData.location || '（详询导游）';
-						templateText += `\n\n🍽️ 推荐餐厅：${rName}\n📍 地址：${rAddr}`;
+							// 更新 tracker，防止后续其他逻辑重叠
+							dailyScheduleTracker[dateKey] = sendTimeMs;
+
+							// 格式化时间
+							const d = new Date(sendTimeMs);
+							// 简单格式化
+							const Y = d.getFullYear();
+							const M = String(d.getMonth() + 1).padStart(2, '0');
+							const D = String(d.getDate()).padStart(2, '0');
+							const H = String(d.getHours()).padStart(2, '0');
+							const Min = String(d.getMinutes()).padStart(2, '0');
+							const S = String(d.getSeconds()).padStart(2, '0');
+							const sendTimeStr = `${Y}-${M}-${D} ${H}:${Min}:${S}`;
+
+							// 推入队列
+							finalQueue.push({
+								task_id: taskId,
+								account_name: executeAccount,
+								group_name: groupName,
+								task_name: `酒店服务-${setting.category}`, // 任务名方便识别
+								start_time: sendTimeStr,
+								end_time: '',
+								status: 'manual_stop',
+								payload: [{ type: 'text', data: setting.content }],
+								send_time: sendTimeStr,
+								created_at: Date.now()
+							});
+						});
 					}
 				}
 
-				// 规则 7: 人群构成
-				if (taskName.includes('确认人群构成')) {
+				// 更新昨天的酒店
+				if (currentHotel) prevDayHotel = currentHotel;
+			}
+
+			// ================= 插入自定义任务 =================
+			for (const customTask of CONFIG.customTasks) {
+				let isAllowed = false;
+				if (customTask.task_name.includes('长者关怀')) {
 					const { hasElderly, hasChild } = getTravelerComposition(travelers);
-					if (hasElderly) {
-						templateText = '您好，关注到您此次出行包含长者，我们在行程安排中会特别注意舒适度。如有特别的健康注意事项或饮食需求，请随时告知我们。';
-					} else if (hasChild) {
-						templateText = '您好，关注到此次出行含儿童，请问小朋友大概几岁？行程安排中需要特别注意什么吗？';
-					} else {
-						skipTask = true;
-					}
+					if (hasElderly) isAllowed = true;
 				}
-				if (taskName.includes('轮椅') && !getTravelerComposition(travelers).hasElderly) skipTask = true;
-				if (taskName.includes('儿童座椅') && !getTravelerComposition(travelers).hasChild) skipTask = true;
 
-				// 确认交通信息
-				if (taskName.includes('确认交通信息')) {
-					let msg = '您好，跟您确认此次行程的大交通信息：\n';
-					flights.forEach((f, i) => {
-						// 简单判定：如果是 2 趟航班，默认 0去 1回
-						const prefix = i === 0 ? '✈️去程' : '✈️返程';
-						msg += `${prefix}：${f.flight_no} ${f.dep_time} ${f.route}\n`;
+				if (isAllowed) {
+					// 计算发送日期
+					const targetDate = new Date(departureDate);
+					targetDate.setDate(targetDate.getDate() + customTask.start_time_offset);
+					const sendTimeStr = `${targetDate.toISOString().split('T')[0]} ${customTask.send_hour}`;
+
+					finalQueue.push({
+						task_id: taskId,
+						account_name: executeAccount,
+						group_name: groupName,
+						task_name: customTask.task_name,
+						start_time: sendTimeStr,
+						end_time: '',
+						status: 'manual_stop',
+						payload: customTask.payload,
+						send_time: sendTimeStr,
+						created_at: Date.now()
 					});
-					msg += '如有托运行李，请注意航司额度规定。';
-					templateText = msg;
-				}
-
-				// 规则 8: 确认酒店
-				if (taskName.includes('确认酒店') || taskName.includes('房型')) {
-					let hotelMsg = '为您确认行程中的酒店安排：\n';
-					let hasHotel = false;
-					itinerary.forEach((d) => {
-						const h = d.activities?.find((a) => a.elementType === 'hotel');
-						if (h && h.elementData) {
-							hotelMsg += `📅 Day${d.day}: ${h.elementData.hotelName || '待定'}\n`;
-							hasHotel = true;
-						}
-					});
-					if (hasHotel) {
-						templateText = hotelMsg + '\n如有特殊房型需求（如大床/双床），请提前告知。';
-					} else {
-						templateText = '行程中未包含酒店住宿。';
-					}
-				}
-
-				// 确认特殊景点
-				if (taskName.includes('确认行程-特殊景点') || taskName.includes('特殊景点')) {
-					const keywords = ['徒步', '登山', '海拔4000', '珠峰', '冰川', '稻城亚丁'];
-					let foundInfo = '';
-					// 简单全文搜索
-					const jsonStr = JSON.stringify(itinerary);
-					for (let kw of keywords) {
-						if (jsonStr.includes(kw)) {
-							foundInfo = kw;
-							break;
-						}
-					}
-					if (foundInfo) {
-						templateText = `您好，这次行程包含${foundInfo}相关活动，对体力有一定要求。建议您出行前保持良好休息，量力而行，避免剧烈运动。`;
-					} else {
-						skipTask = true; // 没找到特殊景点就不发
-					}
-				} else if (taskName.includes('登山杖')) {
-					const allText = JSON.stringify(itinerary);
-					const needHike = allText.includes('徒步') || allText.includes('爬山') || allText.includes('高海拔');
-					if (!needHike) skipTask = true;
-				}
-
-				// 规则 10: 餐饮信息
-				if (taskName.includes('确认餐饮信息')) {
-					// 收集所有餐饮活动的 remark，分析风格
-					let styles = new Set();
-					itinerary.forEach((d) =>
-						d.activities?.forEach((a) => {
-							if (a.elementType === 'restaurant') {
-								const remark = a.elementData?.remark || '';
-								if (remark.includes('自助')) styles.add('自助餐');
-								if (remark.includes('火锅')) styles.add('特色火锅');
-								if (remark.includes('藏餐') || remark.includes('藏式')) styles.add('地道藏餐');
-								if (remark.includes('西餐')) styles.add('西餐');
-							}
-						})
-					);
-
-					const styleStr = styles.size > 0 ? Array.from(styles).join('、') : '精选中式团餐';
-
-					// 替换模板中的占位符
-					if (templateText.includes('[')) {
-						templateText = templateText.replace(/\[.*?\]/g, styleStr);
-					} else {
-						// 如果没占位符，就追加
-						templateText += `\n餐食类型：${mealsStr}`;
-					}
-				} else if (taskName.includes('餐饮信息')) {
-					const meals = [];
-					itinerary.forEach((d) => {
-						d.activities?.forEach((a) => {
-							if (a.elementType === 'restaurant') meals.push(a.elementData?.meal_type || '正餐');
-						});
-					});
-					templateText += `\n本次行程包含：${Array.from(new Set(meals)).join('、')}`;
-				}
-
-				// 规则 11: 订单基本信息
-				if (taskName.includes('订单基本信息')) {
-					const depStr = getTripDate(departureDate, 1);
-					templateText = templateText
-						// 先移除底部的列表（如果存在）
-						.split('----------------')[0]
-						.trim()
-						// 精确替换
-						.replace(/出行人数：\s*/, `\n出行人数：${travelers.length}人\n`)
-						.replace(/出行日期：\s*/, `出行日期：${depStr}\n`)
-						.replace(/往返天数：\s*/, `往返天数：${snapshot.total_days}天\n`)
-						.replace(/基本行程：\s*/, `基本行程：${snapshot.title || '定制西藏游'}\n`);
-				}
-
-				// 构建 Payload 并入队
-				if (!skipTask) {
-					if (templateText) processedPayload.push({ type: 'text', data: templateText });
-					if (templateImage) processedPayload.push({ type: 'image', data: templateImage });
-
-					if (processedPayload.length > 0) {
-						finalQueue.push({
-							task_id: taskId,
-							account_name: executeAccount,
-							group_name: groupName,
-							task_name: taskName,
-							start_time: cleanStart,
-							end_time: cleanEnd,
-							payload: processedPayload,
-							status: 'pending',
-							send_time: adjustSendTime(cleanStart, cleanEnd),
-							created_at: Date.now()
-						});
-					}
 				}
 			}
 
@@ -1034,58 +1349,91 @@ const serviceModule = {
 			if (aiRequests.length > 0) {
 				console.log(`[RPA] 正在请求 DeepSeek 处理 ${aiRequests.length} 个任务...`);
 
-				const systemPrompt = `你是一个专业的旅行管家。请根据用户提供的任务列表（包含类型、日期、上下文数据），直接生成对应的回复内容。
-						要求：
-						1. 语气亲切、专业。
-						2. 必须基于提供的 context 数据，不要编造。
-						3. "天气建议"：需根据目的地和日期预估天气，给出穿衣指南。
-						4. "明日提醒"：用生动的语言预告明天的行程亮点和酒店。
-						5. 返回 JSON 数组：[{ "id": 任务序号, "text": "生成的文案" }, ...]`;
+				const systemPrompt = `你是一个专业的旅行管家。用户会发送一组任务，每个任务包含 template (模板) 和 params (变量)。请完全按照 "template" 中的指示，提取 "params" 中的数据，生成符合范文格式的文案。如果 params 中包含 "real_data_content"，请用它替换模板中的对应占位符。 要求：
+                1. 直接返回生成的内容字符串。
+                2. 不要包含任何 JSON 格式（如 {"text":...}）。
+                3. 不要包含 Markdown 代码块标记（如 \`\`\` ）。
+                4. 保持模板中的 Emoji 和换行格式。`;
 
-				const aiPayload = {
-					model: 'deepseek-chat',
-					messages: [
-						{ role: 'system', content: systemPrompt },
-						{ role: 'user', content: JSON.stringify(aiRequests.map((r, i) => ({ id: i, type: r.task_name, context: r.context }))) }
-					],
-					response_format: { type: 'json_object' }
+				// 定义单个请求函数
+				const requestSingleAi = async (reqItem) => {
+					try {
+						const payload = {
+							model: 'deepseek-chat',
+							messages: [
+								{ role: 'system', content: systemPrompt },
+								// 单个请求不再需要复杂的 JSON 结构，直接把 prompt 拼好给 AI，效果更稳定
+								{
+									role: 'user',
+									content: `模板：\n${reqItem.context.template}\n\n真实数据：\n${JSON.stringify(reqItem.context.params)}`
+								}
+							],
+							temperature: 0.7,
+							stream: false
+						};
+
+						const res = await uniCloud.httpclient.request(DEEPSEEK_API_URL, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								Authorization: `Bearer ${DEEPSEEK_API_KEY}`
+							},
+							timeout: 60000, // 单个请求 60秒超时
+							dataType: 'json',
+							data: payload
+						});
+
+						// 解析结果
+						if (res.data && res.data.choices && res.data.choices[0]) {
+							let rawContent = res.data.choices[0].message.content;
+
+							// 深度清洗，防止 AI 还是带了格式
+							// 去除可能的 Markdown 标记
+							rawContent = rawContent.replace(/^```(json|text)?\n?/g, '').replace(/```$/g, '');
+							// 如果 AI 还是不听话返回了 JSON 字符串（以 { 或 [ 开头），尝试解析提取
+							if (rawContent.trim().startsWith('{') || rawContent.trim().startsWith('[')) {
+								try {
+									const parsed = JSON.parse(rawContent);
+									// 尝试提取可能的字段，如果解析出是数组且有 text，取第一个
+									if (Array.isArray(parsed) && parsed[0]?.text) rawContent = parsed[0].text;
+									else if (parsed.text) rawContent = parsed.text;
+									// 如果解析出来是纯对象但没 text 字段，可能整个对象就是内容，暂不处理
+								} catch (e) {
+									// 解析失败，说明可能只是普通的文本开头碰巧是符号，忽略
+								}
+							}
+
+							return {
+								id: reqItem.task_idx,
+								text: rawContent.trim(), // 去除首尾空白
+								success: true
+							};
+						} else {
+							throw new Error('API返回结构异常');
+						}
+					} catch (err) {
+						console.error(`[RPA] 任务 ${reqItem.task_name} AI 生成失败:`, err.message);
+						return { id: reqItem.task_idx, success: false };
+					}
 				};
 
-				// 请求 AI
-				const aiResponse = await uniCloud.httpclient.request(DEEPSEEK_API_URL, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DEEPSEEK_API_KEY}` },
-					timeout: 120000,
-					dataType: 'json',
-					data: aiPayload
-				});
+				const promises = aiRequests.map((item) => requestSingleAi(item));
 
-				// 处理响应 (含 Buffer 修复)
-				let aiResultList = [];
-				try {
-					let body = aiResponse.data;
-					if (Buffer.isBuffer(body)) body = JSON.parse(body.toString('utf-8'));
-					else if (typeof body === 'object' && body.type === 'Buffer') {
-						body = JSON.parse(Buffer.from(body.data).toString('utf-8'));
-					}
-
-					if (body.choices && body.choices[0]) {
-						const content = body.choices[0].message.content;
-						const parsed = JSON.parse(content.replace(/```json/g, '').replace(/```/g, ''));
-						aiResultList = Array.isArray(parsed) ? parsed : parsed.results || parsed.list || [];
-					}
-				} catch (e) {
-					console.error('[RPA] AI 解析失败，将使用兜底文案:', e);
-				}
+				// 等待所有请求完成 (无论成功失败)
+				const results = await Promise.all(promises);
 
 				// 回填数据
-				aiResultList.forEach((res) => {
-					const req = aiRequests[res.id];
-					if (req && res.text) {
-						const qItem = finalQueue[req.task_idx];
-						const images = qItem.payload.filter((p) => p.type === 'image');
-						qItem.payload = [{ type: 'text', data: res.text }, ...images];
-						qItem.status = 'pending'; // 明确激活
+				results.forEach((res) => {
+					if (res.success && res.text) {
+						const qItem = finalQueue[res.id];
+						// 清洗一下 AI 可能返回的 ```markdown 标记
+						let cleanText = res.text.replace(/^```.*?(\n|$)/g, '').replace(/```$/g, '');
+
+						qItem.payload.unshift({ type: 'text', data: cleanText });
+						qItem.status = 'manual_stop'; // 生成成功，设为暂停待人工确认
+					} else {
+						// 失败的任务，状态保持 manual_stop 或 pending，内容为空，人工去补或者重试
+						console.log(`[RPA] 索引 ${res.id} 回填跳过 (AI失败)`);
 					}
 				});
 			}

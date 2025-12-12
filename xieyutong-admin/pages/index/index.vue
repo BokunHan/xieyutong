@@ -16,7 +16,7 @@
 		<!-- 主内容区 -->
 		<view class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 			<!-- 私域用户池模块 -->
-			<view class="bg-white rounded-lg shadow-md mb-8">
+			<!-- <view class="bg-white rounded-lg shadow-md mb-8">
 				<view class="px-6 py-4 border-b border-gray-200">
 					<view class="flex items-center">
 						<i class="fas fa-users text-indigo-600 text-lg mr-3"></i>
@@ -39,10 +39,10 @@
 						</view>
 					</view>
 				</view>
-			</view>
+			</view> -->
 
 			<!-- 优惠券营销模块 -->
-			<view class="bg-white rounded-lg shadow-md mb-8">
+			<!-- <view class="bg-white rounded-lg shadow-md mb-8">
 				<view class="px-6 py-4 border-b border-gray-200">
 					<view class="flex items-center">
 						<i class="fas fa-ticket-alt text-orange-600 text-lg mr-3"></i>
@@ -73,10 +73,10 @@
 						</view>
 					</view>
 				</view>
-			</view>
+			</view> -->
 
 			<!-- 转介绍裂变模块 -->
-			<view class="bg-white rounded-lg shadow-md mb-8">
+			<!-- <view class="bg-white rounded-lg shadow-md mb-8">
 				<view class="px-6 py-4 border-b border-gray-200">
 					<view class="flex items-center">
 						<i class="fas fa-share-alt text-teal-600 text-lg mr-3"></i>
@@ -111,10 +111,10 @@
 						</view>
 					</view>
 				</view>
-			</view>
+			</view> -->
 
 			<!-- 下单转化模块 -->
-			<view class="bg-white rounded-lg shadow-md mb-8">
+			<!-- <view class="bg-white rounded-lg shadow-md mb-8">
 				<view class="px-6 py-4 border-b border-gray-200">
 					<view class="flex items-center">
 						<i class="fas fa-shopping-cart text-rose-600 text-lg mr-3"></i>
@@ -149,7 +149,7 @@
 						</view>
 					</view>
 				</view>
-			</view>
+			</view> -->
 
 			<!-- 快捷操作区 -->
 			<view class="bg-white rounded-lg shadow-md">

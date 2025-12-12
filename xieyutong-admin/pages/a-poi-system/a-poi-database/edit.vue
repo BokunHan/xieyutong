@@ -64,6 +64,9 @@
 			<uni-forms-item name="media" label="媒体库(图/视频)">
 				<uni-file-picker v-model="formData.media" file-mediatype="all" return-type="array" :limit="20" mode="grid"></uni-file-picker>
 			</uni-forms-item>
+			<uni-forms-item name="route_map_image" label="游览线路图">
+				<uni-file-picker v-model="formData.route_map_image" file-mediatype="image" return-type="object" :limit="1" title="最多选择1张图片"></uni-file-picker>
+			</uni-forms-item>
 
 			<uni-forms-item name="description" label="富文本介绍">
 				<view class="wangeditor-container">
@@ -108,6 +111,7 @@ export default {
 			aliases: [],
 			tags: [],
 			address_text: '',
+			route_map_image: null,
 			media: [],
 			description: ''
 		};
@@ -199,6 +203,11 @@ export default {
 						res.region_ids = [];
 					}
 
+					const imgVal = this.formData.route_map_image;
+					if (!imgVal || (typeof imgVal === 'object' && Object.keys(imgVal).length === 0)) {
+						res.route_map_image = null;
+					}
+
 					res.aliases = this.formData.aliases;
 					return this.submitForm(res);
 				})
@@ -244,7 +253,7 @@ export default {
 			});
 			db.collection(dbCollectionName)
 				.doc(id)
-				.field('name,category_id,region_ids,aliases,tags,address_text,media,description')
+				.field('name,category_id,region_ids,aliases,tags,address_text,media,description,route_map_image')
 				.get()
 				.then((res) => {
 					const data = res.result.data[0];

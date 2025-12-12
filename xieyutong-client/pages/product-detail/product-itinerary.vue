@@ -90,7 +90,7 @@
 							<view class="timeline-desc">{{ item.description }}</view>
 							<swiper v-if="item.images && item.images.length > 0" class="timeline-swiper" indicator-dots circular>
 								<swiper-item v-for="(imgUrl, imgIndex) in item.images" :key="imgIndex">
-									<image :src="imgUrl" :alt="item.title" class="timeline-image" mode="aspectFill" @click="previewImage(item.images, imgIndex)" />
+									<image :src="getOptimizedImage(imgUrl, 600, 400)" :alt="item.title" class="timeline-image" mode="aspectFill" @click="previewImage(item.images, imgIndex)" />
 								</swiper-item>
 							</swiper>
 							<view class="timeline-remark">{{ item.remark }}</view>
@@ -122,10 +122,11 @@
 
 				<swiper v-if="currentPoiMedia && currentPoiMedia.length > 0" class="poi-swiper-native" indicator-dots circular :autoplay="isSwiperAutoplay" @change="onSwiperChange">
 					<swiper-item v-for="(file, index) in currentPoiMedia" :key="index">
-						<image v-if="isImageFile(file)" :src="getEncodedUrl(file.url)" class="poi-swiper-image-native" mode="aspectFill" @click="previewSwiperImage(file.url)" />
+						<image v-if="isImageFile(file)" :src="getOptimizedImage(file.url, 800, 0)" class="poi-swiper-image-native" mode="aspectFill" @click="previewSwiperImage(file.url)" />
 						<video
 							v-if="isVideoFile(file)"
 							:src="getEncodedUrl(file.url)"
+							:poster="getVideoSnapshotUrl(file.url)"
 							controls
 							class="poi-swiper-video-native"
 							:id="'video-' + index"
@@ -427,8 +428,9 @@ export default {
 
 		previewImage(urls, current) {
 			this.isPreview = true;
+			const hdUrls = urls.map((u) => this.getPreviewUrl(u));
 			uni.previewImage({
-				urls: urls, // 图片地址列表
+				urls: hdUrls, // 图片地址列表
 				current: current, // 当前显示的图片索引
 				longPressActions: {
 					itemList: ['保存图片'],
@@ -1036,7 +1038,7 @@ export default {
 			// 1. 从媒体列表中筛选出所有的图片
 			const imageUrls = this.currentPoiMedia
 				.filter((file) => this.isImageFile(file)) // 使用我们已有的辅助函数
-				.map((file) => file.url); // 使用编码后的URL
+				.map((file) => this.getPreviewUrl(file.url)); // 使用编码后的URL
 
 			if (imageUrls.length === 0) {
 				return; // 没有图片可预览
@@ -1077,6 +1079,49 @@ export default {
 		getEncodedUrl(url) {
 			if (!url) return '';
 			return encodeURI(url);
+		},
+
+		// 智能图片压缩 (适配 OSS 和 携程)
+		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
+			if (!url) return '';
+			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) return url;
+
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+			const isCtrip = url.includes('ctrip.com');
+
+			if (isAliyun) {
+				// 阿里云：缩放 + WebP + 质量控制
+				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+			}
+			if (isCtrip) {
+				// 携程：_C_ (裁剪) 或 _R_ (限宽)
+				if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
+				return url + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+			return url;
+		},
+
+		// 视频封面截帧
+		getVideoSnapshotUrl(url) {
+			if (!url) return '';
+			if ((url.includes('bspapp.com') || url.includes('aliyuncs.com')) && !url.includes('x-oss-process')) {
+				return url + '?x-oss-process=video/snapshot,t_0,f_jpg,w_800,m_fast';
+			}
+			return url; // 其他链接无法截帧，返回原链接作为尝试
+		},
+
+		// 高清预览大图
+		getPreviewUrl(url) {
+			if (!url) return '';
+			// 阿里云：宽 1920 + JPG (兼容保存)
+			if (url.includes('bspapp.com') || url.includes('aliyuncs.com')) {
+				return url.split('?')[0] + '?x-oss-process=image/resize,w_1920/quality,q_90/format,jpg';
+			}
+			// 携程：宽 1920
+			if (url.includes('ctrip.com')) {
+				return url + `_R_1920_10000_Q90.jpg`;
+			}
+			return url;
 		}
 	}
 };

@@ -80,7 +80,7 @@
 						<!-- 头部：头像、昵称、评分 -->
 						<view class="flex items-center justify-between mb-3">
 							<view class="flex items-center">
-								<image :src="review.user_avatar" class="w-10 h-10 rounded-full mr-3" mode="aspectFill" />
+								<image :src="getOptimizedImage(review.user_avatar, 100, 100)" class="w-10 h-10 rounded-full mr-3" mode="aspectFill" />
 								<view>
 									<text class="text-sm font-medium text-gray-800 block">{{ review.user_name || '匿名用户' }}</text>
 									<view class="flex items-center mt-1">
@@ -119,7 +119,7 @@
 							<image
 								v-for="(img, index) in review.images"
 								:key="index"
-								:src="img"
+								:src="getOptimizedImage(img, 250, 250)"
 								class="w-full h-24 rounded-lg object-cover"
 								mode="aspectFill"
 								@click="previewImage(review, index)" />
@@ -129,7 +129,7 @@
 						<view class="flex items-center justify-between">
 							<view v-if="review.guide_name" class="review-guide">
 								<text class="text-gray-600 mr-2">TA的司导：</text>
-								<image :src="review.guide_photo" class="w-6 h-6 rounded-full mr-1.5" mode="aspectFill" />
+								<image :src="getOptimizedImage(review.guide_photo, 30, 30)" class="w-6 h-6 rounded-full mr-1.5" mode="aspectFill" />
 								<text class="font-medium text-gray-800">{{ review.guide_name }}</text>
 							</view>
 
@@ -279,9 +279,11 @@ export default {
 
 		// 5. 预览图片
 		previewImage(review, index) {
+			const urls = review.images.map((img) => this.getPreviewUrl(img));
+
 			uni.previewImage({
 				current: index,
-				urls: review.images
+				urls: urls
 			});
 		},
 
@@ -306,7 +308,41 @@ export default {
 			}
 		},
 
-		// 7. 返回上一页
+		// 智能图片压缩 (适配 OSS 和 携程)
+		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
+			if (!url) return '';
+			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_') || url.includes('proc=')) return url;
+
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+			const isCtrip = url.includes('ctrip.com');
+
+			if (isAliyun) {
+				// 阿里云：缩放 + WebP + 质量控制
+				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+			}
+			if (isCtrip) {
+				// 携程：_C_ (裁剪) 或 _R_ (限宽)
+				if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
+				return url + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+			return url;
+		},
+
+		// 高清预览大图
+		getPreviewUrl(url) {
+			if (!url) return '';
+			// 阿里云：宽 1920 + JPG (兼容保存)
+			if (url.includes('bspapp.com') || url.includes('aliyuncs.com')) {
+				return url.split('?')[0] + '?x-oss-process=image/resize,w_1920/quality,q_90/format,jpg';
+			}
+			// 携程：宽 1920
+			if (url.includes('ctrip.com')) {
+				return url + `_R_1920_10000_Q90.jpg`;
+			}
+			return url;
+		},
+
+		// 返回上一页
 		goBack() {
 			uni.navigateBack();
 		}

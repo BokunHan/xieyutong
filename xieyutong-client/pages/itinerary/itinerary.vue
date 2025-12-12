@@ -196,7 +196,7 @@
 						<!-- <image v-if="item.image" :src="item.image" :alt="item.title" class="timeline-image" mode="aspectFill" /> -->
 						<swiper v-if="item.images && item.images.length > 0" class="timeline-swiper" indicator-dots circular>
 							<swiper-item v-for="(imgUrl, imgIndex) in item.images" :key="imgIndex">
-								<image :src="imgUrl" :alt="item.title" class="timeline-image" mode="aspectFill" @click="previewImage(item.images, imgIndex)" />
+								<image :src="getCompressedImageUrl(imgUrl)" :alt="item.title" class="timeline-image" mode="aspectFill" @click="previewImage(item.images, imgIndex)" />
 							</swiper-item>
 						</swiper>
 						<view class="timeline-remark">{{ item.remark }}</view>
@@ -278,23 +278,49 @@
 							<swiper-item v-for="(file, index) in currentPoiMedia" :key="index">
 								<image
 									v-if="isImageFile(file)"
-									:src="getEncodedUrl(file.url)"
+									:src="getCompressedImageUrl(file.url)"
 									class="poi-swiper-image-native"
 									mode="aspectFit"
 									@click="previewSwiperImage(file.url)"
 									@load="(e) => onMediaLoad(e, index, 'image')" />
-								<video
-									v-if="isVideoFile(file)"
-									:src="getEncodedUrl(file.url)"
-									controls
-									show-center-play-btn
-									object-fit="contain"
-									class="poi-swiper-video-native"
-									:id="'video-' + index"
-									@play="onVideoPlay"
-									@pause="onVideoPause"
-									@ended="onVideoPause"
-									@loadedmetadata="(e) => onMediaLoad(e, index, 'video')"></video>
+
+								<view v-if="isVideoFile(file)" class="video-container" style="width: 100%; height: 100%; position: relative">
+									<video
+										v-if="playingVideoIndex === index"
+										:src="getEncodedUrl(file.url)"
+										:poster="getVideoSnapshotUrl(file.url)"
+										controls
+										show-center-play-btn
+										object-fit="contain"
+										class="poi-swiper-video-native"
+										:id="'video-' + index"
+										@play="onVideoPlay"
+										@pause="onVideoPause"
+										@ended="onVideoEnded"
+										@loadedmetadata="(e) => onMediaLoad(e, index, 'video')"></video>
+
+									<view
+										v-else
+										class="video-poster-wrapper"
+										@click="playVideo(index)"
+										style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000">
+										<image :src="getVideoSnapshotUrl(file.url)" mode="aspectFit" style="width: 100%; height: 100%; opacity: 0.8" @load="(e) => onMediaLoad(e, index, 'image')" />
+										<view
+											style="
+												position: absolute;
+												z-index: 10;
+												background: rgba(0, 0, 0, 0.5);
+												border-radius: 50%;
+												width: 50px;
+												height: 50px;
+												display: flex;
+												justify-content: center;
+												align-items: center;
+											">
+											<uni-icons type="videocam-filled" size="30" color="#fff"></uni-icons>
+										</view>
+									</view>
+								</view>
 							</swiper-item>
 						</swiper>
 
@@ -382,6 +408,8 @@ export default {
 			currentPoiMedia: [],
 			isPreview: false,
 			isSwiperAutoplay: true,
+			playingVideoIndex: -1,
+			_videoTimer: null,
 			currentSwiperSlide: 0,
 			headerDragData: { y: 0, time: 0 },
 			contentDragData: { y: 0, time: 0 },
@@ -2349,30 +2377,36 @@ export default {
 			this.isSwiperAutoplay = true; // 重置 swiper 状态
 			this.currentSwiperSlide = 0;
 			this.swiperHeight = '400rpx';
+			this.playingVideoIndex = -1;
 
 			await this.fetchPoiDetails(poiId);
 
 			this.$nextTick(() => {
 				if (this.currentPoiMedia.length > 0) {
 					this.updateSwiperHeight(0);
+
+					const firstMedia = this.currentPoiMedia[0];
+					if (this.isVideoFile(firstMedia)) {
+						this.isSwiperAutoplay = false; // 关掉轮播
+						// 延迟一点点，等待弹窗动画和 v-if 渲染
+						setTimeout(() => {
+							this.playingVideoIndex = 0; // 显示视频组件
+
+							this.$nextTick(() => {
+								setTimeout(() => {
+									const videoCtx = uni.createVideoContext('video-0', this);
+									videoCtx.play();
+								}, 200); // 弹窗动画可能需要一点时间，给200ms
+							});
+						}, 300);
+					} else {
+						this.playingVideoIndex = -1;
+						this.isSwiperAutoplay = true;
+					}
 				}
 
 				// 打开弹窗
 				this.$refs.tipsPopup.open();
-
-				// 检查 slide 0 是否为视频，如果是则在弹窗打开后播放
-				if (this.currentPoiMedia.length > 0) {
-					const firstMedia = this.currentPoiMedia[0];
-					if (this.isVideoFile(firstMedia)) {
-						// 延迟播放，等待弹窗动画结束
-						setTimeout(() => {
-							const videoCtx = uni.createVideoContext('video-0', this);
-							if (videoCtx) {
-								videoCtx.play();
-							}
-						}, 500); // 500ms 延迟
-					}
-				}
 			});
 		},
 
@@ -2495,31 +2529,132 @@ export default {
 			}
 		},
 
+		// 图片压缩处理
+		getCompressedImageUrl(url) {
+			if (!url) return '';
+			const encodedUrl = this.getEncodedUrl(url);
+
+			if (encodedUrl.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) return encodedUrl;
+
+			const isAliyun = encodedUrl.includes('bspapp.com') || url.includes('aliyuncs.com');
+			const isCtrip = encodedUrl.includes('ctrip.com');
+
+			// 如果是阿里云 OSS 链接，添加压缩参数
+			// w_800: 限制宽度800px (足够清晰且节省流量)
+			// q_80: 质量80%
+			// 只要是 http 开头的网络图片，且不是 gif，都尝试压缩
+			// (UniCloud 默认存储支持自定义域名使用 x-oss-process)
+			if (isAliyun) {
+				return encodedUrl + '?x-oss-process=image/resize,w_800/quality,q_80/format,webp';
+			}
+			if (isCtrip) {
+				return url + `_C_800_800_Q80.jpg`;
+			}
+			return encodedUrl;
+		},
+
+		// 视频封面图处理 (OSS 截图)
+		getVideoSnapshotUrl(url) {
+			if (!url) return '';
+			const encodedUrl = this.getEncodedUrl(url);
+			if (url.startsWith('http')) {
+				// t_0: 第0毫秒
+				// w_800: 截图宽度
+				// m_fast: 快速模式
+				return encodedUrl + '?x-oss-process=video/snapshot,t_0,f_jpg,w_800,m_fast';
+			}
+			return encodedUrl;
+		},
+
+		// Swiper 切换
 		onSwiperChange(e) {
 			const newIndex = e.detail.current;
-			const oldIndex = this.currentSwiperSlide;
 			this.currentSwiperSlide = newIndex;
-
 			this.updateSwiperHeight(newIndex);
 
-			// 1. 暂停上一个 slide 的视频（如果存在）
-			const oldMedia = this.currentPoiMedia[oldIndex];
-			// (根据你的反馈，使用 extname)
-			if (this.isVideoFile(oldMedia)) {
-				const oldCtx = uni.createVideoContext('video-' + oldIndex, this);
-				if (oldCtx) {
-					oldCtx.pause();
-				}
+			const currentMedia = this.currentPoiMedia[newIndex];
+
+			// 1. 只要发生滑动，先重置视频状态（销毁上一个视频组件）
+			if (this.playingVideoIndex !== -1 && this.playingVideoIndex !== newIndex) {
+				this.playingVideoIndex = -1;
 			}
 
-			// 2. 自动播放当前 slide 的视频（如果存在）
-			const newMedia = this.currentPoiMedia[newIndex];
-			if (this.isVideoFile(newMedia)) {
-				const newCtx = uni.createVideoContext('video-' + newIndex, this);
-				if (newCtx) {
-					newCtx.play(); // 播放将自动触发 onVideoPlay，暂停 swiper
-				}
+			// 2. 判断当前页类型
+			if (this.isVideoFile(currentMedia)) {
+				// 如果是视频，先暂停轮播，防止自动滑走
+				this.isSwiperAutoplay = false;
+
+				// 延迟 300ms 执行（防抖，避免快速滑动时频繁创建视频上下文）
+				if (this._videoTimer) clearTimeout(this._videoTimer);
+				this._videoTimer = setTimeout(() => {
+					// 再次确认用户还在当前页（防止快速滑动已经滑走了）
+					if (this.currentSwiperSlide === newIndex) {
+						this.playingVideoIndex = newIndex; // 触发 v-if 渲染 video
+
+						this.$nextTick(() => {
+							// 稍微给一点点时间让组件挂载
+							setTimeout(() => {
+								const videoCtx = uni.createVideoContext('video-' + newIndex, this);
+								videoCtx.play();
+							}, 50);
+						});
+					}
+				}, 300);
+			} else {
+				// 如果是图片，恢复自动轮播
+				this.isSwiperAutoplay = true;
+				this.playingVideoIndex = -1;
 			}
+		},
+
+		// 点击播放视频
+		playVideo(index) {
+			if (this.playingVideoIndex === index) return;
+			// 1. 停止轮播
+			this.isSwiperAutoplay = false;
+
+			// 2. 如果已经是播放状态，不需要重新渲染，直接播
+			if (this.playingVideoIndex === index) {
+				const videoCtx = uni.createVideoContext('video-' + index, this);
+				videoCtx.play();
+				return;
+			}
+
+			// 3. 渲染 Video 组件并播放
+			this.playingVideoIndex = index;
+			this.$nextTick(() => {
+				setTimeout(() => {
+					const videoCtx = uni.createVideoContext('video-' + index, this);
+					videoCtx.play();
+				}, 50);
+			});
+		},
+
+		// 视频事件处理
+		onVideoPlay() {
+			console.log('Video playing');
+			this.isSwiperAutoplay = false;
+		},
+
+		onVideoPause() {
+			console.log('Video paused');
+		},
+
+		onVideoEnded() {
+			console.log('Video ended');
+			// 播放结束，退出视频模式，恢复封面，恢复轮播
+			this.playingVideoIndex = -1;
+			this.isSwiperAutoplay = true;
+		},
+
+		// 关闭弹窗时
+		closeTipsPopup() {
+			this.$refs.tipsPopup.close();
+			if (this._videoTimer) clearTimeout(this._videoTimer); // 清理定时器
+			// 重置所有状态
+			this.playingVideoIndex = -1;
+			this.currentPoiMedia = [];
+			this.isSwiperAutoplay = true;
 		},
 
 		updateSwiperHeight(index) {
@@ -2571,34 +2706,6 @@ export default {
 					}
 				}
 			});
-		},
-
-		// 视频开始播放时触发
-		onVideoPlay() {
-			console.log('Video playing, pausing swiper.');
-			this.isSwiperAutoplay = false; // 暂停 Swiper 轮播
-		},
-
-		// 视频暂停或结束时触发
-		onVideoPause() {
-			console.log('Video paused/ended, resuming swiper.');
-			this.isSwiperAutoplay = true; // 恢复 Swiper 轮播
-		},
-
-		// 关闭弹窗
-		closeTipsPopup() {
-			this.$refs.tipsPopup.close();
-
-			const currentMedia = this.currentPoiMedia[this.currentSwiperSlide];
-			if (currentMedia && (currentMedia.extname.includes('mp4') || currentMedia.extname.includes('mov'))) {
-				const videoCtx = uni.createVideoContext('video-' + this.currentSwiperSlide, this);
-				if (videoCtx) {
-					videoCtx.pause();
-				}
-			}
-
-			this.currentPoiMedia = [];
-			this.isSwiperAutoplay = true;
 		},
 
 		// 从数据库获取内容
@@ -3101,7 +3208,7 @@ export default {
 
 .timeline-swiper {
 	width: 100%;
-	height: 150px;
+	height: 200px;
 	border-radius: 8px;
 	margin-top: 8px;
 	overflow: hidden;

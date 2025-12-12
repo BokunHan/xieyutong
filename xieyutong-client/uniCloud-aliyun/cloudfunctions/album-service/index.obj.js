@@ -1,7 +1,6 @@
 const uniIdCommon = require('uni-id-common');
 const db = uniCloud.database();
 const dbCmd = db.command;
-const JSZip = require('jszip');
 const httpclient = uniCloud.httpclient;
 
 module.exports = {
@@ -931,6 +930,7 @@ module.exports = {
 			return { errCode: 'LIMIT_EXCEEDED', errMsg: `单次最多下载 ${MAX_DOWNLOAD_COUNT} 张照片` };
 		}
 
+		const JSZip = require('jszip');
 		const zip = new JSZip();
 		const downloadPromises = [];
 

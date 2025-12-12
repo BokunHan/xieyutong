@@ -6,15 +6,12 @@
 				<view class="uni-title ml-2">消息发送队列 - {{ orderId }}</view>
 			</view>
 			<view class="uni-group">
+				<button class="uni-button" size="mini" type="default" style="margin-right: 10px; background-color: green; color: #fff" @click="openCreateModal">+ 新建消息</button>
 				<button class="uni-button" size="mini" type="warn" style="margin-right: 10px" @click="resendAll">全部重发</button>
 				<button class="uni-button" size="mini" type="primary" style="margin-right: 10px" @click="resendFailed">重发失败</button>
 				<button class="uni-button" size="mini" @click="refresh">刷新状态</button>
+				<button class="uni-button" size="mini" type="default" style="margin-right: 10px" @click="goToSettings">⚙️ 设置</button>
 			</view>
-		</view>
-
-		<view class="bg-blue-50 p-4 rounded mb-4 text-sm text-blue-900">
-			<i class="fas fa-info-circle mr-2"></i>
-			这里显示 AI 根据抓取数据生成的待发送消息。您可以修改内容、时间或控制发送状态。
 		</view>
 
 		<view class="uni-container">
@@ -22,48 +19,71 @@
 				ref="udb"
 				collection="a-task-queue"
 				:where="`task_id == '${taskId}'`"
-				orderby="priority desc, send_time asc"
+				orderby="send_time asc"
 				:page-size="500"
-				v-slot:default="{ data, loading, error }">
+				@load="onDBLoad"
+				v-slot:default="{ loading, error }">
 				<view v-if="loading" class="p-5 text-center text-gray-500">加载中...</view>
-				<view v-else-if="!data.length" class="p-10 text-center text-gray-400">暂无消息队列。如果任务刚创建，请等待程序处理完成。{{ error }}</view>
+				<view v-else-if="!rawList.length" class="p-10 text-center text-gray-400">暂无消息队列。如果任务刚创建，请等待程序处理完成。{{ error }}</view>
 
-				<view v-else class="grid grid-cols-1 gap-4">
-					<view v-for="item in data" :key="item._id" class="bg-white border rounded-lg p-4 shadow-sm relative">
-						<view class="absolute top-4 right-4 text-sm font-bold" :class="getStatusClass(item.status)">
-							{{ getStatusText(item.status) }}
+				<view v-else>
+					<view v-for="(tasks, dateKey) in groupedTasks" :key="dateKey" class="mb-8">
+						<view class="flex items-center justify-center mb-4">
+							<view class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold shadow-sm">📅 {{ dateKey }}</view>
 						</view>
 
-						<view class="mb-3 border-b pb-2">
-							<view class="text-base font-bold text-gray-800 mb-1">📌 {{ item.task_name || '未命名任务' }}</view>
-							<view class="text-xs text-gray-500 mb-1" v-if="item.start_time">🕒 有效期: {{ item.start_time }} 至 {{ item.end_time || '无限制' }}</view>
-							<view class="text-sm text-gray-600 flex flex-wrap gap-4 mt-2">
-								<view>
-									📅 发送时间:
-									<text class="font-medium text-blue-600">{{ item.send_time || '立即' }}</text>
-								</view>
-								<view>🎯 目标群: {{ item.group_name }}</view>
-							</view>
-						</view>
-
-						<view class="bg-gray-50 p-3 rounded mb-3">
-							<view v-for="(msg, idx) in item.payload" :key="idx" class="mb-3 last:mb-0">
-								<view v-if="msg.type === 'text'" class="text-gray-800 text-sm whitespace-pre-wrap">{{ msg.data }}</view>
-
-								<view v-else-if="msg.type === 'image'" class="mt-2">
-									<image :src="msg.data" mode="aspectFill" class="rounded border bg-gray-200" style="width: 100px; height: 100px" @click.stop="previewImage(msg.data)"></image>
+						<view class="grid grid-cols-1 gap-4">
+							<view
+								v-for="item in tasks"
+								:key="item._id"
+								class="bg-white border rounded-lg p-4 shadow-sm relative transition-all"
+								:class="{ 'opacity-60': item.status === 'manual_stop' }">
+								<view class="absolute top-4 right-4 flex items-center z-10">
+									<text class="text-xs mr-2" :class="item.status === 'pending' ? 'text-blue-600 font-bold' : 'text-gray-400'">
+										{{ item.status === 'pending' ? '已启用' : '未启用' }}
+									</text>
+									<switch :checked="item.status === 'pending'" style="transform: scale(0.7)" color="#2563EB" @change="(e) => toggleTaskStatus(item, e)" />
 								</view>
 
-								<view v-else-if="msg.type === 'video'" class="text-purple-600 text-xs mt-1">📹 [视频] {{ getFileName(msg.data) }}</view>
+								<view class="mb-3 border-b pb-2 pr-20">
+									<view class="text-base font-bold text-gray-800 mb-1">
+										📌 {{ item.task_name || '未命名任务' }}
+										<text v-if="item.score" class="ml-2 text-sm text-orange-500 bg-orange-100 px-1 rounded">
+											{{ item.score }}
+										</text>
+									</view>
+									<view class="text-xs text-gray-500 mb-1" v-if="item.start_time">
+										🕒 窗口: {{ formatTimeOnly(item.start_time) }}
+										<span v-if="item.end_time">- {{ formatTimeOnly(item.end_time) }}</span>
+									</view>
+									<view class="text-sm text-gray-600 flex flex-wrap gap-4 mt-2">
+										<view>
+											📅 计划发送:
+											<text class="font-medium text-blue-600">{{ item.send_time || '待定' }}</text>
+										</view>
+									</view>
+								</view>
 
-								<view v-else-if="msg.type === 'file'" class="text-blue-600 text-xs mt-1 underline">📎 [文件] {{ getFileName(msg.data) }}</view>
+								<view class="bg-gray-50 p-3 rounded mb-3">
+									<view v-for="(msg, idx) in item.payload" :key="idx" class="mb-3 last:mb-0">
+										<view v-if="msg.type === 'text'" class="text-gray-800 text-sm whitespace-pre-wrap">{{ msg.data }}</view>
+
+										<view v-else-if="msg.type === 'image'" class="mt-2">
+											<image :src="msg.data" mode="aspectFill" class="rounded border bg-gray-200" style="width: 100px; height: 100px" @click.stop="previewImage(msg.data)"></image>
+										</view>
+
+										<view v-else-if="msg.type === 'video'" class="text-purple-600 text-xs mt-1">📹 [视频] {{ getFileName(msg.data) }}</view>
+
+										<view v-else-if="msg.type === 'file'" class="text-blue-600 text-xs mt-1 underline">📎 [文件] {{ getFileName(msg.data) }}</view>
+									</view>
+								</view>
+
+								<view class="flex justify-end gap-2">
+									<button size="mini" type="warn" plain @click="deleteTask(item._id)">删除</button>
+									<button v-if="item.status === 'sent'" size="mini" type="warn" plain @click="confirmResend(item._id)">再次发送</button>
+									<button size="mini" @click="openEditModal(item)">编辑消息</button>
+								</view>
 							</view>
-						</view>
-
-						<view class="flex justify-end gap-2">
-							<button v-if="item.status === 'pending'" size="mini" type="warn" @click="updateStatus(item._id, 'manual_stop')">暂停发送</button>
-							<button v-if="['manual_stop', 'failed'].includes(item.status)" size="mini" type="primary" @click="updateStatus(item._id, 'pending')">恢复/重试</button>
-							<button size="mini" @click="openEditModal(item)">编辑内容</button>
 						</view>
 					</view>
 				</view>
@@ -72,7 +92,7 @@
 
 		<view v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="background-color: rgba(0, 0, 0, 0.5)">
 			<view class="bg-white rounded-lg w-11/12 md:w-1/2 p-5 shadow-lg max-h-90vh flex flex-col">
-				<view class="text-lg font-bold mb-4 border-b pb-2">编辑任务</view>
+				<view class="text-lg font-bold mb-4 border-b pb-2">{{ editingId ? '编辑消息' : '新建消息' }}</view>
 
 				<view class="mb-4 bg-gray-50 p-2 rounded">
 					<view class="text-xs text-gray-500 mb-1 font-bold">📅 计划发送时间:</view>
@@ -145,16 +165,86 @@ export default {
 			showEditModal: false,
 			editingId: null,
 			tempPayload: [],
-			tempSendTime: ''
+			tempSendTime: '',
+			rawList: []
 		};
 	},
 	onLoad(options) {
 		this.taskId = options.id;
 		this.orderId = options.order || '';
 	},
+	computed: {
+		// 按日期分组逻辑
+		groupedTasks() {
+			if (!this.rawList || this.rawList.length === 0) return {};
+
+			const groups = {};
+			this.rawList.forEach((item) => {
+				// 提取 send_time 的日期部分 (YYYY-MM-DD)
+				// 如果 send_time 为空，归类为 '待定'
+				const dateKey = item.send_time ? item.send_time.split(' ')[0] : '待定日期';
+
+				if (!groups[dateKey]) {
+					groups[dateKey] = [];
+				}
+				groups[dateKey].push(item);
+			});
+
+			// 对日期 Key 进行排序，保证顺序显示
+			const sortedKeys = Object.keys(groups).sort();
+			const sortedGroups = {};
+			sortedKeys.forEach((key) => {
+				sortedGroups[key] = groups[key];
+			});
+
+			return sortedGroups;
+		}
+	},
 	methods: {
+		onDBLoad(data) {
+			this.rawList = data;
+		},
+		// 只提取时间部分的辅助函数 (去掉日期)
+		formatTimeOnly(dateTimeStr) {
+			if (!dateTimeStr) return '';
+			const parts = dateTimeStr.split(' ');
+			return parts.length > 1 ? parts[1] : dateTimeStr;
+		},
+		// 勾选框切换状态逻辑
+		toggleTaskStatus(item, e) {
+			// switch 组件 e.detail.value 为 true/false
+			const isChecked = e.detail.value;
+			const newStatus = isChecked ? 'pending' : 'manual_stop';
+
+			// 1. 乐观更新：先在本地修改状态，让 UI 反应迅速
+			item.status = newStatus;
+
+			// 2. 提交到数据库
+			db.collection('a-task-queue')
+				.doc(item._id)
+				.update({
+					status: newStatus
+				})
+				.then(() => {
+					// 更新成功，静默即可
+					console.log('状态更新成功');
+				})
+				.catch((err) => {
+					// 更新失败，回滚状态并提示
+					item.status = !isChecked ? 'pending' : 'manual_stop';
+					uni.showToast({
+						title: '状态更新失败',
+						icon: 'none'
+					});
+				});
+		},
 		goBack() {
 			uni.navigateBack();
+		},
+		goToSettings() {
+			uni.navigateTo({
+				url: '/pages/a-task-orders/settings'
+			});
 		},
 		resendAll() {
 			uni.showModal({
@@ -253,6 +343,19 @@ export default {
 			const map = { pending: 'text-blue-600', sent: 'text-green-600', failed: 'text-red-600', manual_stop: 'text-orange-500' };
 			return map[status] || '';
 		},
+
+		confirmResend(id) {
+			uni.showModal({
+				title: '确认重发',
+				content: '该消息已发送过，确定要再次发送吗？',
+				success: (res) => {
+					if (res.confirm) {
+						this.updateStatus(id, 'pending');
+					}
+				}
+			});
+		},
+
 		updateStatus(id, newStatus) {
 			uni.showLoading();
 			db.collection('a-task-queue')
@@ -394,28 +497,124 @@ export default {
 			}
 		},
 
+		// 打开新建弹窗
+		openCreateModal() {
+			this.editingId = null; // 置空表示新建模式
+			this.tempPayload = [{ type: 'text', data: '' }];
+			// 默认时间设为当前时间往后推5分钟，方便直接保存
+			const now = new Date();
+			now.setMinutes(now.getMinutes() + 5);
+			// 简单的格式化 YYYY-MM-DD HH:mm:ss
+			const pad = (n) => (n < 10 ? '0' + n : n);
+			this.tempSendTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+			this.showEditModal = true;
+		},
+
+		// 删除任务
+		deleteTask(id) {
+			uni.showModal({
+				title: '确认删除',
+				content: '确定要删除这条消息吗？此操作不可恢复。',
+				confirmColor: '#e64340',
+				success: (res) => {
+					if (res.confirm) {
+						uni.showLoading({ title: '删除中...' });
+						db.collection('a-task-queue')
+							.doc(id)
+							.remove()
+							.then(() => {
+								uni.showToast({ title: '删除成功' });
+								this.refresh();
+							})
+							.catch((err) => {
+								console.error('[Delete] Error:', err);
+								uni.showModal({
+									title: '删除失败',
+									content: err.message,
+									showCancel: false
+								});
+							})
+							.finally(() => {
+								uni.hideLoading();
+							});
+					}
+				}
+			});
+		},
+
 		saveEdit() {
-			if (!this.editingId) return;
+			// 基础校验
+			if (!this.tempSendTime) {
+				return uni.showToast({ title: '请选择发送时间', icon: 'none' });
+			}
+			if (this.tempPayload.length === 0) {
+				return uni.showToast({ title: '请至少添加一条内容', icon: 'none' });
+			}
 
 			uni.showLoading({ title: '保存中...' });
-			db.collection('a-task-queue')
-				.doc(this.editingId)
-				.update({
-					payload: this.tempPayload,
-					send_time: this.tempSendTime
-				})
-				.then(() => {
-					uni.showToast({ title: '保存成功' });
-					this.closeEditModal();
-					this.refresh();
-				})
-				.catch((err) => {
-					console.error('[Save] Error:', err);
-					uni.showToast({ title: '保存失败', icon: 'none' });
-				})
-				.finally(() => {
-					uni.hideLoading();
-				});
+
+			// 1. 编辑
+			if (this.editingId) {
+				db.collection('a-task-queue')
+					.doc(this.editingId)
+					.update({
+						payload: this.tempPayload,
+						send_time: this.tempSendTime
+					})
+					.then(() => {
+						uni.showToast({ title: '保存成功' });
+						this.closeEditModal();
+						this.refresh();
+					})
+					.catch((err) => {
+						console.error('[Save] Error:', err);
+						uni.showToast({ title: '保存失败', icon: 'none' });
+					})
+					.finally(() => {
+						uni.hideLoading();
+					});
+			}
+			// 2. 新建
+			else {
+				// 尝试从列表中获取默认的 group_name 和 account_name (保持上下文一致)
+				let defaultGroup = this.orderId; // 默认用订单号当群名
+				let defaultAccount = '';
+
+				if (this.rawList && this.rawList.length > 0) {
+					// 如果列表里有数据，直接抄第一条的配置
+					const sample = this.rawList[0];
+					if (sample.group_name) defaultGroup = sample.group_name;
+					if (sample.account_name) defaultAccount = sample.account_name;
+				}
+
+				db.collection('a-task-queue')
+					.add({
+						task_id: this.taskId, // 关联 ID
+						group_name: defaultGroup, // 目标群名
+						account_name: defaultAccount, // 执行账号
+						task_name: '手动新建消息', // 固定名称
+						payload: this.tempPayload, // 内容
+						send_time: this.tempSendTime, // 时间
+						status: 'manual_stop', // 默认状态
+						priority: 0
+					})
+					.then(() => {
+						uni.showToast({ title: '创建成功' });
+						this.closeEditModal();
+						this.refresh();
+					})
+					.catch((err) => {
+						console.error('[Create] Error:', err);
+						uni.showModal({
+							title: '创建失败',
+							content: '请确保数据库权限允许创建。\n' + err.message,
+							showCancel: false
+						});
+					})
+					.finally(() => {
+						uni.hideLoading();
+					});
+			}
 		}
 	}
 };

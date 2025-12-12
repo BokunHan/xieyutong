@@ -65,7 +65,7 @@
 
 				<template v-else-if="displayProductList.length > 0">
 					<view v-for="(product, index) in displayProductList" :key="product.id || index" class="product-card" @click="goToProductDetail(product.id)">
-						<image :src="product.image" class="product-img" mode="aspectFill"></image>
+						<image :src="getOptimizedImage(product.image, 400, 400)" class="product-img" mode="aspectFill"></image>
 						<view class="product-info">
 							<view class="product-title">{{ product.title }}</view>
 							<view class="product-meta">
@@ -179,7 +179,7 @@ export default {
 			uni.navigateBack();
 		},
 		onSearchInput(e) {
-			// 实时搜索（可选），目前在 computed 中实现
+			// 实时搜索
 		},
 		onSearchConfirm(e) {
 			console.log('搜索:', this.searchText);
@@ -216,7 +216,7 @@ export default {
 			});
 		},
 
-		// 加载产品数据 (与 home.vue 相同)
+		// 加载产品数据
 		async loadProductData() {
 			console.log('=== [SearchPage] loadProductData 开始 ===');
 			this.productLoading = true;
@@ -279,7 +279,6 @@ export default {
 			}
 		},
 
-		// generateTag (与 home.vue 相同)
 		generateTag(item) {
 			let tag = '热门推荐';
 			if (item.sales_count > 100) tag = '爆款热销';
@@ -289,7 +288,6 @@ export default {
 			return tag;
 		},
 
-		// formatPrice (与 home.vue 相同)
 		formatPrice(price) {
 			if (price === null || price === undefined || price === '') {
 				return '价格待定';
@@ -307,6 +305,32 @@ export default {
 				return '价格待定';
 			}
 			return numPrice.toLocaleString('zh-CN');
+		},
+
+		// 智能图片压缩工具 (适配阿里云 OSS 和 携程)
+		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
+			if (!url) return '';
+
+			// 1. 检查是否已包含处理参数
+			if (url.includes('x-oss-process') || /[_][RC]_\d+/.test(url) || url.includes('proc=')) {
+				return url;
+			}
+
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+			const isCtrip = url.includes('ctrip.com');
+
+			// 2. 阿里云 OSS: 缩放 + WebP
+			if (isAliyun) {
+				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+			}
+
+			// 3. 携程图片: 裁剪(_C_) 或 限宽(_R_)
+			if (isCtrip) {
+				if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
+				return url + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			return url;
 		}
 	}
 };

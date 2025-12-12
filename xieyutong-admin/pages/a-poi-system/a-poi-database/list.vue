@@ -35,9 +35,7 @@
 					<uni-tr>
 						<uni-th align="center" filter-type="search" @filter-change="filterChange($event, 'name')" sortable @sort-change="sortChange($event, 'name')">POI名称</uni-th>
 						<uni-th align="center" sortable @sort-change="sortChange($event, 'aliases')">别名</uni-th>
-						<uni-th align="center" filter-type="select" :filter-data="options.filterData.category_id_localdata" @filter-change="filterChange($event, 'category_id')">
-							POI分类
-						</uni-th>
+						<uni-th align="center" filter-type="select" :filter-data="options.filterData.category_id_localdata" @filter-change="filterChange($event, 'category_id')">分类</uni-th>
 						<uni-th align="center" filter-type="select" :filter-data="options.filterData.region_ids_localdata" @filter-change="filterChange($event, 'region_ids')">所属区域</uni-th>
 						<uni-th align="center" :filter-data="options.filterData.tags_localdata" @filter-change="filterChange($event, 'tags')">POI标签</uni-th>
 						<uni-th
@@ -45,11 +43,12 @@
 							filter-type="search"
 							@filter-change="filterChange($event, 'address_text')"
 							sortable
-							width="150"
+							width="100"
 							@sort-change="sortChange($event, 'address_text')">
 							详细地址
 						</uni-th>
 						<uni-th align="center" sortable @sort-change="sortChange($event, 'media')">媒体库</uni-th>
+						<uni-th align="center" width="80">线路图</uni-th>
 						<uni-th align="center">操作</uni-th>
 					</uni-tr>
 					<uni-tr v-for="(item, index) in data" :key="index">
@@ -70,6 +69,16 @@
 									:limit="1"></uni-file-picker>
 								<text v-if="item.media.length > 1">... ({{ item.media.length }})</text>
 							</template>
+						</uni-td>
+						<uni-td align="center">
+							<uni-file-picker
+								v-if="item.route_map_image && item.route_map_image.url"
+								:value="item.route_map_image"
+								:file-mediatype="'image'"
+								return-type="object"
+								:imageStyles="imageStyles"
+								readonly></uni-file-picker>
+							<text v-else>-</text>
 						</uni-td>
 						<uni-td align="center">
 							<view class="uni-group">
@@ -113,7 +122,7 @@ export default {
 				db.collection('a-regions').field('_id, name as text').getTemp(),
 				db.collection('a-poi-tags').field('_id, name as text').getTemp()
 			],
-			fieldList: 'name,category_id{text},region_ids{text},aliases,tags{text},address_text,media',
+			fieldList: 'name,category_id{text},region_ids{text},aliases,tags{text},address_text,media,route_map_image',
 			query: '',
 			where: '',
 			orderby: dbOrderBy,

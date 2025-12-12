@@ -320,61 +320,61 @@ class WeComBot:
         win32clipboard.SetClipboardData(win32con.CF_HDROP, h_global)
         win32clipboard.CloseClipboard()
 
-    def send_mixed_msg(self, order_id, payload, account_name=None):
+    def send_mixed_msg(self, order_id, payload, account_name=None, scheduled_time=None):
         """执行发送流程 (带上下文缓存)"""
 
         # 目标账号处理 (没传则默认为空字符串，方便比较)
         target_account = account_name if account_name else ""
 
         # === 判断是否已经在正确的窗口和聊天中 ===
-        is_same_context = (
-                self.current_active_account == target_account and
-                self.current_chat_id == order_id
-        )
+        # is_same_context = (
+        #         self.current_active_account == target_account and
+        #         self.current_chat_id == order_id
+        # )
+        #
+        # if is_same_context:
+        #     print(f"⏩ [加速模式] 已在目标群 {order_id}，直接发送...")
+        # else:
+        #     # === 走完整切换流程 ===
 
-        if is_same_context:
-            print(f"⏩ [加速模式] 已在目标群 {order_id}，直接发送...")
-        else:
-            # === 走完整切换流程 ===
+        # 1. 切换账号
+        if not self.activate_window(account_name):
+            return False
 
-            # 1. 切换账号
-            if not self.activate_window(account_name):
-                return False
+        print(f"🚀 [{account_name}] 搜索订单号: {order_id}")
 
-            print(f"🚀 [{account_name}] 搜索订单号: {order_id}")
+        if not self.click_image(IMG_SEARCH_BOX, retries=3):
+            print("   ⚠️ 未找到搜索框图片，尝试盲操...")
 
-            if not self.click_image(IMG_SEARCH_BOX, retries=3):
-                print("   ⚠️ 未找到搜索框图片，尝试盲操...")
+        time.sleep(0.5)
 
-            time.sleep(0.5)
+        # 2. 搜索
+        pyautogui.hotkey('ctrl', 'f')
+        time.sleep(0.5)
+        pyperclip.copy(order_id)
+        time.sleep(0.5)
+        pyautogui.hotkey('ctrl', 'v')
+        time.sleep(1.5)
 
-            # 2. 搜索
-            pyautogui.hotkey('ctrl', 'f')
-            time.sleep(0.5)
-            pyperclip.copy(order_id)
-            time.sleep(0.5)
-            pyautogui.hotkey('ctrl', 'v')
-            time.sleep(1.5)
+        pyautogui.press('down')
+        time.sleep(0.2)
+        pyautogui.press('enter')
+        time.sleep(1.0)
 
-            pyautogui.press('down')
-            time.sleep(0.2)
-            pyautogui.press('enter')
-            time.sleep(1.0)
+        if not self.click_image(IMG_ENTER_CHAT, retries=5):
+            print("   ⚠️ 无法进入聊天窗口 (找不到按钮图片)，跳过发送")
+            pyautogui.press('esc')
+            # 失败时清空上下文，确保下次重试
+            self.current_active_account = None
+            self.current_chat_id = None
+            self._minimize_win(self.main_window)
+            return False
 
-            if not self.click_image(IMG_ENTER_CHAT, retries=5):
-                print("   ⚠️ 无法进入聊天窗口 (找不到按钮图片)，跳过发送")
-                pyautogui.press('esc')
-                # 失败时清空上下文，确保下次重试
-                self.current_active_account = None
-                self.current_chat_id = None
-                self._minimize_win(self.main_window)
-                return False
+        time.sleep(1.0)
 
-            time.sleep(1.0)
-
-            # === 切换成功，更新上下文记录 ===
-            self.current_active_account = target_account
-            self.current_chat_id = order_id
+        # === 切换成功，更新上下文记录 ===
+        self.current_active_account = target_account
+        self.current_chat_id = order_id
 
         # 3. 发送内容
         print(f"   💬 开始发送 {len(payload)} 条消息...")
@@ -382,6 +382,10 @@ class WeComBot:
             msg_type = item.get("type")
             content = item.get("data")
             current_wait_time = WAIT_TEXT
+
+            actual_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            sched_info = f" | 应发: {scheduled_time}" if scheduled_time else ""
+            print(f"  [{index + 1}/{len(payload)}] {msg_type} | 实发: {actual_time}{sched_info}")
 
             print(f"  [{index + 1}/{len(payload)}] {msg_type}")
 

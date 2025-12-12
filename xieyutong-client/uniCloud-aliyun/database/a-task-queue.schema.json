@@ -28,6 +28,11 @@
 			"title": "子任务名称",
 			"description": "来源任务的原始名称"
 		},
+		"score": {
+			"bsonType": "string",
+			"title": "评分",
+			"description": "任务得分"
+		},
 		"start_time": {
 			"bsonType": "string",
 			"title": "任务开始时间",

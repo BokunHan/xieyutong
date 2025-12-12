@@ -11,8 +11,8 @@ import messenger as sender_bot
 
 # ================= 配置区域 =================
 # ⚠️ 替换成你云对象开启 URL 化后的地址
-# API_BASE_URL = "https://fc-mp-518245e5-51c5-4ee4-8c3f-47f1c20358ab.next.bspapp.com/a-task-rpa"
-API_BASE_URL = "https://fc-mp-9107d457-2ec2-48d8-aad6-a8c52dd3f29c.next.bspapp.com/a-task-rpa"
+API_BASE_URL = "https://fc-mp-518245e5-51c5-4ee4-8c3f-47f1c20358ab.next.bspapp.com/a-task-rpa"
+# API_BASE_URL = "https://fc-mp-9107d457-2ec2-48d8-aad6-a8c52dd3f29c.next.bspapp.com/a-task-rpa"
 
 TEMP_DIR = os.path.join(os.getcwd(), "temp_files")
 if not os.path.exists(TEMP_DIR):
@@ -137,7 +137,7 @@ def main_loop():
             # --- 2. 轮询云端任务 ---
             # 注意：云对象的方法名在 URL 调用时通常是 /getNextTask
             try:
-                resp = requests.get(f"{API_BASE_URL}/getNextTask", timeout=10).json()
+                resp = requests.get(f"{API_BASE_URL}/getNextTask", timeout=15).json()
             except Exception as e:
                 print(f"⚠️ 网络连接错误: {e}")
                 time.sleep(5)
@@ -148,7 +148,7 @@ def main_loop():
 
             # 如果没有任务，休息一下
             if task_type == "none" or not task_data:
-                time.sleep(3)
+                time.sleep(5)
                 continue
 
             print(f"\n⚡ 收到任务: {task_type.upper()}")
@@ -220,6 +220,7 @@ def main_loop():
                 target_account = task_data.get("account_name")
                 group_name = task_data.get("group_name")
                 payload = task_data.get("payload", [])
+                scheduled_time = task_data.get("send_time")
 
                 print(f"    💬 发送目标: {group_name}")
 
@@ -242,7 +243,7 @@ def main_loop():
 
                 if download_ok:
                     # 调用发送器
-                    success = sender_bot.bot.send_mixed_msg(group_name, processed_payload, account_name=target_account)
+                    success = sender_bot.bot.send_mixed_msg(group_name, processed_payload, account_name=target_account, scheduled_time=scheduled_time)
 
                     final_status = "sent" if success else "failed"
                     requests.post(f"{API_BASE_URL}/updateSendStatus", json={

@@ -1,0 +1,27 @@
+{
+	"bsonType": "object",
+	"required": ["category", "key", "content"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"category": {
+			"bsonType": "string",
+			"description": "分类: hotel_surrounding, hotel_service, notice"
+		},
+		"key": {
+			"bsonType": "string",
+			"description": "关键词"
+		},
+		"content": {
+			"bsonType": "string",
+			"description": "文案内容"
+		},
+		"created_at": {
+			"bsonType": "timestamp"
+		}
+	}
+}

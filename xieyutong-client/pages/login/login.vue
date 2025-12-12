@@ -59,7 +59,7 @@ export default {
 			uniIdRedirectUrl: '',
 			appConfig: {
 				logo: '/static/logo.jpg',
-				title: '风漫国际旅行',
+				title: '风漫国际管家',
 				title_en: 'F E N G M A N',
 				slogan: '随风漫行 × 向心而生',
 				subslogan: '遇见 | 挑战 | 归属 | 印记',

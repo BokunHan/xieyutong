@@ -9,7 +9,7 @@
 					<view class="favorite-content">
 						<view class="flex">
 							<view class="w-20 h-20 rounded overflow-hidden flex-shrink-0">
-								<image :src="item.product_image" :alt="item.product_title" class="w-full h-full object-cover"></image>
+								<image :src="getOptimizedImage(item.product_image, 200, 200)" :alt="item.product_title" class="w-full h-full object-cover"></image>
 							</view>
 							<view class="ml-3 flex-1">
 								<view class="product-title-container">
@@ -215,6 +215,31 @@ const goToBrowse = () => {
 	uni.switchTab({
 		url: '/pages/home/home'
 	});
+};
+
+const getOptimizedImage = (url, width = 800, height = 0, quality = 80) => {
+	if (!url) return '';
+
+	// 1. 检查是否已包含处理参数
+	if (url.includes('x-oss-process') || /[_][RC]_\d+/.test(url) || url.includes('proc=')) {
+		return url;
+	}
+
+	const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+	const isCtrip = url.includes('ctrip.com');
+
+	// 2. 阿里云 OSS: 缩放 + WebP
+	if (isAliyun) {
+		return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+	}
+
+	// 3. 携程图片: 裁剪(_C_) 或 限宽(_R_)
+	if (isCtrip) {
+		if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
+		return url + `_R_${width}_10000_Q${quality}.jpg`;
+	}
+
+	return url;
 };
 
 // 收藏页面只需要查看和删除功能，添加收藏应该在商品详情页面实现

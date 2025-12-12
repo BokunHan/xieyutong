@@ -7,7 +7,7 @@
 				<view class="logo-container">
 					<image src="/static/logo.jpg" class="logo-img" mode="aspectFill"></image>
 					<view class="logo-text-group">
-						<view class="app-title">风漫国际旅行</view>
+						<view class="app-title">风漫国际管家</view>
 						<view class="app-slogan">随风漫行 × 向心而生</view>
 					</view>
 				</view>
@@ -55,6 +55,7 @@
 								v-if="banner.media_type === 'video'"
 								:id="'banner-video-' + index"
 								:src="banner.image"
+								:poster="getOssVideoPoster(banner.image)"
 								:autoplay="index === currentBannerIndex"
 								:loop="false"
 								:muted="true"
@@ -110,7 +111,7 @@
 
 				<template v-else-if="displayProductList.length > 0">
 					<view v-for="(product, index) in displayProductList" :key="product.id || index" class="product-card" @click="goToProductDetail(product.id)">
-						<image :src="product.image" class="product-img" mode="aspectFill"></image>
+						<image :src="getOptimizedImage(product.image, 400, 400)" class="product-img" mode="aspectFill"></image>
 						<view class="product-info">
 							<view class="product-title">{{ product.title }}</view>
 							<view class="product-meta">
@@ -291,11 +292,12 @@ export default {
 	},
 	methods: {
 		getBannerStyle(banner) {
+			const imageUrl = this.getOptimizedImage(banner.image, 1080, 0);
 			const baseStyle = {
 				width: '100%',
 				height: '100%',
 				display: 'block',
-				backgroundImage: `url('${encodeURI(banner.image)}')`,
+				backgroundImage: `url('${encodeURI(imageUrl)}')`,
 				backgroundRepeat: 'no-repeat'
 			};
 
@@ -871,6 +873,52 @@ export default {
 				this.bannerLoading = false;
 				console.log('=== loadBannerData 结束 ===');
 			}
+		},
+
+		/**
+		 * 智能图片压缩工具
+		 * @param {String} url 图片链接
+		 * @param {Number} width 目标宽度
+		 * @param {Number} height 目标高度 (0表示自适应)
+		 * @param {Number} quality 压缩质量 (默认80)
+		 */
+		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
+			if (!url) return '';
+
+			// 1. 如果已经是处理过的链接，直接返回 (防止重复拼接)
+			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) {
+				return url;
+			}
+
+			// 2. 识别域名
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com'); // 自家云存储
+			const isCtrip = url.includes('ctrip.com'); // 携程图片
+
+			// 3. 【自家云存储】使用 OSS 参数
+			if (isAliyun) {
+				// resize,w_800: 宽缩放到800
+				// format,webp: 强制 WebP (携程暂不加 webp 以防兼容问题)
+				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+			}
+
+			// 4. 【携程图片】使用携程后缀参数
+			if (isCtrip) {
+				// 模式 A: 指定了宽高 (如 200x200 的头像/缩略图) -> 使用裁剪模式 (_C_)
+				if (height > 0) {
+					return url + `_C_${width}_${height}_Q${quality}.jpg`;
+				}
+				// 模式 B: 只指定宽度 (如 Banner/列表大图) -> 使用限宽模式 (_R_)
+				// _R_宽_10000: 限制宽度，高度自适应(最高10000)
+				return url + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			// 5. 其他域名不处理
+			return url;
+		},
+		getOssVideoPoster(url) {
+			if (!url) return '';
+			// 截取第0秒画面作为封面
+			return url + '?x-oss-process=video/snapshot,t_0,f_jpg,w_800,m_fast';
 		},
 
 		// 重新加载Banner数据

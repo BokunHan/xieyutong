@@ -29,7 +29,7 @@
 					:key="selectedProductId"
 					:current="swiperCurrentIndex">
 					<swiper-item v-for="(image, index) in productData.product_images" :key="index">
-						<image :src="image" :alt="productData.title" class="w-full h-full" mode="aspectFill" />
+						<image :src="getOptimizedImage(image, 800, 0)" :alt="productData.title" class="w-full h-full" mode="aspectFill" />
 					</swiper-item>
 				</swiper>
 				<view class="image-count">{{ currentImageIndex + 1 }}/{{ productData.product_images.length }}</view>
@@ -154,7 +154,13 @@
 			<view class="section" v-if="productData.detail_images && productData.detail_images.length > 0">
 				<text class="section-title">产品特色</text>
 				<view class="product-detail-images">
-					<image v-for="(image, index) in productData.detail_images" :key="index" :src="image" :alt="`产品特色${index + 1}`" class="w-full rounded-lg mb-3" mode="widthFix" />
+					<image
+						v-for="(image, index) in productData.detail_images"
+						:key="index"
+						:src="getOptimizedImage(image, 800, 0)"
+						:alt="`产品特色${index + 1}`"
+						class="w-full rounded-lg mb-3"
+						mode="widthFix" />
 				</view>
 			</view>
 
@@ -230,7 +236,7 @@
 							<image
 								v-for="(img, index) in firstReview.images.slice(0, 4)"
 								:key="index"
-								:src="img"
+								:src="getOptimizedImage(img, 200, 200)"
 								class="w-full h-20 rounded-lg object-cover"
 								mode="aspectFill"
 								@click="previewReviewImage(index)" />
@@ -1124,6 +1130,52 @@ export default {
 				// 传递当前选中的 product_id
 				url: `/pages/order/order-booking?id=${this.selectedProductId}&date=${selectedDate}`
 			});
+		},
+
+		/**
+		 * 智能图片压缩工具
+		 * @param {String} url 图片链接
+		 * @param {Number} width 目标宽度
+		 * @param {Number} height 目标高度 (0表示自适应)
+		 * @param {Number} quality 压缩质量 (默认80)
+		 */
+		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
+			if (!url) return '';
+
+			// 1. 如果已经是处理过的链接，直接返回 (防止重复拼接)
+			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) {
+				return url;
+			}
+
+			// 2. 识别域名
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com'); // 自家云存储
+			const isCtrip = url.includes('ctrip.com'); // 携程图片
+
+			// 3. 【自家云存储】使用 OSS 参数
+			if (isAliyun) {
+				// resize,w_800: 宽缩放到800
+				// format,webp: 强制 WebP (携程暂不加 webp 以防兼容问题)
+				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+			}
+
+			// 4. 【携程图片】使用携程后缀参数
+			if (isCtrip) {
+				// 模式 A: 指定了宽高 (如 200x200 的头像/缩略图) -> 使用裁剪模式 (_C_)
+				if (height > 0) {
+					return url + `_C_${width}_${height}_Q${quality}.jpg`;
+				}
+				// 模式 B: 只指定宽度 (如 Banner/列表大图) -> 使用限宽模式 (_R_)
+				// _R_宽_10000: 限制宽度，高度自适应(最高10000)
+				return url + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			// 5. 其他域名不处理
+			return url;
+		},
+		getOssVideoPoster(url) {
+			if (!url) return '';
+			// 截取第0秒画面作为封面
+			return url + '?x-oss-process=video/snapshot,t_0,f_jpg,w_800,m_fast';
 		}
 	}
 };

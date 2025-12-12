@@ -63,6 +63,10 @@
 				<uni-file-picker v-model="formData.media" file-mediatype="all" return-type="array" :limit="20" mode="grid"></uni-file-picker>
 			</uni-forms-item>
 
+			<uni-forms-item name="route_map_image" label="游览线路图">
+				<uni-file-picker v-model="formData.route_map_image" file-mediatype="image" return-type="object" :limit="1" title="最多选择1张图片"></uni-file-picker>
+			</uni-forms-item>
+
 			<uni-forms-item name="description" label="富文本介绍">
 				<view class="wangeditor-container">
 					<sv-wangeditor v-model:html="formData.description" :toolbarConfig="toolbarConfig" :editorConfig="editorConfig" mode="default"></sv-wangeditor>
@@ -105,6 +109,7 @@ export default {
 			aliases: [],
 			tags: [],
 			address_text: '',
+			route_map_image: null,
 			media: [],
 			description: ''
 		};

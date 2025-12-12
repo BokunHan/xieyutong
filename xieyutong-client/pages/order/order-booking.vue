@@ -9,7 +9,10 @@
 		<view v-else class="content-area">
 			<!-- 产品信息卡片 -->
 			<view class="product-card">
-				<image :src="productData.cover_image || (productData.product_images && productData.product_images[0])" class="product-image" mode="aspectFill" />
+				<image
+					:src="getOptimizedImage(productData.cover_image || (productData.product_images && productData.product_images[0]), 200, 200)"
+					class="product-image"
+					mode="aspectFill" />
 				<view class="product-info">
 					<text class="product-title">{{ productData.title || '产品标题' }}</text>
 					<text class="product-subtitle">{{ productData.subtitle || '产品描述' }}</text>
@@ -1695,6 +1698,32 @@ export default {
 			});
 
 			return coupon.id === bestCouponId;
+		},
+
+		// 智能图片压缩工具 (适配阿里云 OSS 和 携程)
+		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
+			if (!url) return '';
+
+			// 1. 检查是否已包含处理参数
+			if (url.includes('x-oss-process') || /[_][RC]_\d+/.test(url) || url.includes('proc=')) {
+				return url;
+			}
+
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+			const isCtrip = url.includes('ctrip.com');
+
+			// 2. 阿里云 OSS: 缩放 + WebP
+			if (isAliyun) {
+				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+			}
+
+			// 3. 携程图片: 裁剪(_C_) 或 限宽(_R_)
+			if (isCtrip) {
+				if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
+				return url + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			return url;
 		}
 	}
 };

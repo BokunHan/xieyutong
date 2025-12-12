@@ -23,7 +23,7 @@
 			<block v-else>
 				<view class="album-list">
 					<view v-for="album in albumList" :key="album._id" class="album-item" @click="goToDetail(album._id)">
-						<image class="album-cover" :src="album.cover_image || product_image" mode="aspectFill"></image>
+						<image class="album-cover" :src="getOptimizedImage(album.cover_image || product_image)" mode="aspectFill"></image>
 						<view class="album-overlay"></view>
 						<view class="album-info">
 							<text class="album-name">{{ album.album_name }}</text>
@@ -194,6 +194,35 @@ export default {
 
 			// 5. 如果 total_days 为 1 或不存在，只显示开始日期
 			return startDate;
+		},
+
+		// 智能图片压缩工具
+		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
+			if (!url) return '';
+
+			// 1. 检查是否已包含处理参数 (OSS参数 / 携程后缀 / 携程Query参数)
+			if (url.includes('x-oss-process') || /[_][RC]_\d+/.test(url) || url.includes('proc=')) {
+				return url;
+			}
+
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+			const isCtrip = url.includes('ctrip.com');
+
+			// 2. 阿里云 OSS
+			if (isAliyun) {
+				// resize,w_800: 宽缩放到800, 质量80, 格式webp
+				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
+			}
+
+			// 3. 携程图片
+			if (isCtrip) {
+				// _R_宽_10000: 限宽模式
+				// _C_宽_高: 裁剪模式
+				if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
+				return url + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			return url;
 		}
 	}
 };

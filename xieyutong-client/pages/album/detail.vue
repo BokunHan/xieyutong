@@ -55,7 +55,7 @@
 
 				<view v-else class="photo-grid">
 					<view v-for="(photo, index) in filteredPhotos" :key="photo._id" class="photo-item" @click="previewMediaItem(photo, index)" @longpress="handleLongPress(photo)">
-						<image class="photo-image" :src="photo.compressed_url" mode="aspectFill" />
+						<image class="photo-image" :src="getGridThumb(photo.compressed_url || photo.original_url)" mode="aspectFill" />
 
 						<view v-if="photo.media_type === 'video'" class="video-icon-overlay">
 							<uni-icons type="videocam-filled" size="30" color="rgba(255,255,255,0.5)"></uni-icons>
@@ -274,6 +274,24 @@ export default {
 					const uploadPromises = validFiles.map(async (tempFile) => {
 						try {
 							const isVideo = tempFile.fileType === 'video';
+							let filePath = tempFile.tempFilePath; // 默认用原路径
+
+							if (isVideo && tempFile.size > 20 * 1024 * 1024) {
+								uni.showLoading({ title: '视频压缩中...' });
+								try {
+									const compressRes = await uni.compressVideo({
+										src: filePath,
+										quality: 'medium',
+										resolution: 0.8
+									});
+									filePath = compressRes.tempFilePath; // 使用压缩后的路径
+									console.log('视频已压缩');
+								} catch (e) {
+									console.error('压缩失败，使用原片');
+								}
+								uni.showLoading({ title: '上传中...' }); // 恢复提示
+							}
+
 							// 1. 上传主文件 (图片或视频)
 							let extension = tempFile.tempFilePath.split('.').pop();
 							// 简单的后缀处理
@@ -283,7 +301,7 @@ export default {
 							const cloudPath = `album-photos/${this.albumId}/${randomName}`;
 
 							const uploadRes = await uniCloud.uploadFile({
-								filePath: tempFile.tempFilePath,
+								filePath: filePath,
 								cloudPath: cloudPath
 							});
 
@@ -364,8 +382,20 @@ export default {
 			});
 		},
 
+		// 生成网格小图 (WebP + 400px)
+		getGridThumb(url) {
+			if (!url) return '';
+			return url + '?x-oss-process=image/resize,w_400/quality,q_80/format,webp';
+		},
+
+		// 生成预览大图 (JPG + 1920px，不用WebP以防保存兼容性问题)
+		getPreviewUrl(url) {
+			if (!url) return '';
+			return url + '?x-oss-process=image/resize,w_1920/quality,q_90/format,jpg';
+		},
+
 		previewImage(currentPhoto) {
-			const urls = this.filteredPhotos.map((p) => p.original_url);
+			const urls = this.filteredPhotos.map((p) => this.getPreviewUrl(p.original_url));
 			const currentIndex = urls.findIndex((url) => url === currentPhoto.original_url);
 			this.currentPreviewIndex = currentIndex;
 			console.log('currentIndex: ', currentIndex);
