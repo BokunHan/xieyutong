@@ -1,0 +1,8 @@
+2026/02/01-20:32:42.404 18ec Reusing MANIFEST F:\HBuilderProjects\xieyutong\qywx-messenger\browser_profiles\User_Supplier_A\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/01-20:32:42.408 18ec Recovering log #12
+2026/02/01-20:32:42.408 18ec Level-0 table #15: started
+2026/02/01-20:32:42.412 18ec Level-0 table #15: 24776 bytes OK
+2026/02/01-20:32:42.412 18ec Recovering log #15
+2026/02/01-20:32:42.413 18ec Reusing old log F:\HBuilderProjects\xieyutong\qywx-messenger\browser_profiles\User_Supplier_A\Default\Local Storage\leveldb/000015.log 
+2026/02/01-20:32:42.415 18ec Delete type=0 #12
+2026/02/01-20:32:42.415 18ec Delete type=2 #16

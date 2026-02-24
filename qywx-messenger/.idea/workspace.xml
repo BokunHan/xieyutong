@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="3ac8cf81-b0c5-4069-8f5d-7593b0b446cb" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../ctrip-crawler-api/ctrip_snapshot_itinerary_crawler.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ctrip-crawler-api/ctrip_snapshot_itinerary_crawler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/agent_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/browser_launcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/browser_launcher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/captcha_solver.py" beforeDir="false" afterPath="$PROJECT_DIR$/captcha_solver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messenger.py" beforeDir="false" afterPath="$PROJECT_DIR$/messenger.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommend_actions_crawler.py" beforeDir="false" afterPath="$PROJECT_DIR$/recommend_actions_crawler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-group-albums/detail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/a-group-albums/detail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-group-albums/list.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/a-group-albums/list.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-orders/add.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-orders/components/orders-table.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-orders/components/snapshots-table.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-orders/edit.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-orders/list.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-poi-system/a-poi-database/edit.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/a-poi-system/a-poi-database/edit.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-products/add.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-products/components/BookingPolicies.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-products/components/ItineraryManagement.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-products/components/ProductInfo.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-products/components/ReviewManagement.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-products/edit.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-task-orders/add.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/a-task-orders/add.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-task-orders/list.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/a-task-orders/list.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/a-task-orders/queue.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/a-task-orders/queue.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/index/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/index/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/system/user/edit.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/system/user/edit.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/pages/system/user/list.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/pages/system/user/list.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/uni_modules/uni-id-pages/pages/login/login-withpwd.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/uni_modules/uni-id-pages/pages/login/login-withpwd.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/uni_modules/uni-id-pages/pages/register/register.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/uni_modules/uni-id-pages/pages/register/register.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-admin/uni_modules/uni-id-pages/pages/register/validator.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-admin/uni_modules/uni-id-pages/pages/register/validator.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/album/detail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/album/detail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/album/list.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/album/list.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/home/home.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/home/home.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/itinerary/itinerary.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/itinerary/itinerary.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/login/login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/login/login.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/order/bind-confirm.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/order/bind-confirm.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/order/order-list.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/order/order-list.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/product-detail/product-detail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/product-detail/product-detail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/product-detail/product-itinerary.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/product-detail/product-itinerary.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/profile/profile.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/profile/profile.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/pages/search/search-result.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/pages/search/search-result.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-elevation/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-elevation/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-favorite-service/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-favorite-service/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-geocoding/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-geocoding/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-itinerary-service/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-itinerary-service/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-itinerary-service/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-itinerary-service/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-member-service/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-member-service/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-order-service/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-order-service/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-order-service/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-order-service/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-poi-service/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-poi-service/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-poi-service/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-poi-service/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-task-rpa/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-task-rpa/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-task-rpa/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-task-rpa/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-user-profile/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-user-profile/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-weather/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/a-weather/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/album-service/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/album-service/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/album-service/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/album-service/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/ctrip-sync-service/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/ctrip-sync-service/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/ctrip-sync-service/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/ctrip-sync-service/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/utils/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/cloudfunctions/utils/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/JQL查询.jql" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/JQL查询.jql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-album-photos.schema.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-album-photos.schema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-group-albums.schema.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-group-albums.schema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-orders.schema.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-orders.schema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-snapshots.schema.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-snapshots.schema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-task-orders.schema.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-task-orders.schema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-task-queue.schema.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/a-task-queue.schema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/uni-id-users.index.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uniCloud-aliyun/database/uni-id-users.index.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center/uni-id/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center/uni-id/config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/changelog.md" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/changelog.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uni-icons.uvue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uni-icons.uvue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uni-icons.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uni-icons.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uniicons_file.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uniicons_file.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uniicons_file_vue.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/components/uni-icons/uniicons_file_vue.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-icons/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-id-pages/uniCloud/cloudfunctions/uni-id-co/index.obj.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-id-pages/uniCloud/cloudfunctions/uni-id-co/index.obj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-id-pages/uniCloud/cloudfunctions/uni-id-co/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-id-pages/uniCloud/cloudfunctions/uni-id-co/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-id-pages/uniCloud/database/uni-id-users.schema.json" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-id-pages/uniCloud/database/uni-id-users.schema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-pay/uniCloud/cloudfunctions/uni-pay-co/middleware/access-control.js" beforeDir="false" afterPath="$PROJECT_DIR$/../xieyutong-client/uni_modules/uni-pay/uniCloud/cloudfunctions/uni-pay-co/middleware/access-control.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="35soMDOzzCKTkH7IZSC3vOaUcSh" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;F:/HBuilderProjects/xieyutong/qywx-messenger&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="qywx-messenger" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-PY-251.23774.444" />
+        <option value="bundled-python-sdk-890ed5b35930-d9c5bdb153f4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.23774.444" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3ac8cf81-b0c5-4069-8f5d-7593b0b446cb" name="Changes" comment="" />
+      <created>1763908089841</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1763908089841</updated>
+      <workItem from="1763908091296" duration="1336000" />
+      <workItem from="1764038812280" duration="6887000" />
+      <workItem from="1764123824747" duration="11235000" />
+      <workItem from="1764247968806" duration="3727000" />
+      <workItem from="1764312131908" duration="9470000" />
+      <workItem from="1764503674992" duration="8664000" />
+      <workItem from="1764560944028" duration="2913000" />
+      <workItem from="1764645081153" duration="17697000" />
+      <workItem from="1764689741283" duration="688000" />
+      <workItem from="1764727831324" duration="22652000" />
+      <workItem from="1764815702713" duration="5542000" />
+      <workItem from="1764905084958" duration="3348000" />
+      <workItem from="1765159933111" duration="958000" />
+      <workItem from="1765247338360" duration="1807000" />
+      <workItem from="1765357162964" duration="2173000" />
+      <workItem from="1765464003958" duration="1288000" />
+      <workItem from="1765496080880" duration="2648000" />
+      <workItem from="1765874261578" duration="3915000" />
+      <workItem from="1766372469339" duration="8662000" />
+      <workItem from="1766461422772" duration="1377000" />
+      <workItem from="1766471440309" duration="4512000" />
+      <workItem from="1766484427917" duration="2970000" />
+      <workItem from="1766545324723" duration="4293000" />
+      <workItem from="1766629969475" duration="635000" />
+      <workItem from="1766643660947" duration="5209000" />
+      <workItem from="1766816718550" duration="1968000" />
+      <workItem from="1767067254641" duration="3718000" />
+      <workItem from="1768207999855" duration="297000" />
+      <workItem from="1768220271193" duration="2438000" />
+      <workItem from="1768307949645" duration="231000" />
+      <workItem from="1768463569304" duration="4758000" />
+      <workItem from="1768529686949" duration="13203000" />
+      <workItem from="1768634516411" duration="5472000" />
+      <workItem from="1768726922482" duration="5681000" />
+      <workItem from="1768800192655" duration="4811000" />
+      <workItem from="1768980378872" duration="847000" />
+      <workItem from="1769091765561" duration="819000" />
+      <workItem from="1769151660438" duration="11796000" />
+      <workItem from="1769394329963" duration="3979000" />
+      <workItem from="1769481792702" duration="1472000" />
+      <workItem from="1769509013092" duration="1327000" />
+      <workItem from="1769567344391" duration="2694000" />
+      <workItem from="1769586217064" duration="2246000" />
+      <workItem from="1769608343587" duration="388000" />
+      <workItem from="1769658121826" duration="18695000" />
+      <workItem from="1769741469173" duration="5460000" />
+      <workItem from="1769832772740" duration="4589000" />
+      <workItem from="1769872218776" duration="284000" />
+      <workItem from="1769916569469" duration="10093000" />
+      <workItem from="1770000377253" duration="3499000" />
+      <workItem from="1770122492070" duration="2945000" />
+      <workItem from="1770126993590" duration="31000" />
+      <workItem from="1770127037377" duration="167000" />
+      <workItem from="1770127246363" duration="69000" />
+      <workItem from="1770127474352" duration="4858000" />
+      <workItem from="1770176141822" duration="768000" />
+      <workItem from="1770185479820" duration="1608000" />
+      <workItem from="1770199673264" duration="559000" />
+      <workItem from="1770214204040" duration="1343000" />
+      <workItem from="1770271235197" duration="2463000" />
+      <workItem from="1770603658889" duration="22000" />
+      <workItem from="1770710551664" duration="3532000" />
+      <workItem from="1770780501511" duration="858000" />
+      <workItem from="1770826192773" duration="326000" />
+      <workItem from="1770870260978" duration="1910000" />
+      <workItem from="1770954499905" duration="652000" />
+      <workItem from="1770967071939" duration="741000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>8</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
