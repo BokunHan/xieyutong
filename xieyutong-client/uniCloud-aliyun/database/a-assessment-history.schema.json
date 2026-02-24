@@ -1,0 +1,68 @@
+{
+	"bsonType": "object",
+	"required": ["period", "role", "user_id", "total_score", "rank"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "false",
+		"delete": "'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"period": {
+			"bsonType": "string",
+			"description": "考核周期标识，格式 YYYY-MM"
+		},
+		"role": {
+			"bsonType": "string",
+			"description": "角色: guide/sale/attendant"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "员工ID"
+		},
+		"real_name": {
+			"bsonType": "string",
+			"description": "冗余姓名，方便查询"
+		},
+		"total_score": {
+			"bsonType": "double",
+			"description": "总分"
+		},
+		"rank": {
+			"bsonType": "int",
+			"description": "当期排名"
+		},
+		"dimensions": {
+			"bsonType": "array",
+			"description": "各维度得分快照，用于后续追溯",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"key": {
+						"bsonType": "string"
+					},
+					"score": {
+						"bsonType": "double"
+					}
+				}
+			}
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	},
+	"index": [{
+		"keys": {
+			"period": 1,
+			"role": 1,
+			"user_id": 1
+		},
+		"unique": true
+	}]
+}

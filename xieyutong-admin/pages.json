@@ -141,34 +141,14 @@
 				"navigationBarTitleText": "实名认证"
 			}
 		}, {
-			"path": "pages/a-orders/add",
-			"style": {
-				"navigationBarTitleText": "新增"
-			}
-		}, {
-			"path": "pages/a-orders/edit",
-			"style": {
-				"navigationBarTitleText": "编辑"
-			}
-		}, {
-			"path": "pages/a-orders/list",
+			"path": "pages/a-products-orders/list",
 			"style": {
 				"navigationBarTitleText": "列表"
 			}
 		}, {
-			"path": "pages/a-products/add",
-			"style": {
-				"navigationBarTitleText": "新增"
-			}
-		}, {
-			"path": "pages/a-products/edit",
+			"path": "pages/a-products-orders/edit",
 			"style": {
 				"navigationBarTitleText": "编辑"
-			}
-		}, {
-			"path": "pages/a-products/list",
-			"style": {
-				"navigationBarTitleText": "列表"
 			}
 		},
 		{
@@ -329,13 +309,13 @@
 			}
 		},
 		{
-			"path": "pages/a-orders/components/orders-table",
+			"path": "pages/a-products-orders/components/orders-table",
 			"style": {
 				"navigationBarTitleText": "小程序订单管理"
 			}
 		},
 		{
-			"path": "pages/a-orders/components/snapshots-table",
+			"path": "pages/a-products-orders/components/snapshots-table",
 			"style": {
 				"navigationBarTitleText": "携程订单快照管理"
 			}
@@ -472,7 +452,206 @@
 			"style": {
 				"navigationBarTitleText": "任务消息设置"
 			}
+		},
+		{
+			"path": "pages/a-supplies/overview",
+			"style": {
+				"navigationBarTitleText": "物资流转概览"
+			}
+		},
+		{
+			"path": "pages/a-supplies/services",
+			"style": {
+				"navigationBarTitleText": "服务配置"
+			}
+		},
+		{
+			"path": "pages/a-supplies/supplies",
+			"style": {
+				"navigationBarTitleText": "物资管理"
+			}
+		},
+		{
+			"path": "pages/a-supplies/orders",
+			"style": {
+				"navigationBarTitleText": "订单物资"
+			}
+		},
+		{
+			"path": "pages/b-vehicle-profiles/add",
+			"style": {
+				"navigationBarTitleText": "新增车辆档案"
+			}
+		},
+		{
+			"path": "pages/b-vehicle-profiles/edit",
+			"style": {
+				"navigationBarTitleText": "编辑车辆档案"
+			}
+		},
+		{
+			"path": "pages/b-vehicle-profiles/list",
+			"style": {
+				"navigationBarTitleText": "车辆档案列表"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/scheduler",
+			"style": {
+				"navigationBarTitleText": "调度视图"
+			}
+		},
+		{
+			"path": "pages/b-employees/guide-profile-add",
+			"style": {
+				"navigationBarTitleText": "新建司导档案"
+			}
+		},
+		{
+			"path": "pages/b-employees/guide-profile-edit",
+			"style": {
+				"navigationBarTitleText": "编辑司导档案"
+			}
+		},
+		{
+			"path": "pages/b-employees/guide-portfolio-add",
+			"style": {
+				"navigationBarTitleText": "新建司导专属相册"
+			}
+		},
+		{
+			"path": "pages/b-employees/guide-portfolio",
+			"style": {
+				"navigationBarTitleText": "司导精彩瞬间"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/daily-manifest",
+			"style": {
+				"navigationBarTitleText": "运营日报"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/dashboard",
+			"style": {
+				"navigationBarTitleText": "数据大盘"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/assignment",
+			"style": {
+				"navigationBarTitleText": "智能分单"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/sales-view",
+			"style": {
+				"navigationBarTitleText": "销售视图"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/attendant-view",
+			"style": {
+				"navigationBarTitleText": "管家视图"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/guide-view",
+			"style": {
+				"navigationBarTitleText": "私导视图"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/customer-management",
+			"style": {
+				"navigationBarTitleText": "客户管理"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/performance-management",
+			"style": {
+				"navigationBarTitleText": "考核管理"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/management-configs",
+			"style": {
+				"navigationBarTitleText": "系统设置"
+			}
+		},
+		{
+			"path": "pages/a-task-orders/failed-list",
+			"style": {
+				"navigationBarTitleText": "失败任务"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/index",
+			"style": {
+				"navigationBarTitleText": "运营中心"
+			}
+		},
+		{
+			"path": "pages/a-customers/list",
+			"style": {
+				"navigationBarTitleText": "客户管理"
+			}
+		},
+		{
+			"path": "components/echarts-view/echarts-view",
+			"style": {
+				"navigationBarTitleText": "Echarts"
+			}
+		},
+		{
+			"path": "pages/a-operation-center/sales-panel",
+			"style": {
+				"navigationBarTitleText": "销售岗位可视化面板"
+			}
+		},
+		{
+			"path": "pages/b-employees/list",
+			"style": {
+				"navigationBarTitleText": "员工档案"
+			}
+		},
+		{
+			"path": "pages/b-employees/sale-profile-edit",
+			"style": {
+				"navigationBarTitleText": "编辑销售档案"
+			}
+		},
+		{
+			"path": "pages/b-employees/attendant-profile-edit",
+			"style": {
+				"navigationBarTitleText": "编辑管家档案"
+			}
+		},
+		{
+			"path": "pages/a-task-orders/migration",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/a-products-orders/components/products-table",
+			"style": {
+				"navigationBarTitleText": "商品页面"
+			}
+		},
+		{
+			"path": "pages/a-task-orders/batch",
+			"style": {
+				"navigationBarTitleText": "全局批量任务管理"
+			}
+		},
+		{
+			"path": "pages/a-task-orders/global-queue",
+			"style": {
+				"navigationBarTitleText": "全局任务管理"
+			}
 		}
+
 	],
 	"subPackages": [{
 			"root": "pages/system",

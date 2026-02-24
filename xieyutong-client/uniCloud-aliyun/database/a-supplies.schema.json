@@ -1,0 +1,103 @@
+{
+	"bsonType": "object",
+	"required": ["name", "unit"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"bsonType": "string",
+			"description": "ID，系统自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "物资名称"
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "物资描述"
+		},
+		"unit": {
+			"bsonType": "string",
+			"description": "单位"
+		},
+		"image": {
+			"bsonType": "array",
+			"description": "媒体文件列表",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"name": {
+						"bsonType": "string",
+						"description": "文件名称"
+					},
+					"url": {
+						"bsonType": "string",
+						"description": "文件地址"
+					},
+					"type": {
+						"bsonType": "string",
+						"description": "文件类型(image/video)"
+					}
+				}
+			}
+		},
+		"file_type": {
+			"bsonType": "string",
+			"description": "文件类型",
+			"enum": ["image", "video"],
+			"default": "image"
+		},
+		"category": {
+			"bsonType": "string",
+			"description": "分类"
+		},
+		"stock": {
+			"bsonType": "int",
+			"description": "库存量"
+		},
+		"allocation_type": {
+			"bsonType": "string",
+			"description": "分配方式",
+			"enum": ["person", "group"],
+			"defaultValue": "person",
+			"title": "分配方式: person=按人, group=按团"
+		},
+		"is_consumable": {
+			"bsonType": "bool",
+			"description": "是否为消耗品(无需归还)",
+			"default": false
+		},
+		"is_default": {
+			"bsonType": "bool",
+			"description": "是否默认添加到新订单",
+			"default": false
+		},
+		"status": {
+			"bsonType": "bool",
+			"description": "是否启用",
+			"default": true
+		},
+		"is_config": {
+			"bsonType": "bool",
+			"description": "是否为配置项"
+		},
+		"unit_options": {
+			"bsonType": "array",
+			"description": "单位配置项",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"category_options": {
+			"bsonType": "array",
+			"description": "分类配置项",
+			"items": {
+				"bsonType": "string"
+			}
+		}
+	}
+}

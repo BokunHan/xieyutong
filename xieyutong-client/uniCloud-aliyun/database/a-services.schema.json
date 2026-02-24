@@ -1,0 +1,61 @@
+{
+	"bsonType": "object",
+	"required": ["name", "supplies"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid != null",
+		"delete": "auth.uid != null"
+	},
+	"properties": {
+		"_id": {
+			"bsonType": "string",
+			"description": "ID，系统自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "服务名称"
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "服务描述"
+		},
+		"supplies": {
+			"bsonType": "array",
+			"description": "关联的物资列表",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"id": {
+						"bsonType": "string",
+						"description": "关联a-supplies表_id",
+						"foreignKey": "a-supplies._id"
+					},
+					"name": {
+						"bsonType": "string",
+						"description": "物资名称"
+					},
+					"quantity": {
+						"bsonType": "int",
+						"description": "数量"
+					},
+					"is_on_demand": {
+						"bsonType": "bool",
+						"description": "是否按需配备",
+						"default": false
+					}
+				}
+			}
+		},
+		"is_default": {
+			"bsonType": "bool",
+			"description": "是否默认添加到新订单",
+			"default": false
+		},
+		"status": {
+			"bsonType": "bool",
+			"description": "是否启用",
+			"default": true
+		}
+	}
+}

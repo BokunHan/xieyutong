@@ -92,11 +92,10 @@
 						<text class="action-text" :class="isFavorite ? 'text-red-500' : ''">{{ isFavorite ? '已收藏' : '收藏' }}</text>
 					</view>
 					<!-- #ifdef MP-WEIXIN -->
-					<button class="action-button" open-type="share" plain="true">
-						<!-- <text class="fa fa-share-alt action-icon"></text> -->
+					<view class="action-button" @click="openShareMenu">
 						<image src="/static/icons/share-alt.svg" class="w-5 h-5 mt-1" mode="aspectFit" />
 						<text class="action-text">分享</text>
-					</button>
+					</view>
 					<!-- #endif -->
 
 					<!-- #ifndef MP-WEIXIN -->
@@ -151,15 +150,15 @@
 					</view>
 				</scroll-view>
 			</view>
-			<view class="section" v-if="productData.detail_images && productData.detail_images.length > 0">
+			<view class="picture-section" v-if="productData.detail_images && productData.detail_images.length > 0" style="width: 100%; font-size: 0">
 				<text class="section-title">产品特色</text>
-				<view class="product-detail-images">
+				<view>
 					<image
 						v-for="(image, index) in productData.detail_images"
 						:key="index"
-						:src="getOptimizedImage(image, 800, 0)"
+						:src="getOptimizedImage(image, 1000, 0)"
 						:alt="`产品特色${index + 1}`"
-						class="w-full rounded-lg mb-3"
+						class="w-full"
 						mode="widthFix" />
 				</view>
 			</view>
@@ -542,11 +541,60 @@
 			</view>
 		</view>
 	</view>
+
+	<view v-if="showQrModal" class="qr-modal-overlay" @click="closeQrModal">
+		<view class="qr-modal-content" @click.stop>
+			<view class="qr-header">
+				<text class="qr-title">分享给好友</text>
+				<view class="close-qr" @click="closeQrModal">
+					<image src="/static/icons/times.png" class="w-5 h-5" mode="aspectFit" />
+				</view>
+			</view>
+
+			<view class="qr-code-box">
+				<image v-if="mpQrCodeBase64" :src="mpQrCodeBase64" style="width: 200px; height: 200px" mode="aspectFit" />
+				<view v-else class="flex items-center justify-center bg-gray-50" style="width: 200px; height: 200px">
+					<text class="text-gray-400 text-sm">生成中...</text>
+				</view>
+			</view>
+
+			<text class="qr-tip">扫码查看详情</text>
+
+			<button class="save-qr-btn" @click="saveQrToAlbum">保存图片</button>
+		</view>
+	</view>
+
+	<view v-if="showShareMenu" class="share-modal-overlay" @click="closeShareMenu">
+		<view class="share-modal-content bottom-sheet" @click.stop>
+			<view class="share-modal-header">
+				<text class="share-modal-title">分享至</text>
+			</view>
+
+			<view class="share-options-grid">
+				<button class="share-grid-item" open-type="share" plain="true" @click="closeShareMenu">
+					<view class="share-icon-circle bg-green">
+						<image src="/static/icons/share-alt.svg" class="w-6 h-6 white-icon" mode="aspectFit" />
+					</view>
+					<text class="share-grid-text">微信好友</text>
+				</button>
+
+				<view class="share-grid-item" @click="handleGeneratePoster">
+					<view class="share-icon-circle bg-orange">
+						<image src="/static/icons/share-alt.svg" class="w-6 h-6 white-icon" mode="aspectFit" />
+					</view>
+					<text class="share-grid-text">生成二维码</text>
+				</view>
+			</view>
+
+			<view class="share-cancel-btn" @click="closeShareMenu">取消</view>
+		</view>
+	</view>
 </template>
 
 <script>
 import DatePicker from '@/components/date-picker/date-picker.vue';
 const favoriteObj = uniCloud.importObject('a-favorite-service');
+const qrcodeService = uniCloud.importObject('qrcode-service');
 
 export default {
 	components: {
@@ -590,7 +638,10 @@ export default {
 			],
 			selectedCoupon: { id: 'coupon1', name: '新用户专享', amount: 200, type: 'fixed' },
 			isFavorite: false,
-			favoriteId: ''
+			favoriteId: '',
+			mpQrCodeBase64: '',
+			showShareMenu: false,
+			showQrModal: false
 		};
 	},
 
@@ -659,20 +710,49 @@ export default {
 	},
 
 	onLoad(options) {
-		if (options.id) {
+		// 1. 处理扫码进入的情况 (参数在 scene 中)
+		if (options.scene) {
+			// scene 需要解码，格式通常为 "id=xxx&route=yyy"
+			const sceneStr = decodeURIComponent(options.scene);
+
+			// 解析参数字符串
+			const params = {};
+			sceneStr.split('&').forEach((item) => {
+				const [key, val] = item.split('=');
+				if (key && val) {
+					params[key] = val;
+				}
+			});
+
+			// 取出 id 参数
+			if (params.id) {
+				this.mainProductId = params.id;
+				// 如果二维码里也放了 route 参数，也可以在这里取出
+				// this.loadData(params.route);
+				this.loadData();
+			}
+		}
+		// 2. 处理普通页面跳转的情况
+		else if (options.id) {
 			this.mainProductId = options.id;
-			this.loadData(options.route); // 将可能的 route 参数传入
-		} else {
-			this.error = '缺少主产品ID参数';
+			this.loadData(options.route);
+		}
+
+		// 3. 最终检查
+		if (!this.mainProductId) {
+			this.error = '缺少主产品ID参数'; // 这就是你现在看到的错误
 			this.loading = false;
+
+			// 调试建议：可以在这里打印一下 options，方便排查
+			console.error('参数错误，接收到的 options:', options);
 		}
 	},
 
-	// --- 分享相关 (现在使用 selectedProduct) ---
+	// --- 分享相关 ---
 	onShareAppMessage() {
 		return {
 			title: this.productData.title || '精彩旅行',
-			path: `/pages/product/detail?id=${this.mainProductId}&route=${this.selectedProductId}`, // 添加 route 参数
+			path: `/pages/product-detail/product-detail?id=${this.mainProductId}&route=${this.selectedProductId}`, // 添加 route 参数
 			imageUrl: this.productData.product_images?.[0] || '' // 优先使用 product_images
 		};
 	},
@@ -1030,9 +1110,10 @@ export default {
 		},
 
 		showShareOptions() {
-			const shareUrl = `${this.$config.h5.url}/#/pages/product/detail?id=${this.mainProductId}&route=${this.selectedProductId}`; // H5 地址
+			const shareUrl = `${this.$config.h5.url}/#/pages/product-detail/product-detail?id=${this.mainProductId}&route=${this.selectedProductId}`; // H5 地址
+			console.log('shareUrl: ', shareUrl);
 			uni.showActionSheet({
-				itemList: ['分享给微信好友', '分享到朋友圈', '复制链接'],
+				itemList: ['分享给微信好友', '分享到朋友圈', '复制链接', '生成二维码'],
 				success: (res) => {
 					switch (res.tapIndex) {
 						case 0:
@@ -1086,6 +1167,9 @@ export default {
 									uni.showToast({ title: '链接已复制', icon: 'success' });
 								}
 							});
+							break;
+						case 3:
+							this.handleGeneratePoster();
 							break;
 					}
 				}
@@ -1142,40 +1226,153 @@ export default {
 		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
 			if (!url) return '';
 
-			// 1. 如果已经是处理过的链接，直接返回 (防止重复拼接)
+			// 1. 预处理：判断是否为携程系域名
+			const isCtrip = url.includes('ctrip.com') || url.includes('trip.com') || url.includes('qunar.com');
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+
+			// 2. 携程图片特殊处理 (清洗旧参数 + 追加新参数)
+			if (isCtrip) {
+				// 正则匹配 _C_800_600 或 _R_800_10000 这类后缀
+				const ctripParamRegex = /_[A-Z]_\d+_\d+.*$/i;
+				// 移除旧参数
+				const cleanUrl = url.replace(ctripParamRegex, '');
+
+				// 重新拼接参数
+				if (height > 0) {
+					// 模式 A: 指定宽高 (裁剪)
+					return cleanUrl + `_C_${width}_${height}_Q${quality}.jpg`;
+				}
+				// 模式 B: 只指定宽度 (限宽，高度自适应)
+				return cleanUrl + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			// 3. 如果已经包含处理参数（非携程），直接返回
 			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) {
 				return url;
 			}
 
-			// 2. 识别域名
-			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com'); // 自家云存储
-			const isCtrip = url.includes('ctrip.com'); // 携程图片
-
-			// 3. 【自家云存储】使用 OSS 参数
+			// 4. 阿里云 OSS 处理
 			if (isAliyun) {
-				// resize,w_800: 宽缩放到800
-				// format,webp: 强制 WebP (携程暂不加 webp 以防兼容问题)
 				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
 			}
 
-			// 4. 【携程图片】使用携程后缀参数
-			if (isCtrip) {
-				// 模式 A: 指定了宽高 (如 200x200 的头像/缩略图) -> 使用裁剪模式 (_C_)
-				if (height > 0) {
-					return url + `_C_${width}_${height}_Q${quality}.jpg`;
-				}
-				// 模式 B: 只指定宽度 (如 Banner/列表大图) -> 使用限宽模式 (_R_)
-				// _R_宽_10000: 限制宽度，高度自适应(最高10000)
-				return url + `_R_${width}_10000_Q${quality}.jpg`;
-			}
-
-			// 5. 其他域名不处理
 			return url;
 		},
 		getOssVideoPoster(url) {
 			if (!url) return '';
 			// 截取第0秒画面作为封面
 			return url + '?x-oss-process=video/snapshot,t_0,f_jpg,w_800,m_fast';
+		},
+
+		// 打开小程序分享菜单
+		openShareMenu() {
+			this.showShareMenu = true;
+		},
+
+		// 关闭小程序分享菜单
+		closeShareMenu() {
+			this.showShareMenu = false;
+		},
+
+		// 点击“生成二维码”时的处理
+		async handleGeneratePoster() {
+			this.closeShareMenu();
+			this.showQrModal = true;
+
+			// 如果已经生成过，就不重复请求
+			if (this.mpQrCodeBase64) return;
+
+			this.mpQrCodeBase64 = '';
+			uni.showLoading({ title: '生成中...' });
+
+			try {
+				// 调用 qrcode-service 生成
+				const res = await qrcodeService.generateProductShareCode(this.mainProductId);
+				uni.hideLoading();
+
+				if (res.errCode === 0) {
+					this.mpQrCodeBase64 = res.base64;
+				} else {
+					uni.showToast({ title: res.errMsg || '生成失败', icon: 'none' });
+					// this.showQrModal = false; // 可以选择不关闭，让用户重试
+				}
+			} catch (e) {
+				uni.hideLoading();
+				console.error(e);
+				uni.showToast({ title: '网络请求失败', icon: 'none' });
+			}
+		},
+
+		closeQrModal() {
+			this.showQrModal = false;
+		},
+
+		// 保存 Canvas 到相册
+		saveQrToAlbum() {
+			console.log('开始执行保存图片逻辑');
+
+			if (!this.mpQrCodeBase64) {
+				uni.showToast({ title: '图片尚未生成', icon: 'none' });
+				return;
+			}
+
+			// #ifdef MP-WEIXIN
+			try {
+				const fs = uni.getFileSystemManager();
+				// 使用 wx.env.USER_DATA_PATH 确保在微信小程序中路径正确
+				const fileName = `${wx.env.USER_DATA_PATH}/share_qr_${Date.now()}.png`;
+
+				// 1. 处理 Base64 数据：去掉头部的 data:image/png;base64,
+				const base64Data = this.mpQrCodeBase64.replace(/^data:image\/\w+;base64,/, '');
+
+				// 2. 转换为 ArrayBuffer
+				const buffer = uni.base64ToArrayBuffer(base64Data);
+
+				// 3. 写入临时文件
+				fs.writeFile({
+					filePath: fileName,
+					data: buffer,
+					encoding: 'binary',
+					success: () => {
+						console.log('文件写入成功:', fileName);
+						// 4. 保存到相册
+						uni.saveImageToPhotosAlbum({
+							filePath: fileName,
+							success: () => {
+								uni.showToast({ title: '保存成功', icon: 'success' });
+								this.closeQrModal();
+							},
+							fail: (err) => {
+								console.error('保存相册失败:', err);
+								// 处理权限拒绝
+								if (err.errMsg && (err.errMsg.includes('auth deny') || err.errMsg.includes('authorize:fail'))) {
+									uni.showModal({
+										title: '权限提示',
+										content: '需要相册权限才能保存图片，是否去设置？',
+										success: (res) => {
+											if (res.confirm) uni.openSetting();
+										}
+									});
+								} else {
+									uni.showToast({ title: '保存失败: ' + err.errMsg, icon: 'none' });
+								}
+							}
+						});
+					},
+					fail: (err) => {
+						console.error('文件写入失败:', err);
+						uni.showToast({ title: '生成临时文件失败', icon: 'none' });
+					}
+				});
+			} catch (e) {
+				console.error('保存过程发生异常:', e);
+				uni.showToast({ title: '发生错误，请重试', icon: 'none' });
+			}
+			// #endif
+
+			// #ifndef MP-WEIXIN
+			uni.showToast({ title: '当前环境不支持保存', icon: 'none' });
+			// #endif
 		}
 	}
 };
@@ -1304,12 +1501,21 @@ export default {
 	padding: 16px;
 }
 
+.picture-section {
+	display: block;
+	width: 100%;
+	background-color: white;
+	margin-bottom: 8px;
+	padding: 0px;
+}
+
 .section-title {
 	font-size: 16px;
 	font-weight: 600;
 	color: #333;
 	display: flex;
 	align-items: center;
+	padding: 10px;
 }
 
 .section-title::before {
@@ -2078,5 +2284,194 @@ export default {
 	white-space: nowrap; /* 副标题不换行 */
 	overflow: hidden; /* 超出隐藏 */
 	text-overflow: ellipsis; /* 超出显示省略号 */
+}
+
+/* [新增] 分享菜单样式 */
+.share-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 999;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end; /* 底部对齐 */
+}
+
+.share-modal-content.bottom-sheet {
+	background-color: #f8f8f8;
+	border-radius: 16px 16px 0 0;
+	width: 100%;
+	padding: 0;
+	padding-bottom: env(safe-area-inset-bottom);
+	animation: slideUp 0.3s ease-out;
+}
+
+.share-modal-header {
+	padding: 16px;
+	text-align: center;
+	background-color: #fff;
+	border-radius: 16px 16px 0 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.share-modal-title {
+	font-size: 16px;
+	color: #666;
+}
+
+.share-options-grid {
+	display: flex;
+	justify-content: space-around;
+	padding: 24px 16px;
+	background-color: #fff;
+	margin-bottom: 8px; /* 与取消按钮的间距 */
+}
+
+.share-grid-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: none;
+	background-color: transparent !important;
+	border: none !important;
+	line-height: normal;
+	padding: 0;
+	margin: 0;
+}
+.share-grid-item::after {
+	border: none !important;
+	display: none !important; /* 双重保险 */
+	width: 0;
+	height: 0;
+}
+
+.share-icon-circle {
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 8px;
+}
+
+.bg-green {
+	background-color: #07c160;
+} /* 微信绿 */
+.bg-orange {
+	background-color: #ff9500;
+} /* 海报橙 */
+
+.white-icon {
+	filter: brightness(0) invert(1); /* 将图标变白 */
+}
+
+.share-grid-text {
+	font-size: 12px;
+	color: #333;
+}
+
+.share-cancel-btn {
+	background-color: #fff;
+	text-align: center;
+	padding: 16px;
+	font-size: 16px;
+	color: #333;
+}
+
+@keyframes slideUp {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+/* 二维码弹窗样式 */
+.qr-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 999;
+	animation: fadeIn 0.2s ease-out;
+}
+
+.qr-modal-content {
+	background-color: white;
+	width: 300px;
+	border-radius: 16px;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.qr-header {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.qr-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #333;
+}
+
+.close-qr {
+	padding: 5px;
+	cursor: pointer;
+}
+
+.qr-code-box {
+	width: 200px;
+	height: 200px;
+	margin-bottom: 10px;
+	/* 简单的边框装饰 */
+	border: 1px solid #eee;
+	padding: 10px;
+	border-radius: 8px;
+}
+
+.qr-tip {
+	font-size: 14px;
+	color: #666;
+	margin-bottom: 20px;
+}
+
+.save-qr-btn {
+	width: 100%;
+	height: 44px;
+	line-height: 44px;
+	background: linear-gradient(135deg, #ff9500 0%, #eb6d20 100%);
+	color: white;
+	font-size: 16px;
+	border-radius: 22px;
+	text-align: center;
+	border: none;
+}
+.save-qr-btn:active {
+	opacity: 0.9;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 </style>

@@ -1,0 +1,388 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": "'admin' in auth.role || 'super_admin' in auth.role",
+		"update": "'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，建议固定为 'GLOBAL_CONFIG'"
+		},
+		"assessment_configs": {
+			"bsonType": "object",
+			"description": "考核配置",
+			"properties": {
+				"guide": {
+					"bsonType": "object",
+					"description": "私导考核配置",
+					"properties": {
+						"dimensions": {
+							"bsonType": "array",
+							"description": "考核维度列表",
+							"items": {
+								"bsonType": "object",
+								"properties": {
+									"key": {
+										"bsonType": "string"
+									},
+									"name": {
+										"bsonType": "string",
+										"description": "维度名称，如活跃分"
+									},
+									"weight": {
+										"bsonType": "int",
+										"description": "权重%"
+									},
+									"period_days": {
+										"bsonType": "int",
+										"description": "核算天数"
+									},
+									"max_score": {
+										"bsonType": "int",
+										"description": "满分"
+									},
+									"default_score": {
+										"bsonType": "int",
+										"description": "默认分/基础分"
+									}
+								}
+							}
+						},
+						"rules": {
+							"bsonType": "array",
+							"description": "具体计分规则",
+							"items": {
+								"bsonType": "object",
+								"properties": {
+									"dimension_key": {
+										"bsonType": "string",
+										"description": "所属维度Key"
+									},
+									"item_code": {
+										"bsonType": "string",
+										"description": "计分项目代码"
+									},
+									"operator": {
+										"bsonType": "string",
+										"description": "运算符: gt, gte, eq, lt, lte, per"
+									},
+									"threshold": {
+										"bsonType": "double",
+										"description": "数值/阈值"
+									},
+									"score_change": {
+										"bsonType": "double",
+										"description": "分数变化"
+									},
+									"max_limit": {
+										"bsonType": "double",
+										"description": "上限"
+									},
+									"min_limit": {
+										"bsonType": "double",
+										"description": "下限"
+									}
+								}
+							}
+						}
+					}
+				},
+				"sale": {
+					"bsonType": "object"
+				},
+				"attendant": {
+					"bsonType": "object"
+				}
+			}
+		},
+		"assessment_weights": {
+			"bsonType": "object",
+			"description": "考核权重配置",
+			"properties": {
+				"sale": {
+					"bsonType": "object",
+					"description": "销售考核权重",
+					"properties": {
+						"sales_amount": {
+							"bsonType": "int",
+							"description": "销售额权重",
+							"defaultValue": 40
+						},
+						"conversion": {
+							"bsonType": "int",
+							"description": "转化率权重",
+							"defaultValue": 35
+						},
+						"satisfaction": {
+							"bsonType": "int",
+							"description": "满意度权重",
+							"defaultValue": 10
+						},
+						"repurchase": {
+							"bsonType": "int",
+							"description": "回购转介绍权重",
+							"defaultValue": 10
+						},
+						"norms": {
+							"bsonType": "int",
+							"description": "工作规范权重",
+							"defaultValue": 5
+						}
+					}
+				},
+				"attendant": {
+					"bsonType": "object",
+					"description": "管家考核权重",
+					"properties": {
+						"satisfaction": {
+							"bsonType": "int",
+							"description": "满意度权重",
+							"defaultValue": 45
+						},
+						"system": {
+							"bsonType": "int",
+							"description": "系统占比权重",
+							"defaultValue": 30
+						},
+						"norms": {
+							"bsonType": "int",
+							"description": "工作规范权重",
+							"defaultValue": 25
+						}
+					}
+				}
+			}
+		},
+		"benchmarks": {
+			"bsonType": "object",
+			"description": "业绩基准值设置",
+			"properties": {
+				"sales_target_ctrip": {
+					"bsonType": "int",
+					"description": "携程月销售额基准(元)",
+					"defaultValue": 100000
+				},
+				"sales_target_other": {
+					"bsonType": "int",
+					"description": "非携程月销售额基准(元)",
+					"defaultValue": 50000
+				},
+				"conversion_rate_ctrip": {
+					"bsonType": "double",
+					"description": "携程转化率基准(%)",
+					"defaultValue": 35
+				},
+				"conversion_rate_other": {
+					"bsonType": "double",
+					"description": "非携程转化率基准(%)",
+					"defaultValue": 20
+				},
+				"satisfaction_target": {
+					"bsonType": "double",
+					"description": "满意度基准(%)",
+					"defaultValue": 90
+				},
+				"follow_up_rate": {
+					"bsonType": "double",
+					"description": "跟进率基准(%)",
+					"defaultValue": 100
+				},
+				"guide_standards": {
+					"bsonType": "object",
+					"description": "私导拍摄任务分级基准",
+					"properties": {
+						"D": {
+							"bsonType": "object",
+							"properties": {
+								"photo_daily": {
+									"bsonType": "int",
+									"description": "日均照片数"
+								},
+								"video_count": {
+									"bsonType": "int",
+									"description": "视频数"
+								},
+								"video_days": {
+									"bsonType": "int",
+									"description": "视频周期天数"
+								},
+								"promo_daily": {
+									"bsonType": "int",
+									"description": "日均宣传素材数"
+								}
+							}
+						},
+						"C": {
+							"bsonType": "object",
+							"properties": {
+								"photo_daily": {
+									"bsonType": "int"
+								},
+								"video_count": {
+									"bsonType": "int"
+								},
+								"video_days": {
+									"bsonType": "int"
+								},
+								"promo_daily": {
+									"bsonType": "int"
+								}
+							}
+						},
+						"B": {
+							"bsonType": "object",
+							"properties": {
+								"photo_daily": {
+									"bsonType": "int"
+								},
+								"video_count": {
+									"bsonType": "int"
+								},
+								"video_days": {
+									"bsonType": "int"
+								},
+								"promo_daily": {
+									"bsonType": "int"
+								}
+							}
+						},
+						"A": {
+							"bsonType": "object",
+							"properties": {
+								"photo_daily": {
+									"bsonType": "int"
+								},
+								"video_count": {
+									"bsonType": "int"
+								},
+								"video_days": {
+									"bsonType": "int"
+								},
+								"promo_daily": {
+									"bsonType": "int"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"dispatch_rules": {
+			"bsonType": "object",
+			"description": "分单规则设置",
+			"properties": {
+				"ctrip_rule": {
+					"bsonType": "string",
+					"description": "携程分单规则",
+					"defaultValue": "A级优先, B级补充"
+				},
+				"other_rule": {
+					"bsonType": "string",
+					"description": "其他渠道分单规则",
+					"defaultValue": "按绩效分配"
+				}
+			}
+		},
+		"system_settings": {
+			"bsonType": "object",
+			"description": "通用系统显示设置",
+			"properties": {
+				"show_charts": {
+					"bsonType": "bool",
+					"defaultValue": true
+				},
+				"auto_refresh": {
+					"bsonType": "bool",
+					"defaultValue": true
+				},
+				"show_notifications": {
+					"bsonType": "bool",
+					"defaultValue": true
+				},
+				"local_storage": {
+					"bsonType": "bool",
+					"defaultValue": true
+				}
+			}
+		},
+		"grab_settings": {
+			"bsonType": "object",
+			"description": "自动抢单过滤配置",
+			"properties": {
+				"enabled": {
+					"bsonType": "bool",
+					"description": "抢单功能总开关",
+					"defaultValue": false
+				},
+				"grab_interval": {
+					"bsonType": "int",
+					"description": "每轮抢单之间的时间间隔(秒)",
+					"defaultValue": 30
+				},
+				"departure": {
+					"bsonType": "object",
+					"properties": {
+						"switch": {
+							"bsonType": "bool"
+						},
+						"whitelist": {
+							"bsonType": "array",
+							"items": {
+								"bsonType": "string"
+							}
+						}
+					}
+				},
+				"destination": {
+					"bsonType": "object",
+					"properties": {
+						"switch": {
+							"bsonType": "bool"
+						},
+						"whitelist": {
+							"bsonType": "array",
+							"items": {
+								"bsonType": "string"
+							}
+						}
+					}
+				},
+				"service_type": {
+					"bsonType": "object",
+					"properties": {
+						"switch": {
+							"bsonType": "bool"
+						},
+						"whitelist": {
+							"bsonType": "array",
+							"items": {
+								"bsonType": "string"
+							}
+						}
+					}
+				},
+				"headcount": {
+					"bsonType": "object",
+					"properties": {
+						"switch": {
+							"bsonType": "bool"
+						},
+						"min_count": {
+							"bsonType": "int",
+							"description": "最小出行人数(成人+儿童)"
+						}
+					}
+				}
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

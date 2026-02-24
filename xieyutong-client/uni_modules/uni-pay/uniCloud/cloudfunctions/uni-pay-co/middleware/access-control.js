@@ -5,35 +5,25 @@ const methodPermission = require('../config/permission');
 const { ERROR } = require('../common/error');
 
 function isAccessAllowed(user = {}, setting) {
-	const {
-		role: userRole = [],
-		permission: userPermission = []
-	} = user
-	const {
-		role: settingRole = [],
-		permission: settingPermission = []
-	} = setting
-	if (userRole.includes('admin')) {
+	const { role: userRole = [], permission: userPermission = [] } = user;
+	const { role: settingRole = [], permission: settingPermission = [] } = setting;
+	if (userRole.includes('admin') || userRole.includes('super_admin')) {
 		return;
 	}
-	if (settingRole.length > 0 && settingRole.every(item => !userRole.includes(item))) {
+	if (settingRole.length > 0 && settingRole.every((item) => !userRole.includes(item))) {
 		throw { errCode: ERROR[50403] };
 	}
-	if (settingPermission.length > 0 && settingPermission.every(item => !userPermission.includes(item))) {
+	if (settingPermission.length > 0 && settingPermission.every((item) => !userPermission.includes(item))) {
 		throw { errCode: ERROR[50403] };
 	}
 }
 
-module.exports = async function() {
+module.exports = async function () {
 	const methodName = this.getMethodName();
 	if (!(methodName in methodPermission)) {
 		return;
 	}
-	const {
-		auth,
-		role,
-		permission
-	} = methodPermission[methodName];
+	const { auth, role, permission } = methodPermission[methodName];
 	if (auth || role || permission) {
 		await this.middleware.auth();
 	}
@@ -46,5 +36,5 @@ module.exports = async function() {
 	return isAccessAllowed(this.authInfo, {
 		role,
 		permission
-	})
-}
+	});
+};

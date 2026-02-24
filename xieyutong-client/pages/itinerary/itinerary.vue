@@ -19,10 +19,11 @@
 				</view>
 				<view class="text-sm text-gray-500 mt-1 flex items-center justify-between w-full">
 					{{ itineraryData.dateRange }}
+					<view v-if="!isOngoingMode" class="exit-btn mr-2 bg-blue-500 shadow-blue-500/30" @click="backToOngoing">回进行中</view>
 					<view class="exit-btn" @click="exitItinerary">退出行程</view>
 				</view>
 
-				<view class="my-4">
+				<view class="my-4 flex items-center gap-2">
 					<view class="theme-card bg-blue-50" @click="openTipsPopup('tips')" hover-class="theme-card-active" hover-start-time="0" hover-stay-time="70">
 						<view class="theme-icon-wrapper bg-blue-100">
 							<!-- <text class="fa fa-suitcase-rolling text-blue-500"></text> -->
@@ -30,6 +31,15 @@
 						</view>
 						<view class="theme-card-title">
 							<text>西藏出行提示</text>
+						</view>
+					</view>
+
+					<view class="theme-card bg-purple-50 ml-2" @click="goToOrderServices" hover-class="theme-card-active">
+						<view class="theme-icon-wrapper bg-purple-100">
+							<uni-icons type="cart-filled" size="20" color="#9333ea"></uni-icons>
+						</view>
+						<view class="theme-card-title">
+							<text>定制服务</text>
 						</view>
 					</view>
 
@@ -218,7 +228,7 @@
 					<view class="group-btn" @click="contactGuide" hover-class="group-btn-active" hover-start-time="0" hover-stay-time="70">
 						<!-- <text class="fa fa-user-headset mr-2"></text> -->
 						<image src="/static/icons/user-headset.svg" class="w-5 h-5 mr-2" mode="aspectFit" />
-						<text>联系向导</text>
+						<text>联系私导</text>
 					</view>
 				</view>
 			</view>
@@ -240,6 +250,7 @@
 				<text class="text-xl font-semibold text-gray-800 mb-2">暂无行程</text>
 				<text class="text-gray-600">您目前没有进行中的旅行行程，</text>
 				<text class="text-gray-600">快去探索心仪的旅行产品吧！</text>
+				<text class="text-xs text-gray-400 mt-4">下拉刷新可重新加载进行中的行程</text>
 				<view class="action-button mb-14" @click="browseProducts">
 					<!-- <text class="fa fa-search mr-2"></text> -->
 					<image src="/static/icons/search-white.svg" class="search-icon mr-2" mode="aspectFit" />
@@ -329,6 +340,38 @@
 				</view>
 			</view>
 		</uni-popup>
+
+		<uni-popup ref="privacyPopup" type="center" :is-mask-click="false">
+			<view class="privacy-popup-box">
+				<view class="privacy-icon-box">
+					<uni-icons type="info-filled" size="50" color="#eb6d20"></uni-icons>
+				</view>
+				<text class="privacy-title">照片下载提醒</text>
+				<view class="privacy-content">
+					<text class="privacy-p">今天是本次旅程的最后一天。</text>
+					<text class="privacy-p">
+						为保护您的隐私，行程结束后
+						<text class="highlight">15天</text>
+						，
+					</text>
+					<text class="privacy-p">
+						相册中的所有内容将
+						<text class="highlight-red">自动删除</text>
+						。
+					</text>
+					<text class="privacy-p">请您抓紧时间，保存珍贵的回忆！</text>
+				</view>
+
+				<view class="privacy-btn-group">
+					<view class="privacy-btn cancel" @click="closePrivacyPopup">
+						<text>知道了</text>
+					</view>
+					<view class="privacy-btn confirm" @click="confirmDownload">
+						<text>去下载美照</text>
+					</view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
@@ -343,6 +386,7 @@ export default {
 		return {
 			orderId: null,
 			orderType: 'mp',
+			isOngoingMode: false,
 			statusBarHeight: 0, // 状态栏高度
 			swiperHeight: '400rpx',
 			hasItinerary: false, // 控制显示状态
@@ -399,7 +443,9 @@ export default {
 			// 当日行程安排
 			currentDaySchedule: [],
 
+			guideName: '',
 			guidePhone: null,
+			attendantName: '',
 			attendantPhone: null,
 
 			popupTitle: '',
@@ -414,7 +460,10 @@ export default {
 			headerDragData: { y: 0, time: 0 },
 			contentDragData: { y: 0, time: 0 },
 			isDragging: false,
-			isContentAtTop: true
+			isContentAtTop: true,
+
+			albumId: '',
+			isRedirecting: false
 		};
 	},
 
@@ -426,23 +475,27 @@ export default {
 		this.statusBarHeight = systemInfo.statusBarHeight || 0;
 		console.log('[行程页面] 状态栏高度:', this.statusBarHeight);
 
-		const guideOrderId = uni.getStorageSync('guide_override_order_id');
-		if (guideOrderId) {
-			console.log('[行程页面] 向导特权：加载行程，订单号：', guideOrderId);
-			this.orderId = guideOrderId;
-			await this.fetchItineraryAndJoinAlbum(true);
+		if (options.orderId) {
+			this.orderId = options.orderId;
 		}
-		// 检查用户是否有进行中的行程
-		else {
-			console.log('[行程页面] 用户加载行程');
-			await this.checkUserItinerary();
-		}
+
+		// const guideOrderId = uni.getStorageSync('guide_override_order_id');
+		// if (guideOrderId) {
+		// 	console.log('[行程页面] 私导特权：加载行程，订单号：', guideOrderId);
+		// 	this.orderId = guideOrderId;
+		// 	await this.fetchItineraryAndJoinAlbum(true);
+		// }
+		// // 检查用户是否有进行中的行程
+		// else {
+		// 	console.log('[行程页面] 用户加载行程');
+		// 	await this.checkUserItinerary();
+		// }
 	},
 
 	async onShow() {
 		const guideOrderId = uni.getStorageSync('guide_override_order_id');
 		if (guideOrderId) {
-			console.log('[行程页面] onShow 当前行程为向导特权订单：', guideOrderId);
+			console.log('[行程页面] onShow 当前行程为私导特权订单：', guideOrderId);
 			uni.removeStorageSync('guide_override_order_id');
 			this.orderId = guideOrderId;
 			this.loading = true;
@@ -451,7 +504,7 @@ export default {
 
 			if (this.hasItinerary) {
 				await this.$nextTick();
-				this.scrollToCurrentPosition();
+				// this.scrollToCurrentPosition();
 			}
 			return;
 		}
@@ -472,7 +525,7 @@ export default {
 		// 智能滚动 (基于刷新后的状态)
 		if (this.hasItinerary) {
 			await this.$nextTick();
-			this.scrollToCurrentPosition();
+			// this.scrollToCurrentPosition();
 		}
 
 		console.log('[行程页面] 页面加载完成 (onShow)');
@@ -506,6 +559,16 @@ export default {
 				if (cachedItinerary && !forceRefresh) {
 					if (cachedItinerary.orderType) this.orderType = cachedItinerary.orderType;
 					console.log('[检查行程] 使用缓存的行程信息');
+
+					if (cachedItinerary.isOngoing === true) {
+						this.isOngoingMode = true;
+					} else {
+						// 如果缓存的是一个被标记为非进行中的行程（比如上次查看的旧订单），
+						// 此时我们需要判断是否要强制重新拉取“真正的进行中”？
+						// 策略：如果用户上次看的是旧订单，这里就保持旧订单显示，但显示“回进行中”按钮
+						this.isOngoingMode = false;
+					}
+
 					await this.loadItineraryFromCache(cachedItinerary);
 					return;
 				}
@@ -522,6 +585,8 @@ export default {
 
 				if (result && result.errCode === 0 && result.data) {
 					console.log('[检查行程] 找到进行中的行程，开始加载');
+					this.isOngoingMode = true;
+					result.data.isOngoing = true;
 					if (result.orderType) this.orderType = result.orderType;
 					// 缓存行程信息
 					uni.setStorageSync('current_itinerary', result.data);
@@ -529,11 +594,15 @@ export default {
 				} else {
 					console.log('[检查行程] 没有找到进行中的行程');
 					this.hasItinerary = false;
+					this.isOngoingMode = false;
 					// 清除可能存在的旧缓存
 					uni.removeStorageSync('current_itinerary');
 					// uni.navigateTo({
 					// 	url: '/pages/login/login'
 					// });
+					if (forceRefresh) {
+						uni.showToast({ title: '当前无进行中行程', icon: 'none' });
+					}
 				}
 			} catch (error) {
 				console.error('[检查行程] 检查行程失败:', error);
@@ -542,6 +611,7 @@ export default {
 				uni.removeStorageSync('current_itinerary');
 			} finally {
 				this.loading = false;
+				uni.stopPullDownRefresh();
 				console.log('[检查行程] 设置加载状态为false');
 			}
 		},
@@ -566,12 +636,18 @@ export default {
 				if (!forceRefresh) {
 					// 先检查本地缓存的行程信息
 					const cachedItinerary = uni.getStorageSync('current_itinerary');
-					if (cachedItinerary) {
-						console.log('[检查行程] 使用缓存的行程信息');
+					// 只有当缓存的订单号和当前想查的订单号一致时才用缓存
+					if (cachedItinerary && cachedItinerary.order && cachedItinerary.order.order_id === this.orderId) {
+						if (cachedItinerary.isOngoing === true) this.isOngoingMode = true;
+						else this.isOngoingMode = false;
+
 						await this.loadItineraryFromCache(cachedItinerary);
+						this.loading = false;
 						return;
 					}
 				}
+
+				this.isOngoingMode = false;
 
 				// 调用行程服务获取当前行程
 				console.log('[检查行程] 调用行程服务获取快照行程');
@@ -581,6 +657,7 @@ export default {
 				console.log('[检查行程] 行程服务返回结果:', result);
 
 				if (result.errCode === 0 && result.data) {
+					result.data.isOngoing = false;
 					console.log('[检查行程] 找到指定行程，开始加载');
 					// 缓存行程信息
 					uni.setStorageSync('current_itinerary', result.data);
@@ -636,6 +713,7 @@ export default {
 			console.log('[加载行程] 从缓存加载行程数据:', itineraryInfo);
 			try {
 				// 设置基本信息
+				this.isOngoingMode = itineraryInfo.isOngoing === true;
 				this.currentOrder = itineraryInfo.order;
 				this.fullItinerary = itineraryInfo.itinerary;
 				this.parseStaves();
@@ -671,6 +749,15 @@ export default {
 				this.updateWeatherData();
 
 				this.hasItinerary = true;
+
+				// 检查是否需要弹出相册隐私保护提醒
+				this.$nextTick(() => {
+					this.checkPrivacyExpirationWarning();
+				});
+
+				// 自动检测是否需要跳转定制服务
+				this.checkAndRedirectToServices(this.currentOrder.order_id || this.orderId);
+
 				console.log('[加载行程] 缓存行程数据加载成功');
 			} catch (error) {
 				console.error('[加载行程] 加载缓存行程数据失败:', error);
@@ -680,9 +767,90 @@ export default {
 			}
 		},
 
+		checkPrivacyExpirationWarning() {
+			// 1. 只有最后一天才提醒
+			if (this.currentDay !== this.totalDays) return;
+
+			// 2. 检查缓存，避免每次进页面都弹窗 (key 包含 orderId 确保每个订单只弹一次)
+			const storageKey = `privacy_warning_shown_${this.currentOrder.order_id}`;
+			const hasShown = uni.getStorageSync(storageKey);
+			if (hasShown) return;
+
+			// 3. 打开自定义弹窗
+			this.$refs.privacyPopup.open();
+
+			// 标记已显示
+			uni.setStorageSync(storageKey, true);
+		},
+
+		// 关闭弹窗
+		closePrivacyPopup() {
+			this.$refs.privacyPopup.close();
+		},
+
+		// 确认去下载
+		confirmDownload() {
+			this.$refs.privacyPopup.close();
+			this.navigateToAlbum();
+		},
+
+		async navigateToAlbum() {
+			let albumId = this.albumId;
+			const orderId = this.currentOrder.order_id || this.orderId;
+
+			// 如果没有 album_id，但有 order_id，尝试从数据库获取
+			if (!albumId && orderId) {
+				uni.showLoading({
+					title: '跳转中...',
+					mask: true
+				});
+
+				try {
+					const db = uniCloud.database();
+					// 直接查询相册表，通过 order_id 找 album_id
+					const res = await db
+						.collection('a-group-albums')
+						.where({
+							order_id: orderId
+						})
+						.field({
+							_id: true
+						})
+						.limit(1)
+						.get();
+
+					if (res.result.data && res.result.data.length > 0) {
+						albumId = res.result.data[0]._id;
+						this.albumId = albumId;
+					}
+				} catch (e) {
+					console.error('[跳转相册] 获取相册ID失败', e);
+				} finally {
+					uni.hideLoading();
+				}
+			}
+
+			if (albumId) {
+				// 执行跳转
+				uni.navigateTo({
+					url: `/pages/album/detail?id=${albumId}`,
+					fail: (err) => {
+						console.error('跳转失败', err);
+					}
+				});
+			} else {
+				uni.showToast({
+					title: '未找到关联相册',
+					icon: 'none'
+				});
+			}
+		},
+
 		parseStaves() {
 			// 每次加载时先重置
+			this.guideName = '';
 			this.guidePhone = null;
+			this.attendantName = '';
 			this.attendantPhone = null;
 
 			if (!this.currentOrder || !Array.isArray(this.currentOrder.staves)) {
@@ -693,25 +861,80 @@ export default {
 			const staves = this.currentOrder.staves;
 
 			for (const staff of staves) {
-				if (staff.role && Array.isArray(staff.role)) {
-					// 查找向导
-					if (staff.role.includes('guide')) {
+				if (staff.role) {
+					// 查找私导
+					if (staff.role === 'guide' || (Array.isArray(staff.role) && staff.role.includes('guide'))) {
 						this.guidePhone = staff.mobile;
-						console.log('[解析Staves] 找到向导电话:', staff.mobile);
+						this.guideName = staff.nickname || staff.real_name || '';
+						console.log('[解析Staves] 找到私导:', this.guideName, staff.mobile);
 					}
 					// 查找管家
-					if (staff.role.includes('attendant')) {
+					if (staff.role === 'attendant' || (Array.isArray(staff.role) && staff.role.includes('attendant'))) {
 						this.attendantPhone = staff.mobile;
-						console.log('[解析Staves] 找到管家电话:', staff.mobile);
+						this.attendantName = staff.nickname || staff.user_nickname || staff.username || '';
+						console.log('[解析Staves] 找到管家:', this.attendantName, staff.mobile);
 					}
 				}
 			}
+		},
+
+		backToOngoing() {
+			uni.showLoading({ title: '正在切换...' });
+
+			// 1. 清除私导临时查看的 ID
+			uni.removeStorageSync('guide_override_order_id');
+
+			// 2. 清除当前绑定的 orderId 变量（让页面处于无特定目标状态）
+			this.orderId = null;
+
+			// 3. 强制刷新，这会触发 checkUserItinerary(true)
+			this.checkUserItinerary(true).then(() => {
+				uni.hideLoading();
+				uni.pageScrollTo({ scrollTop: 0, duration: 300 });
+			});
 		},
 
 		navigateToTips(type) {
 			uni.navigateTo({
 				url: `/pages/itinerary/itinerary-tips?type=${type}`
 			});
+		},
+
+		goToOrderServices() {
+			if (!this.currentOrder.order_id) return;
+			uni.navigateTo({
+				url: `/pages/order/order-services?orderId=${this.currentOrder.order_id}`
+			});
+		},
+
+		async checkAndRedirectToServices(orderId) {
+			if (this.isRedirecting) return;
+
+			// 1. 检查本地缓存标记
+			const hasDismissed = uni.getStorageSync(`dismiss_service_${orderId}`);
+			if (hasDismissed) return;
+
+			// 2. 检查数据库是否已提交过
+			const supplyObj = uniCloud.importObject('a-supply-service');
+			const needPopup = await supplyObj.checkNeedPopup(orderId);
+			if (needPopup) {
+				this.isRedirecting = true;
+
+				uni.navigateTo({
+					url: `/pages/order/order-services?orderId=${orderId}&autoPop=true`,
+					success: () => {
+						// 跳转成功后，通常不需要立即重置，等回到页面 onShow 时再重置也可以
+						// 或者设置一个定时器重置，防止跳转失败导致锁死
+						setTimeout(() => {
+							this.isRedirecting = false;
+						}, 2000);
+					},
+					fail: () => {
+						// 跳转失败，立即释放锁
+						this.isRedirecting = false;
+					}
+				});
+			}
 		},
 
 		// 格式化日期
@@ -1988,9 +2211,11 @@ export default {
 				return;
 			}
 
+			const nameStr = this.attendantName ? `${this.attendantName}` : '';
+
 			uni.showModal({
 				title: '联系管家',
-				content: `确定要拨打管家电话吗？\n号码：${this.attendantPhone} `,
+				content: `${nameStr}，号码：${this.attendantPhone}，确定要拨打管家电话吗？`,
 				success: (res) => {
 					if (res.confirm) {
 						console.log('[联系管家] 用户确认拨打电话');
@@ -2010,34 +2235,36 @@ export default {
 			});
 		},
 
-		// 联系向导
+		// 联系私导
 		contactGuide() {
-			console.log('[联系向导] 用户点击');
+			console.log('[联系私导] 用户点击');
 			if (!this.guidePhone) {
 				uni.showToast({
-					title: '暂未分配向导',
+					title: '暂未分配私导',
 					icon: 'none'
 				});
 				return;
 			}
 
+			const nameStr = this.guideName ? `${this.guideName}` : '';
+
 			uni.showModal({
-				title: '联系向导',
-				content: `确定要拨打向导电话吗？\n号码：${this.guidePhone} `,
+				title: '联系私导',
+				content: `私导：${nameStr}，号码：${this.guidePhone}，确定要拨打私导电话吗？`,
 				success: (res) => {
 					if (res.confirm) {
-						console.log('[联系向导] 用户确认拨打电话');
+						console.log('[联系私导] 用户确认拨打电话');
 						uni.makePhoneCall({
 							phoneNumber: this.guidePhone, // 动态号码
 							success: () => {
-								console.log('[联系向导] 拨打电话成功');
+								console.log('[联系私导] 拨打电话成功');
 							},
 							fail: (error) => {
-								console.error('[联系向导] 拨打电话失败:', error);
+								console.error('[联系私导] 拨打电话失败:', error);
 							}
 						});
 					} else {
-						console.log('[联系向导] 用户取消拨打电话');
+						console.log('[联系私导] 用户取消拨打电话');
 					}
 				}
 			});
@@ -2532,38 +2759,53 @@ export default {
 		// 图片压缩处理
 		getCompressedImageUrl(url) {
 			if (!url) return '';
-			const encodedUrl = this.getEncodedUrl(url);
 
-			if (encodedUrl.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) return encodedUrl;
+			const isCtrip = url.includes('ctrip.com') || url.includes('trip.com');
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
 
-			const isAliyun = encodedUrl.includes('bspapp.com') || url.includes('aliyuncs.com');
-			const isCtrip = encodedUrl.includes('ctrip.com');
-
-			// 如果是阿里云 OSS 链接，添加压缩参数
-			// w_800: 限制宽度800px (足够清晰且节省流量)
-			// q_80: 质量80%
-			// 只要是 http 开头的网络图片，且不是 gif，都尝试压缩
-			// (UniCloud 默认存储支持自定义域名使用 x-oss-process)
-			if (isAliyun) {
-				return encodedUrl + '?x-oss-process=image/resize,w_800/quality,q_80/format,webp';
-			}
 			if (isCtrip) {
-				return url + `_C_800_800_Q80.jpg`;
+				// 正则解释：
+				// _       : 以不划线开头
+				// [A-Z]   : 这是一个字母代码 (如 D, C, R, Z, W)
+				// _\d+_\d+: 后面跟着 宽_高 (如 _256_180)
+				// .*$     : 匹配后面所有内容 (包括 .jpg 等后缀)
+				// i       : 忽略大小写
+				const ctripParamRegex = /_[A-Z]_\d+_\d+.*$/i;
+
+				// 移除旧的参数 (例如把 "...img_D_256_180.jpg" 变成 "...img")
+				const cleanUrl = url.replace(ctripParamRegex, '');
+
+				// 重新拼接高质量参数
+				// _C_ : 裁剪/缩放模式
+				// 800_800 : 宽_高
+				// Q80 : 质量80
+				// .jpg : 强制输出格式 (携程支持在参数末尾加后缀)
+				return cleanUrl + '_C_800_800_Q80.jpg';
 			}
-			return encodedUrl;
+
+			// 4. 如果已经包含处理参数（针对非携程链接），则直接返回
+			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) {
+				return url;
+			}
+
+			// 5. 阿里云 OSS 链接处理
+			if (isAliyun) {
+				return url + '?x-oss-process=image/resize,w_800/quality,q_80/format,webp';
+			}
+
+			return url;
 		},
 
 		// 视频封面图处理 (OSS 截图)
 		getVideoSnapshotUrl(url) {
 			if (!url) return '';
-			const encodedUrl = this.getEncodedUrl(url);
 			if (url.startsWith('http')) {
 				// t_0: 第0毫秒
 				// w_800: 截图宽度
 				// m_fast: 快速模式
-				return encodedUrl + '?x-oss-process=video/snapshot,t_0,f_jpg,w_800,m_fast';
+				return url + '?x-oss-process=video/snapshot,t_0,f_jpg,w_800,m_fast';
 			}
-			return encodedUrl;
+			return url;
 		},
 
 		// Swiper 切换
@@ -3575,5 +3817,86 @@ uni-modal .uni-modal__bd {
 }
 .bg-brand-orange-200 {
 	background-color: #ffe0cc;
+}
+
+/* 隐私弹窗样式 */
+.privacy-popup-box {
+	background-color: #fff;
+	width: 600rpx;
+	border-radius: 24rpx;
+	padding: 40rpx 30rpx;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.privacy-icon-box {
+	margin-bottom: 20rpx;
+}
+
+.privacy-title {
+	font-size: 36rpx;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 30rpx;
+}
+
+.privacy-content {
+	width: 100%;
+	margin-bottom: 40rpx;
+}
+
+.privacy-p {
+	display: block;
+	font-size: 28rpx;
+	color: #666;
+	line-height: 1.8; /* 增加行高，让阅读更舒适 */
+	text-align: center;
+	margin-bottom: 10rpx;
+}
+
+.highlight {
+	color: #eb6d20;
+	font-weight: bold;
+	font-size: 30rpx;
+	margin: 0 4rpx;
+}
+
+.highlight-red {
+	color: #ff4d4f;
+	font-weight: bold;
+}
+
+.privacy-btn-group {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	gap: 20rpx;
+}
+
+.privacy-btn {
+	flex: 1;
+	height: 80rpx;
+	border-radius: 40rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30rpx;
+}
+
+.privacy-btn.cancel {
+	background-color: #f5f5f5;
+	color: #999;
+}
+
+.privacy-btn.confirm {
+	background-color: #eb6d20;
+	color: #fff;
+	box-shadow: 0 6rpx 12rpx rgba(235, 109, 32, 0.3);
+}
+
+.privacy-btn:active {
+	opacity: 0.9;
+	transform: scale(0.98);
 }
 </style>

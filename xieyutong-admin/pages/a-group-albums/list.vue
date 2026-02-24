@@ -5,74 +5,57 @@
 				<view class="uni-title">群相册管理</view>
 			</view>
 			<view class="uni-group">
-				<input class="uni-search" type="text" v-model="query" @confirm="search" placeholder="请输入订单号或相册名称" />
-				<button class="uni-button" type="default" size="mini" @click="search">搜索</button>
-				<button class="uni-button" type="primary" size="mini" @click="openCreateDialog">
-					<uni-icons type="plusempty" size="14" color="#fff" style="margin-right: 2px"></uni-icons>
-					创建相册
-				</button>
+				<input class="uni-search" type="text" v-model="query" @input="handleSearchInput" placeholder="输入订单号、相册名或私导姓名" />
+
+				<!-- <view style="margin-left: 10px">
+					<uni-datetime-picker type="month" return-type="string" v-model="filterMonth" @change="handleFilterChange" :clear-icon="true" />
+				</view> -->
+
+				<button class="uni-button" type="default" size="mini" @click="resetFilters">重置</button>
+				<button class="uni-button" type="primary" size="mini" @click="openCreateDialog">创建相册</button>
 			</view>
 		</view>
 
 		<view class="uni-container">
-			<unicloud-db
-				ref="udb"
-				collection="a-group-albums"
-				field="order_id, album_name, departure_date, total_days, status, members, create_date"
-				:where="where"
-				page-data="replace"
-				:orderby="orderby"
-				:getcount="true"
-				:page-size="options.pageSize"
-				:page-current="options.pageCurrent"
-				v-slot:default="{ data, pagination, loading, error, options: dbOptions }"
-				@load="onqueryload">
-				<el-table
-					ref="table"
-					:data="data"
-					style="width: 100%"
-					v-loading="loading"
-					element-loading-text="正在加载数据..."
-					:empty-text="error ? error.message : '没有更多数据'"
-					stripe>
-					<el-table-column label="订单号" prop="order_id" align="center" />
+			<el-table :data="tableData" style="width: 100%" v-loading="loading" stripe border>
+				<el-table-column label="出发日期" width="120" align="center" prop="departure_date">
+					<template #default="scope">
+						<uni-dateformat :date="scope.row.departure_date" format="yyyy-MM-dd" />
+					</template>
+				</el-table-column>
 
-					<el-table-column label="相册名称" prop="album_name" align="center" />
+				<el-table-column label="状态" width="100" align="center">
+					<template #default="scope">
+						<el-tag :type="getStatusTag(scope.row)">{{ getStatusText(scope.row) }}</el-tag>
+					</template>
+				</el-table-column>
 
-					<el-table-column label="出发日期" prop="departure_date" align="center" sortable>
-						<template #default="scope">
-							<uni-dateformat :date="scope.row.departure_date" format="yyyy-MM-dd" :threshold="[0, 0]" />
-						</template>
-					</el-table-column>
+				<el-table-column label="订单号" prop="order_id" align="center" width="180" />
+				<el-table-column label="相册名称" prop="album_name" align="center" min-width="200" />
 
-					<el-table-column label="总天数" prop="total_days" align="center" />
+				<el-table-column label="私导" align="center" width="150">
+					<template #default="scope">
+						<view v-if="scope.row.guideInfo">
+							<view>{{ scope.row.guideInfo.real_name }}</view>
+							<view style="font-size: 12px; color: #999">{{ scope.row.guideInfo.mobile }}</view>
+						</view>
+						<view v-else style="color: #ccc">-</view>
+					</template>
+				</el-table-column>
 
-					<el-table-column label="状态" prop="status" align="center" sortable>
-						<template #default="scope">
-							{{ options.status_valuetotext[scope.row.status] }}
-						</template>
-					</el-table-column>
+				<el-table-column label="行程天数" prop="total_days" align="center" width="80" />
 
-					<el-table-column label="操作" align="center" width="220">
-						<template #default="scope">
-							<view class="uni-group">
-								<el-button size="small" type="primary" @click="navigateTo('/pages/a-group-albums/detail?id=' + scope.row._id, false)">
-									<uni-icons type="eye" size="16" color="#fff" style="margin-right: 2px"></uni-icons>
-									查看照片
-								</el-button>
-								<el-button size="small" type="danger" @click="confirmDelete(scope.row._id)">
-									<uni-icons type="trash" size="16" color="#fff" style="margin-right: 2px"></uni-icons>
-									删除相册
-								</el-button>
-							</view>
-						</template>
-					</el-table-column>
-				</el-table>
+				<el-table-column label="操作" align="center" width="180">
+					<template #default="scope">
+						<el-button size="small" type="primary" @click="navigateToDetail(scope.row._id)">管理</el-button>
+						<el-button size="small" type="danger" @click="confirmDelete(scope.row._id)">删除</el-button>
+					</template>
+				</el-table-column>
+			</el-table>
 
-				<view class="uni-pagination-box" v-if="pagination.count > 0">
-					<uni-pagination show-icon :page-size="pagination.size" :current="pagination.current" :total="pagination.count" @change="onPageChanged" />
-				</view>
-			</unicloud-db>
+			<view class="uni-pagination-box">
+				<uni-pagination show-icon :page-size="pagination.pageSize" :current="pagination.current" :total="pagination.total" @change="onPageChanged" />
+			</view>
 
 			<el-dialog title="创建新相册" v-model="dialogVisible" width="500px" @close="closeCreateDialog">
 				<el-form ref="createForm" :model="createForm" :rules="formRules" label-width="100px">
@@ -125,16 +108,13 @@
 </template>
 
 <script>
-import { enumConverter } from '@/js_sdk/validator/a-group-albums.js';
+// 这里不需要引入 enumConverter 了，因为我们手动处理数据
 import { toRaw } from 'vue';
 
 const albumService = uniCloud.importObject('album-service', {
 	customUI: true
 });
-const db = uniCloud.database();
-const dbOrderBy = 'create_date desc';
-// 支持搜索的字段
-const dbSearchFields = ['album_name', 'order_id'];
+
 const defaultForm = {
 	order_id: '',
 	album_name: '',
@@ -146,112 +126,121 @@ export default {
 	data() {
 		return {
 			query: '',
-			where: 'status>-1', // 初始查询条件
-			orderby: dbOrderBy,
-			options: {
+			searchTimer: null,
+			filterMonth: '',
+			filterStatus: '',
+
+			// 表格数据
+			tableData: [],
+			loading: false, // 控制表格加载状态
+
+			// 分页配置
+			pagination: {
+				current: 1,
 				pageSize: 20,
-				pageCurrent: 1,
-				filterData: {
-					status_localdata: [
-						{ value: 0, text: '待激活' },
-						{ value: 1, text: '进行中' },
-						{ value: 2, text: '已归档' }
-					]
-				},
-				...enumConverter
+				total: 0
 			},
+
+			statusOptions: [
+				{ value: 'active', text: '进行中' },
+				{ value: 'completed', text: '已完成' },
+				{ value: 'pending', text: '待出发' }
+			],
+
 			dialogVisible: false,
 			createForm: { ...defaultForm },
 			formRules: {
 				order_id: [{ required: true, message: '请选择一个关联订单号', trigger: 'change' }],
-				// 保留这些规则，以确保用户确实选择了一个订单
 				album_name: [{ required: true, message: '请选择订单以自动填充相册名称', trigger: 'blur' }],
-				departure_date: [
-					{
-						required: true,
-						message: '请选择出发日期',
-						trigger: 'change'
-					}
-				],
+				departure_date: [{ required: true, message: '请选择出发日期', trigger: 'change' }],
 				total_days: [{ required: true, message: '请选择订单以自动填充行程天数', trigger: 'blur' }]
 			},
 			orderList: [],
+			orderLoading: false,
 			orderLoading: false
 		};
 	},
+	mounted() {
+		this.loadData();
+	},
 	methods: {
-		onqueryload(data, ended) {
-			console.log('[群相册管理] 数据加载完成');
-		},
-
-		/**
-		 * @description 生成 JQL where 查询条件
-		 * 仅使用顶部的搜索框
-		 */
-		getWhere() {
-			let where = 'status>-1'; // 基础查询条件
-
-			// 处理顶部搜索框的条件
-			const query = this.query.trim();
-			if (query) {
-				// 使用正则表达式进行模糊查询，'i' 表示不区分大小写
-				const queryRe = new RegExp(query, 'i');
-				// 构建 JQL 的 $or 查询
-				const searchWhere = db.command.or(dbSearchFields.map((name) => ({ [name]: queryRe })));
-
-				// 将搜索条件和基础条件合并
-				where = db.command.and(searchWhere, { status: db.command.gt(-1) });
+		// --- 核心方法：加载数据 ---
+		async loadData(resetPage = false) {
+			if (resetPage) {
+				this.pagination.current = 1;
 			}
+			this.loading = true;
+			try {
+				const res = await albumService.getAdminAlbumList({
+					page: this.pagination.current,
+					pageSize: this.pagination.pageSize,
+					query: this.query,
+					filterMonth: this.filterMonth,
+					filterStatus: this.filterStatus
+				});
 
-			// console.log('Final where:', JSON.stringify(where));
-			return where;
-		},
-
-		/**
-		 * @description 触发搜索
-		 */
-		search() {
-			this.options.pageCurrent = 1;
-			const newWhere = this.getWhere();
-			this.where = newWhere;
-
-			// this.$nextTick(() => {
-			// 	// 搜索时重置为第一页
-
-			// 	this.$refs.udb.loadData({
-			// 		clear: true
-			// 	});
-			// });
-		},
-
-		/**
-		 * @description 分页切换
-		 */
-		onPageChanged(e) {
-			// 更新当前页码
-			this.options.pageCurrent = e.current;
-			// 手动触发 unicloud-db 加载指定页的数据
-			// this.$refs.udb.loadData({
-			// 	current: e.current
-			// });
-		},
-
-		navigateTo(url, clear) {
-			uni.navigateTo({
-				url,
-				events: {
-					refreshData: () => {
-						this.$refs.udb.loadData({
-							clear: !clear
-						});
-					}
+				if (res.errCode === 0) {
+					this.tableData = res.data.list;
+					this.pagination.total = res.data.total;
+				} else {
+					uni.showToast({ title: res.errMsg || '加载失败', icon: 'none' });
 				}
-			});
+			} catch (e) {
+				console.error(e);
+				uni.showToast({ title: '加载异常', icon: 'none' });
+			} finally {
+				this.loading = false;
+			}
 		},
 
-		/**
-		 * @description 删除相册
-		 */
+		// 处理分页变化
+		onPageChanged(e) {
+			this.pagination.current = e.current;
+			this.loadData();
+		},
+
+		// 处理搜索（防抖）
+		handleSearchInput() {
+			if (this.searchTimer) clearTimeout(this.searchTimer);
+			this.searchTimer = setTimeout(() => {
+				this.loadData(true); // 搜索时重置回第一页
+			}, 500);
+		},
+
+		// 处理月份变化
+		handleFilterChange() {
+			this.loadData(true);
+		},
+
+		// 重置
+		resetFilters() {
+			this.query = '';
+			this.filterMonth = '';
+			this.filterStatus = '';
+			this.loadData(true);
+		},
+
+		// 动态计算状态文本 (保持不变)
+		getStatusText(row) {
+			const now = Date.now();
+			const start = row.departure_date;
+			const end = start + (row.total_days || 1) * 24 * 3600 * 1000;
+
+			if (now < start) return '待出发';
+			if (now >= start && now <= end) return '进行中';
+			return '已完成';
+		},
+		getStatusTag(row) {
+			const text = this.getStatusText(row);
+			if (text === '待出发') return 'info';
+			if (text === '进行中') return 'success';
+			return 'warning';
+		},
+
+		navigateToDetail(id) {
+			uni.navigateTo({ url: `/pages/a-group-albums/detail?id=${id}` });
+		},
+
 		async confirmDelete(id) {
 			const modalRes = await uni.showModal({
 				title: '确认删除',
@@ -261,16 +250,13 @@ export default {
 
 			if (modalRes.confirm) {
 				uni.showLoading({ title: '删除中...' });
-
 				try {
 					const res = await albumService.deleteAlbum(id);
 					if (res.errCode === 0) {
 						uni.showToast({ title: '删除成功', icon: 'success' });
-						this.$refs.udb.loadData({
-							clear: true
-						});
+						this.loadData(); // 重新加载
 					} else {
-						throw new Error(res.result.errMsg || '删除失败');
+						throw new Error(res.errMsg || '删除失败');
 					}
 				} catch (err) {
 					uni.showModal({ content: err.message || '请求服务失败', showCancel: false });
@@ -292,16 +278,12 @@ export default {
 		},
 
 		handleOrderVisibleChange(isVisible) {
-			// 当下拉框展开，并且列表为空，并且不在加载中时
 			if (isVisible && this.orderList.length === 0 && !this.orderLoading) {
-				console.log('下拉框展开，加载初始列表...');
-				// 调用 searchOrders 传入空字符串，加载初始列表
 				this.searchOrders('');
 			}
 		},
 
 		async searchOrders(query) {
-			console.log('[创建相册] 正在搜索订单号：', query);
 			this.orderLoading = true;
 			try {
 				const res = await albumService.searchAvailableOrders(query);
@@ -309,10 +291,8 @@ export default {
 					this.orderList = res.data;
 				} else {
 					this.orderList = [];
-					console.error(res.errMsg);
 				}
 			} catch (e) {
-				console.error(e);
 				this.orderList = [];
 			} finally {
 				this.orderLoading = false;
@@ -323,23 +303,11 @@ export default {
 			const selectedOrder = this.orderList.find((item) => item.value === selectedOrderId);
 			if (selectedOrder) {
 				this.createForm.album_name = selectedOrder.label;
-				if (selectedOrder.departure_date) {
-					this.createForm.departure_date = new Date(selectedOrder.departure_date);
-				} else {
-					this.createForm.departure_date = null;
-				}
+				this.createForm.departure_date = selectedOrder.departure_date ? new Date(selectedOrder.departure_date) : null;
 				this.createForm.total_days = selectedOrder.total_days || 1;
-				console.log('this.createForm', toRaw(this.createForm));
-
-				if (this.$refs.createForm) {
-					this.$refs.createForm.clearValidate(['departure_date', 'album_name', 'total_days']);
-				}
 			}
 		},
 
-		/**
-		 * @description 提交创建表单 (已修改)
-		 */
 		handleCreateAlbum() {
 			this.$refs.createForm.validate(async (valid) => {
 				if (valid) {
@@ -347,13 +315,10 @@ export default {
 					try {
 						const res = await albumService.createAlbum(this.createForm.order_id);
 						uni.hideLoading();
-
 						if (res.errCode === 0) {
 							uni.showToast({ title: '创建成功', icon: 'success' });
 							this.closeCreateDialog();
-							this.$refs.udb.loadData({
-								clear: true
-							});
+							this.loadData(true); // 创建后刷新
 						} else {
 							uni.showModal({ content: res.errMsg, showCancel: false });
 						}
@@ -361,10 +326,6 @@ export default {
 						uni.hideLoading();
 						uni.showModal({ content: e.message || '创建失败', showCancel: false });
 					}
-				} else {
-					// 验证失败，提示用户选择订单
-					uni.showToast({ title: '请先选择一个订单', icon: 'none' });
-					return false;
 				}
 			});
 		}
@@ -373,7 +334,7 @@ export default {
 </script>
 
 <style>
-/* 可以在这里保留或添加 uni-admin 的样式 */
+/* 样式保持不变 */
 .uni-header {
 	display: flex;
 	justify-content: space-between;
@@ -425,7 +386,7 @@ export default {
 	display: flex;
 	align-items: center;
 	width: 100%;
-	font-size: 13px; /* 稍微缩小字体以容纳更多内容 */
+	font-size: 13px;
 }
 
 .option-date-days {
@@ -442,7 +403,6 @@ export default {
 	flex-grow: 1;
 	color: #303133;
 	font-weight: 500;
-
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;

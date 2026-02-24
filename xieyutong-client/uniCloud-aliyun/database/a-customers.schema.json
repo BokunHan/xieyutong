@@ -1,0 +1,141 @@
+{
+	"bsonType": "object",
+	"required": ["source", "status"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid != null",
+		"delete": "'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"contact_channel": {
+			"bsonType": "string",
+			"description": "联系渠道",
+			"enum": ["个人微信", "携程企微", "风漫企微"]
+		},
+		"wx_name_id": {
+			"bsonType": "string",
+			"description": "客户微信名称/ID",
+			"trim": "both"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "客户姓名",
+			"trim": "both"
+		},
+		"mobile": {
+			"bsonType": "string",
+			"description": "手机号码",
+			"pattern": "^1\\d{10}$",
+			"trim": "both"
+		},
+		"source": {
+			"bsonType": "string",
+			"description": "来源渠道",
+			"enum": ["复购", "转介绍", "抖音", "小红书", "飞猪", "携程定制", "携程私家团", "小程序"]
+		},
+		"sales_id": {
+			"bsonType": "string",
+			"description": "分配销售ID",
+			"foreignKey": "uni-id-users._id"
+		},
+		"attendant_id": {
+			"bsonType": "string",
+			"description": "分配管家ID",
+			"foreignKey": "uni-id-users._id"
+		},
+		"follow_up": {
+			"bsonType": "array",
+			"description": "销售跟进记录列表",
+			"items": {
+				"bsonType": "object",
+				"required": ["content", "time"],
+				"properties": {
+					"content": {
+						"bsonType": "string",
+						"description": "跟进内容"
+					},
+					"time": {
+						"bsonType": "timestamp",
+						"description": "跟进时间"
+					}
+				}
+			}
+		},
+		"added_qywx": {
+			"bsonType": "int",
+			"description": "是否添加企微，0否，1是"
+		},
+		"destination": {
+			"bsonType": "string",
+			"description": "目的地",
+			"trim": "both"
+		},
+		"departure_date": {
+			"bsonType": "timestamp",
+			"description": "预计出行时间"
+		},
+		"travelers_count": {
+			"bsonType": "int",
+			"description": "出行人数"
+		},
+		"total_days": {
+			"bsonType": "int",
+			"description": "出行天数"
+		},
+		"recommended_route": {
+			"bsonType": "string",
+			"description": "推荐产品线"
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "客户状态",
+			"enum": ["following", "deal", "lost", "waiting_group"],
+			"defaultValue": "following"
+		},
+		"reception_time": {
+			"bsonType": "timestamp",
+			"description": "实际接待时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"order_id": {
+			"bsonType": "string",
+			"description": "成交订单ID"
+		},
+		"review": {
+			"bsonType": "string",
+			"description": "服务评价",
+			"enum": ["bad", "ok_recommend", "good_nopic", "good_pic", "good_nopic_recommend", "good_pic_recommend"]
+		},
+		"sales_score": {
+			"bsonType": "int",
+			"description": "销售评价(1-10分)",
+			"minimum": 1,
+			"maximum": 10
+		},
+		"remarks": {
+			"bsonType": "string",
+			"description": "备注信息",
+			"maxLength": 500
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

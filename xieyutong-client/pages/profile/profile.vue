@@ -10,7 +10,7 @@
 					</view>
 					<view class="ml-4 flex-1">
 						<view class="user-name">{{ userInfo.name }}</view>
-						<view class="user-level">{{ userInfo.level }}</view>
+						<view class="user-level mr-2">{{ userInfo.level }}</view>
 						<view v-if="isGuide" class="user-tag mt-1" :style="{ backgroundColor: userRoleLabelBgColor }">
 							<!-- <text class="fa fa-gem mr-1"></text> -->
 							<image src="/static/icons/gem.svg" class="w-3 h-3 mr-1" mode="aspectFit" />
@@ -80,7 +80,7 @@
 			</view>
 
 			<view class="section guide-order-section" v-if="isGuide">
-				<view class="section-title">向导订单</view>
+				<view class="section-title">私导订单</view>
 				<view class="order-types">
 					<view class="order-type" @click="goToGuideOrderList('pending')">
 						<view class="order-icon" style="position: relative">
@@ -257,7 +257,7 @@ export default {
 		userRoleLabel() {
 			if (this.isLoggedIn) {
 				if (this.isGuide) {
-					return '认证向导';
+					return '认证私导';
 				} else {
 					return '';
 				}
@@ -724,7 +724,7 @@ export default {
 					const userData = userRes.result.data[0];
 
 					this.isGuide = userData.role && userData.role.includes('guide');
-					console.log('[角色检查] 是否为向导:', this.isGuide);
+					console.log('[角色检查] 是否为私导:', this.isGuide);
 
 					// 2. 优先使用缓存数据快速渲染
 					const currentTime = Date.now();

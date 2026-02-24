@@ -1,0 +1,38 @@
+{
+	"bsonType": "object",
+	"required": ["user_id", "media"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "私导档案ID",
+			"foreignKey": "uni-id-users._id",
+			"defaultValue": {
+				"$env": "uid"
+			}
+		},
+		"media": {
+			"bsonType": "object",
+			"description": "媒体文件对象(包含url, name, extname等)"
+		},
+		"media_type": {
+			"bsonType": "string",
+			"description": "媒体类型: image/video",
+			"defaultValue": "image"
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

@@ -1,0 +1,117 @@
+{
+	"bsonType": "object",
+	"required": ["user_id"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "关联的用户ID"
+		},
+		"stats": {
+			"bsonType": "object",
+			"description": "考核数据统计",
+			"properties": {
+				"praise_count": {
+					"bsonType": "int",
+					"description": "客户好评与表扬",
+					"defaultValue": 0
+				},
+				"l2_complaint_count": {
+					"bsonType": "int",
+					"description": "L2级及以上客诉",
+					"defaultValue": 0
+				},
+				"major_error_count": {
+					"bsonType": "int",
+					"description": "重大操作失误",
+					"defaultValue": 0
+				},
+				"startup_delay_count": {
+					"bsonType": "int",
+					"description": "“1小时启动”迟漏",
+					"defaultValue": 0
+				},
+				"driver_dispatch_fail_count": {
+					"bsonType": "int",
+					"description": "司机派单专项未达标",
+					"defaultValue": 0
+				},
+				"response_fail_count": {
+					"bsonType": "int",
+					"description": "响应未达标",
+					"defaultValue": 0
+				},
+				"response_mishandle_count": {
+					"bsonType": "int",
+					"description": "响应处理不当",
+					"defaultValue": 0
+				},
+				"booking_error_count": {
+					"bsonType": "int",
+					"description": "预订信息错误",
+					"defaultValue": 0
+				},
+				"audit_delay_count": {
+					"bsonType": "int",
+					"description": "行后审核迟漏",
+					"defaultValue": 0
+				},
+				"cost_correction_count": {
+					"bsonType": "int",
+					"description": "主动纠正成本差异",
+					"defaultValue": 0
+				},
+				"shirking_complaint_count": {
+					"bsonType": "int",
+					"description": "跨部门推诿投诉",
+					"defaultValue": 0
+				},
+				"assist_colleague_count": {
+					"bsonType": "int",
+					"description": "主动协助同事",
+					"defaultValue": 0
+				},
+				"mentor_count": {
+					"bsonType": "int",
+					"description": "担任新人导师",
+					"defaultValue": 0
+				},
+				"resource_maintenance_delay_count": {
+					"bsonType": "int",
+					"description": "资源库维护迟漏",
+					"defaultValue": 0
+				},
+				"knowledge_share_count": {
+					"bsonType": "int",
+					"description": "有效经验分享",
+					"defaultValue": 0
+				},
+				"detractor_count": {
+					"bsonType": "int",
+					"description": "贬损差评次数",
+					"defaultValue": 0
+				}
+			}
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

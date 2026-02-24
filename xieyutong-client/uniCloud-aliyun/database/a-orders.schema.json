@@ -70,6 +70,13 @@
 			"default": "pending",
 			"required": true
 		},
+		"rank": {
+			"bsonType": "string",
+			"description": "订单等级",
+			"title": "订单等级",
+			"enum": ["D", "C", "B", "A"],
+			"default": "D"
+		},
 		"order_type": {
 			"bsonType": "string",
 			"description": "订单类型",

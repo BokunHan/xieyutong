@@ -1,0 +1,59 @@
+{
+	"bsonType": "object",
+	"required": ["user_id"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid != null",
+		"delete": "'admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "关联的用户ID",
+			"foreignKey": "uni-id-users._id"
+		},
+		"real_name": {
+			"bsonType": "string",
+			"description": "真实姓名"
+		},
+		"mobile": {
+			"bsonType": "string",
+			"description": "手机号"
+		},
+		"stats": {
+			"bsonType": "object",
+			"description": "手工考核数据(月度更新)",
+			"properties": {
+				"complaint_count": {
+					"bsonType": "int",
+					"description": "咨询客户投诉次数",
+					"defaultValue": 0
+				},
+				"response_violation_count": {
+					"bsonType": "int",
+					"description": "响应速度未达标次数",
+					"defaultValue": 0
+				},
+				"data_entry_error_count": {
+					"bsonType": "int",
+					"description": "客户信息录入错误次数",
+					"defaultValue": 0
+				},
+				"workflow_violation_count": {
+					"bsonType": "int",
+					"description": "工作流程违规次数",
+					"defaultValue": 0
+				},
+				"team_violation_count": {
+					"bsonType": "int",
+					"description": "团队协作违规次数",
+					"defaultValue": 0
+				}
+			}
+		}
+	}
+}

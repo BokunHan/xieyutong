@@ -1,9 +1,19 @@
 {
-  "name": "a-task-rpa",
-  "dependencies": {
-    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
-  },
-  "extensions": {
-    "uni-cloud-jql": {}
-  }
+	"name": "a-task-rpa",
+	"dependencies": {
+		"uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+	},
+	"extensions": {
+		"uni-cloud-jql": {}
+	},
+	"triggers": [{
+		"name": "daily-weather-check",
+		"type": "timer",
+		"config": "0 0 9 * * *"
+	}],
+	"cloudfunction-config": {
+		"timeout": 150,
+		"runtime": "Node.js 16",
+		"memorySize": 1024,
+	}
 }

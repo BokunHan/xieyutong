@@ -4,6 +4,35 @@ const dbCmd = db.command;
 const DEEPSEEK_API_KEY = 'sk-43daeda4c8ab49408753c243b01f81d5';
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
 
+async function _callDeepSeekSimple(systemPrompt, userPrompt) {
+	try {
+		const res = await uniCloud.httpclient.request(DEEPSEEK_API_URL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${DEEPSEEK_API_KEY}`
+			},
+			dataType: 'json',
+			timeout: 30000,
+			data: {
+				model: 'deepseek-chat',
+				messages: [
+					{ role: 'system', content: systemPrompt },
+					{ role: 'user', content: userPrompt }
+				],
+				temperature: 0.1, // 低温，追求准确
+				stream: false
+			}
+		});
+		if (res.data && res.data.choices && res.data.choices[0]) {
+			return res.data.choices[0].message.content.trim();
+		}
+	} catch (e) {
+		console.error('[DeepSeek] 调用失败:', e);
+	}
+	return null;
+}
+
 // 提取一个通用的解析函数，避免代码重复
 function getParams(ctx, params, keyField) {
 	let input = params;
@@ -205,156 +234,357 @@ function formatDate(dateInput) {
 }
 
 // 获取当前北京时间字符串 (YYYY-MM-DD HH:mm:ss)
-function getBjTimeStr() {
-	const now = new Date();
-	// 处理时区问题，强制转为 UTC+8
-	const tzOffset = 8 * 60 * 60 * 1000;
-	const time = now.getTime() + now.getTimezoneOffset() * 60 * 1000 + tzOffset;
-	const d = new Date(time);
+// function getBjTimeStr() {
+// 	const now = new Date();
+// 	// 处理时区问题，强制转为 UTC+8
+// 	const tzOffset = 8 * 60 * 60 * 1000;
+// 	const time = now.getTime() + now.getTimezoneOffset() * 60 * 1000 + tzOffset;
+// 	const d = new Date(time);
 
-	const Y = d.getFullYear();
-	const M = (d.getMonth() + 1).toString().padStart(2, '0');
-	const D = d.getDate().toString().padStart(2, '0');
-	const h = d.getHours().toString().padStart(2, '0');
-	const m = d.getMinutes().toString().padStart(2, '0');
-	const s = d.getSeconds().toString().padStart(2, '0');
-	return `${Y}-${M}-${D} ${h}:${m}:${s}`;
-}
+// 	const Y = d.getFullYear();
+// 	const M = (d.getMonth() + 1).toString().padStart(2, '0');
+// 	const D = d.getDate().toString().padStart(2, '0');
+// 	const h = d.getHours().toString().padStart(2, '0');
+// 	const m = d.getMinutes().toString().padStart(2, '0');
+// 	const s = d.getSeconds().toString().padStart(2, '0');
+// 	return `${Y}-${M}-${D} ${h}:${m}:${s}`;
+// }
 
 const serviceModule = {
 	_before: function () {
 		// 鉴权逻辑
 	},
 
-	/**
-	 *  同步本地企业微信账号列表
-	 */
-	async updateAccounts(params) {
-		const input = getParams(this, params, 'accounts');
-		const accounts = input.accounts; // 格式: ["大号", "小号"]
-
-		if (!accounts || !Array.isArray(accounts)) {
-			return { errCode: 1, msg: 'Invalid accounts list' };
-		}
-
-		console.log(`[Sync] 收到本地账号上报: ${accounts.join(', ')}`);
-		let addedCount = 0;
-
-		for (const name of accounts) {
-			if (!name) continue;
-			// 查一下是否存在，不存在才添加 (避免重复)
-			const check = await db.collection('a-task-accounts').where({ name: name }).count();
-			if (check.total === 0) {
-				await db.collection('a-task-accounts').add({
-					name: name,
-					updated_at: Date.now()
-				});
-				addedCount++;
-			} else {
-				// 如果存在，更新一下时间，表示这个号还活着
-				await db.collection('a-task-accounts').where({ name: name }).update({
-					updated_at: Date.now()
-				});
-			}
-		}
-
-		return { errCode: 0, msg: `同步完成，新增 ${addedCount} 个账号` };
+	async _timing() {
+		console.log('[Trigger] 定时任务被触发');
+		// 调用我们写好的天气预检逻辑
+		return await serviceModule.dailyWeatherPrecheck();
 	},
 
 	/**
-	 * Python 启动时调用：获取账号配置（含 UserID）
+	 * Python 启动时调用：获取所有管家列表，用于现场绑定
 	 */
-	async getAccounts() {
-		const res = await db.collection('a-task-accounts').field({ name: true, wx_userid: true }).get();
+	async getAttendantList() {
+		// 查询所有角色包含 attendant 的用户
+		const res = await db
+			.collection('uni-id-users')
+			.where({
+				role: 'attendant'
+			})
+			.field({ _id: 1, nickname: 1, username: 1, mobile: 1 })
+			.get();
+
+		// 返回格式处理，确保有 nickname
+		const list = res.data.map((u) => ({
+			id: u._id,
+			name: u.nickname || u.username || u.mobile || '未命名管家'
+		}));
+
 		return {
 			errCode: 0,
-			data: res.data // 返回 [{name: "大号", wx_userid: "ZhangSan"}, ...]
+			data: list // [{id: 'xxx', name: '张三'}, ...]
 		};
 	},
 
 	/**
-	 * 前端调用：触发指定账号的群同步
+	 * 重新分配管家（同时更新订单、队列、快照）
 	 */
-	async triggerSync(accountName) {
-		if (!accountName) return { errCode: 1, errMsg: '请选择账号' };
+	async reassignAgent(params) {
+		const { orderId, agentId, accountName } = params;
+		if (!orderId || !agentId) return { errCode: 1, errMsg: '参数缺失' };
 
-		await db.collection('a-task-commands').add({
-			type: 'sync_groups',
-			account: accountName,
-			status: 'pending'
-		});
+		const db = uniCloud.database();
+		const dbCmd = db.command;
 
-		return { errCode: 0, msg: '同步指令已发送，请稍候刷新列表' };
-	},
-
-	/**
-	 * Python 轮询接口：获取下一个任务
-	 */
-	async getNextTask() {
 		try {
-			// === 优先级 0：查系统指令 ===
-			const cmdRes = await db.collection('a-task-commands').where({ status: 'pending' }).orderBy('created_at', 'asc').limit(1).get();
-
-			if (cmdRes.data.length > 0) {
-				const cmd = cmdRes.data[0];
-				// 领走指令后，标记为已完成（防止重复执行）
-				await db.collection('a-task-commands').doc(cmd._id).update({ status: 'done' });
-				return { type: 'command', data: cmd };
-			}
-
-			// 1. 查待发送消息
-			const nowStr = getBjTimeStr(); // 获取当前时间
-			console.log('获取下一个任务，当前时间：', nowStr);
-			const sendRes = await db
-				.collection('a-task-queue')
-				.where({
-					status: 'pending',
-					// 必须是“发送时间 <= 当前时间”的任务才会被取出
-					send_time: dbCmd.lte(nowStr)
+			// 1. 获取管家详细信息 (为了写入快照 staves)
+			const agentRes = await db
+				.collection('uni-id-users')
+				.doc(agentId)
+				.field({
+					_id: 1,
+					nickname: 1,
+					username: 1,
+					mobile: 1
 				})
-				.orderBy('priority', 'desc')
-				.orderBy('send_time', 'asc')
-				.limit(1)
 				.get();
 
-			if (sendRes.data.length > 0) {
-				return { type: 'send', data: sendRes.data[0] };
+			if (agentRes.data.length === 0) return { errCode: 1, errMsg: '管家不存在' };
+			const agent = agentRes.data[0];
+			const agentName = agent.nickname || agent.username || accountName;
+			const agentMobile = agent.mobile || '';
+
+			// 2. 更新订单表 (a-task-orders)
+			await db.collection('a-task-orders').where({ order_id: orderId }).update({
+				agent_id: agentId,
+				account_name: agentName, // 更新显示名
+				updated_at: Date.now()
+			});
+
+			// 3. 查找任务ID并更新队列 (a-task-queue)
+			const orderRes = await db.collection('a-task-orders').where({ order_id: orderId }).limit(1).get();
+			if (orderRes.data.length > 0) {
+				const taskId = orderRes.data[0]._id;
+				// 只更新未完成的任务
+				await db
+					.collection('a-task-queue')
+					.where({
+						task_id: taskId,
+						status: dbCmd.in(['pending', 'failed', 'manual_stop'])
+					})
+					.update({
+						agent_id: agentId,
+						account_name: agentName,
+						updated_at: Date.now()
+					});
 			}
 
-			// 2. 查待抓取订单
-			const crawlRes = await db.collection('a-task-orders').where({ crawl_status: 'pending' }).orderBy('created_at', 'asc').limit(1).get();
+			// 4. 更新快照表 (a-snapshots)
+			const snapRes = await db.collection('a-snapshots').where({ order_id: orderId }).limit(1).get();
+			if (snapRes.data.length > 0) {
+				const snapshot = snapRes.data[0];
+				let staves = snapshot.staves || [];
 
-			if (crawlRes.data.length > 0) {
-				const task = crawlRes.data[0];
-				// 标记为处理中
-				await db.collection('a-task-orders').doc(task._id).update({
-					crawl_status: 'processing'
+				// 过滤掉旧的管家 (role === 'attendant')
+				staves = staves.filter((s) => s.role !== 'attendant' && !s.role.includes('attendant'));
+
+				// 推入新管家
+				staves.push({
+					id: agentId,
+					role: ['attendant'],
+					mobile: agentMobile,
+					nickname: agentName
 				});
-				return { type: 'crawl', data: task };
+
+				await db.collection('a-snapshots').doc(snapshot._id).update({
+					staves: staves,
+					updated_at: Date.now()
+				});
 			}
 
-			return { type: 'none', data: null };
+			return { errCode: 0, msg: '分配成功', data: { agentMobile, agentName } };
 		} catch (e) {
-			console.error('获取任务出错:', e);
-			return { type: 'none', data: null, error: e.message };
+			console.error(e);
+			return { errCode: 500, errMsg: e.message };
 		}
 	},
 
 	/**
-	 * Python 回传：更新发送状态
+	 * 获取待迁移的旧账号列表
+	 */
+	async getLegacyAccounts() {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+
+		// 查出所有没有 agent_id 的订单
+		// 为了性能，限制 1000 条，前端手动去重即可，或者利用 aggregate (如果表很大建议用聚合)
+		const res = await db
+			.collection('a-task-orders')
+			.where({
+				account_name: dbCmd.neq(null)
+			})
+			.field({ account_name: 1 })
+			.limit(1000)
+			.get();
+
+		// 简单去重
+		const names = new Set();
+		res.data.forEach((item) => {
+			if (item.account_name) names.add(item.account_name);
+		});
+
+		return { errCode: 0, data: Array.from(names) };
+	},
+
+	/**
+	 * 执行迁移：将指定 account_name 的所有旧数据绑定到 target_agent_id
+	 */
+	async migrateAccountData(params) {
+		const { oldAccountName, targetAgentId } = params;
+		const db = uniCloud.database();
+
+		// 1. 更新 Orders
+		const orderRes = await db
+			.collection('a-task-orders')
+			.where({
+				account_name: oldAccountName
+			})
+			.update({
+				agent_id: targetAgentId
+			});
+
+		// 2. 更新 Queue
+		const queueRes = await db
+			.collection('a-task-queue')
+			.where({
+				account_name: oldAccountName
+			})
+			.update({
+				agent_id: targetAgentId
+			});
+
+		return {
+			errCode: 0,
+			msg: `迁移完成: 订单 ${orderRes.updated} 条, 队列 ${queueRes.updated} 条`
+		};
+	},
+
+	/**
+	 * Python 回传：更新发送状态 (含自动重试与报警逻辑)
 	 */
 	async updateSendStatus(params) {
 		// 使用通用解析函数，检查 task_id
 		const input = getParams(this, params, 'task_id');
-		const { task_id, status, error } = input;
+		const { task_id, status, error, ocr_raw } = input;
 
 		if (!task_id) {
 			console.error('缺少 task_id, input:', input);
 			return { errCode: 1, msg: 'Missing task_id' };
 		}
 
-		const updateData = { status, updated_at: Date.now() };
-		if (error) updateData.error_msg = error;
+		const now = Date.now();
+
+		// 1. 获取任务详情
+		const queueRes = await db.collection('a-task-queue').doc(task_id).get();
+		if (!queueRes.data || queueRes.data.length === 0) {
+			return { errCode: 1, msg: 'Task not found' };
+		}
+		const queueItem = queueRes.data[0];
+
+		// 2. 准备更新的数据
+		let updateData = { updated_at: now };
+
+		// === 核心逻辑：失败重试机制 ===
+		if (status === 'failed') {
+			const MAX_RETRIES = 2; // 最大重试次数
+			const RETRY_INTERVAL_MINUTES = 10; // 重试间隔(分钟)
+			const currentRetries = queueItem.retry_count || 0;
+
+			if (currentRetries < MAX_RETRIES) {
+				// A. 还可以重试 -> 重新入列
+				console.log(`[RPA] 任务 ${task_id} 发送失败，安排第 ${currentRetries + 1} 次重试...`);
+
+				// 计算下次时间 (当前时间 + 10分钟)
+				let nextTimestamp = now + RETRY_INTERVAL_MINUTES * 60 * 1000;
+				const timezoneOffset = 8 * 60 * 60 * 1000;
+				const nextTimeObj = new Date(nextTimestamp + timezoneOffset);
+
+				// 格式化为 YYYY-MM-DD HH:mm:ss
+				const Y = nextTimeObj.getFullYear();
+				const M = String(nextTimeObj.getMonth() + 1).padStart(2, '0');
+				const D = String(nextTimeObj.getDate()).padStart(2, '0');
+				const h = String(nextTimeObj.getHours()).padStart(2, '0');
+				const m = String(nextTimeObj.getMinutes()).padStart(2, '0');
+				const s = String(nextTimeObj.getSeconds()).padStart(2, '0');
+				const nextTimeStr = `${Y}-${M}-${D} ${h}:${m}:${s}`;
+
+				updateData.status = 'pending'; // 关键：重置为 pending，让 Python 能再次拉取到
+				updateData.retry_count = currentRetries + 1;
+				updateData.send_time = nextTimeStr; // 推迟执行时间
+				updateData.error_msg = `(第${currentRetries + 1}次重试中) 上次错误: ${error}`;
+			} else {
+				// B. 次数用尽 -> 彻底失败并报警
+				console.log(`[RPA] 任务 ${task_id} 重试次数耗尽，触发报警`);
+
+				updateData.status = 'failed';
+				updateData.error_msg = `(重试失败) ${error}`;
+
+				// --- 触发企业微信报警 ---
+				try {
+					// 1. 查管家手机号
+					let mobile = '';
+					if (queueItem.agent_id) {
+						const userRes = await db.collection('uni-id-users').doc(queueItem.agent_id).field({ mobile: 1 }).get();
+						if (userRes.data.length > 0) mobile = userRes.data[0].mobile;
+					}
+
+					// 2. 调用通知云对象
+					if (mobile) {
+						await uniCloud.callFunction({
+							name: 'attendant-notifier',
+							data: {
+								action: 'notifyTaskFailed',
+								params: {
+									mobile: mobile,
+									groupName: queueItem.group_name,
+									taskName: queueItem.task_name,
+									errorMsg: error
+								}
+							}
+						});
+					}
+				} catch (notifyErr) {
+					console.error('[RPA] 报警发送失败:', notifyErr);
+				}
+				// -----------------------
+			}
+		} else {
+			// C. 发送成功或其他状态
+			updateData.status = status;
+			if (error) updateData.error_msg = error;
+		}
+
+		// ================= 记录发送日志 =================
+		try {
+			// 查出这个任务的详情（为了获取计划时间、内容、关联的订单ID）
+			const queueRes = await db.collection('a-task-queue').doc(task_id).get();
+
+			if (queueRes.data && queueRes.data.length > 0) {
+				const queueItem = queueRes.data[0];
+
+				// 计算延迟 (秒)
+				let delaySeconds = 0;
+				if (queueItem.send_time) {
+					// send_time 格式如 "2025-11-25 10:00:00"
+					const planTime = new Date(queueItem.send_time).getTime();
+					if (!isNaN(planTime)) {
+						delaySeconds = Math.round((now - planTime) / 1000);
+					}
+				}
+
+				// 提取内容摘要 (取 payload 里第一条文本的前 50 个字)
+				let contentSnapshot = '[无文本]';
+				if (Array.isArray(queueItem.payload)) {
+					const textMsg = queueItem.payload.find((p) => p.type === 'text');
+					if (textMsg && textMsg.data) {
+						contentSnapshot = textMsg.data.substring(0, 50);
+					} else if (queueItem.payload.length > 0) {
+						contentSnapshot = `[${queueItem.payload[0].type}]`; // 如果全是图片，显示 [image]
+					}
+				}
+
+				// 获取客户端 IP (监控是哪台机器跑的)
+				let clientIp = '';
+				try {
+					const clientInfo = this.getClientInfo();
+					clientIp = clientInfo.clientIP || '';
+				} catch (e) {}
+
+				// 写入日志表
+				await db.collection('a-send-logs').add({
+					queue_id: task_id, // 队列记录 ID
+					order_id: queueItem.group_name, // 订单号(即群名)
+					agent_id: queueItem.agent_id,
+					account_name: queueItem.account_name,
+					group_name: queueItem.group_name,
+					scheduled_time: queueItem.send_time, // 计划时间
+					actual_time: now, // 实际时间
+					delay_seconds: delaySeconds, // 延迟秒数
+					status: status,
+					retry_count: updateData.retry_count || queueItem.retry_count || 0,
+					content_snapshot: contentSnapshot,
+					ocr_raw: ocr_raw,
+					error_msg: error || '',
+					client_ip: clientIp
+				});
+
+				console.log(`[Log] 日志已写入，延迟: ${delaySeconds}秒`);
+			}
+		} catch (logErr) {
+			// 日志写入失败不应阻断主流程，打印错误即可
+			console.error('[Log] 写入发送日志失败:', logErr);
+		}
+		// =============================================================
 
 		await db.collection('a-task-queue').doc(task_id).update(updateData);
 		return { errCode: 0 };
@@ -380,12 +610,14 @@ const serviceModule = {
 			console.error('未找到订单:', order_id);
 			return { errCode: 1, msg: 'Order not found' };
 		}
+		console.log('orderRes: ', orderRes);
 
 		const taskId = orderRes.data[0]._id;
 		const updateData = {
 			crawl_status: status === 'success' ? 'done' : 'failed',
 			updated_at: Date.now()
 		};
+		console.log('updateData: ', updateData);
 
 		if (status === 'success') {
 			updateData.raw_data = data;
@@ -394,7 +626,8 @@ const serviceModule = {
 			updateData.error_msg = error;
 		}
 
-		await db.collection('a-task-orders').doc(taskId).update(updateData);
+		const updateRes = await db.collection('a-task-orders').doc(taskId).update(updateData);
+		console.log('updateRes: ', updateRes);
 
 		// === 【流水线逻辑】 ===
 		if (status === 'success') {
@@ -564,6 +797,410 @@ const serviceModule = {
 	},
 
 	/**
+	 * 批量修复“明日提醒”中的天气占位符
+	 */
+	async batchFixWeatherPlaceholder() {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+		let updatedCount = 0;
+
+		try {
+			// 1. 查找所有“明日提醒”且未发送的任务
+			const queueRes = await db
+				.collection('a-task-queue')
+				.where({
+					// group_name: '1128143286920411',
+					task_name: /明日提醒/,
+					status: dbCmd.in(['pending', 'manual_stop'])
+				})
+				.limit(1000) // 根据实际量调整
+				.get();
+
+			const tasks = queueRes.data;
+			if (tasks.length === 0) return { updated: 0 };
+
+			// 2. 批量处理
+			for (const task of tasks) {
+				let hasChanged = false;
+				const newPayload = JSON.parse(JSON.stringify(task.payload));
+
+				for (let item of newPayload) {
+					if (item.type === 'text' && (item.data.includes('【天气与海拔提示】') || item.data.includes('【天气提示】'))) {
+						// --- 获取该任务对应的行程标题 ---
+						let cityTitle = '拉萨'; // 默认兜底
+						try {
+							// 根据订单号(group_name)查快照
+							const snapRes = await db.collection('a-snapshots').where({ order_id: task.group_name }).field({ itinerary: 1, departure_date: 1 }).limit(1).get();
+
+							if (snapRes.data.length > 0) {
+								const snapshot = snapRes.data[0];
+								// 计算该任务是第几天 (因为是明日提醒，通常发的是 Day N 的行程，需要 +1)
+								const dIndex = getTripDayIndex(task.send_time || task.start_time, snapshot.departure_date);
+								const nextDay = dIndex + 1;
+								const dayData = snapshot.itinerary.find((d) => d.day === nextDay);
+
+								if (dayData && dayData.day_title) {
+									// 提取标题中的核心地名 (取第一个空格前的内容，如 "拉萨-林芝")
+									cityTitle = dayData.day_title.split(' ')[0];
+								}
+							}
+						} catch (e) {
+							console.error('获取快照失败:', e);
+						}
+
+						// --- 执行正则替换 ---
+						const weatherPlaceholder = `{{WEATHER::${cityTitle}::1}}`;
+
+						// 正则说明：匹配【天气与海拔提示】或【天气提示】开始，到“在旅途中有任何问题...”之前的所有内容
+						const regex = /(🌡️\s*【天气(?:与海拔)?提示】)([\s\S]*?)(?=\n+在旅途中有任何问题)/;
+
+						if (regex.test(item.data)) {
+							item.data = item.data.replace(regex, `$1\n${weatherPlaceholder}`);
+							hasChanged = true;
+						}
+					}
+				}
+
+				if (hasChanged) {
+					await db.collection('a-task-queue').doc(task._id).update({
+						payload: newPayload,
+						updated_at: Date.now()
+					});
+					updatedCount++;
+				}
+			}
+
+			return { updated: updatedCount };
+		} catch (e) {
+			throw new Error('批量处理异常: ' + e.message);
+		}
+	},
+
+	/**
+	 * 定时任务（建议配置为每天 09:00）：预处理天气占位符并通知管家
+	 */
+	async dailyWeatherPrecheck() {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+		console.log('[Cron] 开始执行每日天气预检...');
+
+		// 1. 筛选条件：
+		// - task_name 包含 "明日提醒"
+		// - status 为 pending (待发送) 或 manual_stop (人工暂停)
+		// - send_time 在今天之内
+		// 获取当前 UTC 时间
+		const now = new Date();
+		const offset = 8;
+		const localTimeMs = now.getTime() + now.getTimezoneOffset() * 60000 + offset * 3600000;
+		const bjDate = new Date(localTimeMs);
+
+		// 格式化为 YYYY-MM-DD
+		const Y = bjDate.getFullYear();
+		const M = String(bjDate.getMonth() + 1).padStart(2, '0');
+		const D = String(bjDate.getDate()).padStart(2, '0');
+		const todayStr = `${Y}-${M}-${D}`;
+
+		// 构造符合数据库格式的字符串
+		const startOfDay = `${todayStr} 00:00:00`;
+		const endOfDay = `${todayStr} 23:59:59`;
+
+		console.log(`[Cron] 查询范围: ${startOfDay} ~ ${endOfDay}`);
+
+		const queueRes = await db
+			.collection('a-task-queue')
+			.where({
+				task_name: /明日提醒/,
+				status: dbCmd.in(['pending', 'manual_stop']),
+				send_time: dbCmd.gte(startOfDay).and(dbCmd.lte(endOfDay))
+			})
+			.limit(100)
+			.get(); // 限制数量防止超时，根据业务量调整
+
+		const tasks = queueRes.data;
+		console.log(`[Cron] 扫描到 ${tasks.length} 条待处理天气任务`);
+
+		let updateCount = 0;
+		const notifier = uniCloud.importObject('attendant-notifier');
+
+		for (const task of tasks) {
+			let isUpdated = false;
+			const newPayload = JSON.parse(JSON.stringify(task.payload));
+			let updatedWeatherText = '';
+
+			// 2. 遍历 payload 寻找占位符
+			for (let item of newPayload) {
+				if (item.type === 'text' && item.data && item.data.includes('{{WEATHER::')) {
+					// 正则匹配 {{WEATHER::城市::偏移量}}
+					const regex = /\{\{WEATHER::(.*?)::(\d+)\}\}/g;
+					let match;
+
+					while ((match = regex.exec(item.data)) !== null) {
+						const placeholder = match[0];
+						const city = match[1];
+						const offset = match[2];
+
+						console.log(`[Cron] 正在查询: ${task.group_name} -> ${city}`);
+
+						try {
+							// 3. 复用现有的 getRealtimeWeatherStr 方法
+							const weatherRes = await serviceModule.getRealtimeWeatherStr({
+								city: city,
+								dayOffset: offset
+							});
+
+							if (weatherRes.errCode === 0 && weatherRes.data) {
+								// 4. 执行替换
+								item.data = item.data.replace(placeholder, weatherRes.data);
+								updatedWeatherText = weatherRes.data;
+								isUpdated = true;
+							}
+						} catch (e) {
+							console.error(`[Cron] 天气查询失败 ${task._id}:`, e);
+						}
+					}
+				}
+			}
+
+			// 5. 如果发生过替换，更新数据库 + 发通知
+			if (isUpdated) {
+				await db.collection('a-task-queue').doc(task._id).update({
+					payload: newPayload,
+					updated_at: Date.now()
+				});
+				updateCount++;
+
+				// 6. 查找管家手机号并发送通知
+				if (task.agent_id) {
+					try {
+						const userRes = await db.collection('uni-id-users').doc(task.agent_id).field({ mobile: 1 }).get();
+						if (userRes.data.length > 0 && userRes.data[0].mobile) {
+							await notifier.notifyWeatherCheck({
+								mobile: userRes.data[0].mobile,
+								groupName: task.group_name,
+								weatherText: updatedWeatherText,
+								taskTime: task.send_time
+							});
+						}
+					} catch (notifyErr) {
+						console.error('[Cron] 通知发送失败:', notifyErr);
+					}
+				}
+			}
+		}
+
+		return { errCode: 0, msg: `预检完成，更新了 ${updateCount} 条任务` };
+	},
+
+	/**
+	 * Python端 JIT 调用：获取实时天气字符串
+	 * @param {String} city 这里接收的其实是 "行程标题" 或 "模糊地名"
+	 * @param {String} dayOffset 0=今天, 1=明天
+	 */
+	async getRealtimeWeatherStr(params) {
+		const input = getParams(this, params, 'city');
+		let rawLocation = input.city || '拉萨'; // 这里可能是 "拉萨-巴松措-林芝"
+		const dayOffset = parseInt(input.dayOffset || '1');
+
+		const disclaimer = '\n（山区天气多变，预报信息仅供参考，请您出行时以实际天气为准。）';
+
+		console.log(`[RPA-JIT] 智能天气查询 | 原始输入: ${rawLocation}, 偏移: ${dayOffset}`);
+
+		try {
+			// === 步骤 1: 让 DeepSeek 分析出最佳查询城市 ===
+			// 解决痛点：行程标题长、含多个地点、地名生僻
+			const aiSystemPrompt = `你是一个地理位置解析助手。用户会提供一段行程描述或地名。
+	请分析出当晚的【住宿落脚点】。
+	1. 如果有多个地点，取最后一个。
+	2. 将该地点转换为【适合气象查询的行政区划名】（精确到市或县，不要具体到村）。
+	   例如：“拉萨” -> “拉萨市”；“索松村” -> “米林县”；“巴松措” -> “工布江达县”；“羊湖” -> “浪卡子县”。
+	3. 只返回城市名称，不要任何标点符号。`;
+
+			const cleanCity = await _callDeepSeekSimple(aiSystemPrompt, rawLocation);
+			console.log(`[RPA-JIT] DeepSeek 解析结果: "${rawLocation}" -> "${cleanCity}"`);
+
+			// 如果 AI 挂了，回退到简单的 split 逻辑
+			const queryCity = cleanCity || rawLocation.split('-').pop() || '拉萨';
+
+			// === 步骤 2: 查询 a-weather ===
+			const wRes = await uniCloud.callFunction({
+				name: 'a-weather',
+				data: {
+					action: 'getWeatherByCityName',
+					cityName: queryCity,
+					extensions: 'all'
+				}
+			});
+
+			console.log('wRes: ', wRes);
+
+			if (wRes.result.errCode === 0 && wRes.result.data?.casts) {
+				const weatherData = wRes.result.data;
+
+				// 数据新鲜度检查
+				if (weatherData.reporttime) {
+					const reportTime = new Date(weatherData.reporttime).getTime();
+					const now = Date.now();
+					// 如果数据滞后超过 24 小时 (24 * 60 * 60 * 1000)
+					if (now - reportTime > 86400000) {
+						console.warn(`[RPA-JIT] 天气数据已过期 (发布于 ${weatherData.reporttime})，主动丢弃。`);
+						throw new Error('API返回了过期数据');
+					}
+				}
+
+				const casts = wRes.result.data.casts;
+				const targetCast = casts[dayOffset] || casts[0];
+				if (targetCast) {
+					let datePrefix = targetCast.date; // 默认兜底: 2026-02-04
+					if (dayOffset === 0) datePrefix = '今天天气';
+					else if (dayOffset === 1) datePrefix = '明天天气';
+					else if (dayOffset === 2) datePrefix = '后天天气';
+
+					// 基础数据字符串
+					const baseWeatherStr = `${datePrefix}：${targetCast.dayweather}, ${targetCast.nighttemp}~${targetCast.daytemp}℃`;
+
+					// 让 AI 根据真实数据生成贴心提示
+					try {
+						// 构造一个包含具体天气参数的 Prompt
+						const weatherCondition = `${targetCast.dayweather}，气温${targetCast.nighttemp}度到${targetCast.daytemp}度`;
+						const tipPrompt = `当前${queryCity}的天气预报为：${weatherCondition}。请根据此数据生成一句简短的出行/穿衣建议（20字以内）。
+					例如：“昼夜温差大，请注意增减衣物”或“紫外线强，做好防晒”。
+					要求：直接返回建议内容，不要重复播报气温数据。`;
+
+						const tips = await _callDeepSeekSimple('你是一个贴心的旅行管家。', tipPrompt);
+
+						if (tips) {
+							// 拼接结果：天气 + 逗号 + 建议
+							return {
+								errCode: 0,
+								data: `${baseWeatherStr}，${tips.replace(/^["“]|["”]$/g, '')}${disclaimer}`
+							};
+						}
+					} catch (aiErr) {
+						console.error('[RPA-JIT] AI生成建议失败，仅返回基础天气:', aiErr);
+					}
+
+					// 如果 AI 生成失败，至少返回基础天气
+					return {
+						errCode: 0,
+						data: baseWeatherStr + '，昼夜温差大，请注意增减衣物。' + disclaimer
+					};
+				}
+			}
+
+			throw new Error('未获取到有效预报数据');
+		} catch (e) {
+			// === 步骤 3: 兜底机制 (如果 API 查不到或数据滞后) ===
+			console.warn(`[RPA-JIT] 实况天气查询失败：${e.message} -> 转为 AI 估算模式`);
+			const queryCity = rawLocation.split('-').pop() || '拉萨';
+			const curMonth = new Date().getMonth() + 1;
+			// 优化 Prompt，让 AI 知道是因为查不到具体数据才让它估算的
+			const fallbackPrompt = `我尝试查询 "${queryCity}" ${curMonth}月份的天气但接口数据缺失或过期。请根据当前季节目标地区当地气候，生成一句简短的出行气温/穿衣提示。例如："近期气温较低，早晚温差大，请穿羽绒服。"`;
+
+			const fallbackText = await _callDeepSeekSimple('你是一个贴心的旅行管家。', fallbackPrompt);
+
+			return {
+				errCode: 0,
+				data: fallbackText || '近期气温较低，早晚温差大，请穿羽绒服。'
+			};
+		}
+	},
+
+	/**
+	 * 将新建的全局任务，立即分发给所有符合条件的现存订单
+	 */
+	async applyBatchTaskToExistingOrders(batchTask) {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+		const { _id, task_name, send_time, payload, filter_agent_id } = batchTask;
+
+		console.log(`[Batch] 开始将任务 "${task_name}" (BatchID: ${_id}) 分发给现有订单...`);
+
+		try {
+			// 1. 构建查询条件
+			let matchQuery = {};
+			// 只查询未结束的订单（可选：根据 crawl_status 或其他状态过滤，这里假设只给没删除的订单发）
+			if (filter_agent_id) {
+				matchQuery.agent_id = filter_agent_id;
+			}
+
+			// 2. 批量查询目标订单 (一次查 1000 条，如果订单非常多建议使用聚合或分页)
+			const orderRes = await db.collection('a-task-orders').where(matchQuery).field({ _id: 1, order_id: 1, agent_id: 1, account_name: 1 }).limit(1000).get();
+
+			const orders = orderRes.data;
+			if (orders.length === 0) {
+				return { errCode: 0, msg: '没有符合条件的现有订单' };
+			}
+
+			// 3. 构建队列数据
+			const queueItems = orders.map((order) => {
+				return {
+					task_id: order._id, // 关联订单ID
+					group_name: order.order_id, // 群名
+					agent_id: order.agent_id, // 管家ID
+					account_name: order.account_name, // 管家名
+
+					task_name: task_name,
+					batch_id: _id,
+					start_time: send_time,
+					end_time: send_time,
+					send_time: send_time,
+					payload: payload,
+
+					status: 'manual_stop', // 为了安全，默认暂停，需人工检查开启。如需直接发改成 'pending'
+					priority: 0,
+					created_at: Date.now(),
+					source: 'batch_immediate' // 标记来源
+				};
+			});
+
+			// 4. 批量插入队列
+			// 拆分插入，防止超过单次写入限制
+			const BATCH_SIZE = 500;
+			for (let i = 0; i < queueItems.length; i += BATCH_SIZE) {
+				const chunk = queueItems.slice(i, i + BATCH_SIZE);
+				await db.collection('a-task-queue').add(chunk);
+			}
+
+			return {
+				errCode: 0,
+				msg: `已成功分发给 ${orders.length} 个订单`
+			};
+		} catch (e) {
+			console.error('[Batch] 分发失败:', e);
+			return { errCode: 500, errMsg: e.message };
+		}
+	},
+
+	/**
+	 * 级联删除全局任务及其生成的子任务
+	 */
+	async deleteGlobalTask(batchId) {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+
+		try {
+			// 1. 删除 a-task-queue 中由该 batchId 生成的所有子任务
+			const queueRes = await db
+				.collection('a-task-queue')
+				.where({
+					batch_id: batchId
+				})
+				.remove();
+
+			// 2. 删除 a-task-batch 中的主记录
+			const batchRes = await db.collection('a-task-batch').doc(batchId).remove();
+
+			return {
+				errCode: 0,
+				msg: `删除成功，清理了 ${queueRes.deleted} 条待发送任务`
+			};
+		} catch (e) {
+			console.error(e);
+			return { errCode: 500, errMsg: e.message };
+		}
+	},
+
+	/**
 	 * 核心方法：触发 AI 生成队列
 	 * @param {String} taskId  a-task-orders 表的 _id
 	 */
@@ -645,7 +1282,7 @@ const serviceModule = {
 
 === 输出格式演示 (请严格模仿) ===
 🧥【穿衣建议】
-近期气温较低，早晚温差大。建议您穿着厚外套、羽绒服，内搭毛衣。午后气温回升可适当减衣，注意防感冒。
+西藏地区海拔高，气候多变，昼夜温差大。建议您穿着保暖衣物，如厚外套、羽绒服，内搭毛衣或抓绒衣。请注意根据体感温度及时增减衣物，以防感冒。
 🎒【必带物品】
 1. 证件类：身份证、边防证
 2. 生活类：墨镜、防晒霜、润唇膏、保温杯
@@ -655,7 +1292,7 @@ const serviceModule = {
 
 === 生成要求 ===
 1. 语气要温暖贴心。
-2. 根据真实天气数据调整建议内容。
+2. 如果提供的天气数据是 "{{WEATHER::...}}" 格式的占位符，请你在建议中【原样保留】该占位符，不要编造天气，也不要说“天气未知”。
 3. 直接输出正文，不要包含任何客套话。`,
 				tomorrow_brief: `任务目标：根据提供的【真实数据】，严格模仿【参考范文】的格式、Emoji使用和语气生成一段明日提醒。
 
@@ -672,8 +1309,8 @@ const serviceModule = {
 索松村：直面南迦巴瓦峰的绝佳观景村落。
 🏨 【入住信息】
 索松村平措康桑雪里桃花度假庄园 | 海拔约3000米
-🌡️ 【天气与海拔提示】
-明日气温约0-7℃，昼夜温差大，请注意防风保暖。
+🌡️ 【天气提示】
+{{WEATHER::🏔️【行程】独立包车丨拉萨-雅鲁藏布大峡谷-南迦巴瓦峰-索松村::1}}
 
 在旅途中有任何问题都可以与我们联系反馈，我们将第一时间为您们解决~
 === 参考范文结束 ===
@@ -684,7 +1321,10 @@ const serviceModule = {
 === 生成要求 ===
 1. 必须保留范文中的所有标题（如🌄 【行程】）和Emoji。
 2. 仅替换内容，不要改变结构。
-3. 直接输出结果，不要包含任何客套话。`
+3. 景点介绍要精炼成一句话，不要长篇大论。
+4. 如果真实数据中的景点介绍显示“暂无简介”或为空，请你根据景点名称，自动生成一句简短、吸引人的介绍（约30字以内），绝对不要在结果中显示“暂无简介”。
+5. 如果真实数据中的 [天气预报] 是 "{{WEATHER::...}}" 格式的字符串，请务必在结果中【原样保留】该占位符（包含双大括号），绝对不要把它改写成“待更新”或编造天气数据。
+6. 直接输出结果，不要包含任何客套话。`
 			}
 		};
 		// ===============================================================
@@ -695,6 +1335,7 @@ const serviceModule = {
 			if (!taskRes.data || taskRes.data.length === 0) return { errCode: 404, errMsg: '任务不存在' };
 			const taskOrder = taskRes.data[0];
 			const executeAccount = taskOrder.account_name || '';
+			const executeAgentId = taskOrder.agent_id || '';
 			let groupName = taskOrder.order_id; // 直接搜索订单号来确定目标群
 
 			const snapshotRes = await db.collection('a-snapshots').where({ order_id: taskOrder.order_id }).limit(1).get();
@@ -720,54 +1361,55 @@ const serviceModule = {
 			console.log('flights: ', flights);
 
 			// 调用 a-weather 云函数查询天气
-			let weatherText = '暂无天气数据';
-			try {
-				const wRes = await uniCloud.callFunction({
-					name: 'a-weather',
-					data: {
-						action: 'getWeatherByCityName',
-						cityName: snapshot.destination_city || '拉萨', // 默认城市
-						extensions: 'all' // 获取预报
-					}
-				});
+			const targetCity = snapshot.destination_city || '拉萨';
+			let weatherText = `{{WEATHER::${targetCity}::1}}`;
+			// try {
+			// 	const wRes = await uniCloud.callFunction({
+			// 		name: 'a-weather',
+			// 		data: {
+			// 			action: 'getWeatherByCityName',
+			// 			cityName: snapshot.destination_city || '拉萨', // 默认城市
+			// 			extensions: 'all' // 获取预报
+			// 		}
+			// 	});
 
-				if (wRes.result.errCode === 0 && wRes.result.data?.casts) {
-					const allCasts = wRes.result.data.casts;
+			// 	if (wRes.result.errCode === 0 && wRes.result.data?.casts) {
+			// 		const allCasts = wRes.result.data.casts;
 
-					// 1. 计算出发日期的 YYYY-MM-DD (修正时区，确保是北京时间)
-					const depObj = new Date(snapshot.departure_date);
-					const localDepTime = depObj.getTime() + depObj.getTimezoneOffset() * 60 * 1000;
-					const localDepDate = new Date(localDepTime);
-					const Y = localDepDate.getFullYear();
-					const M = String(localDepDate.getMonth() + 1).padStart(2, '0');
-					const D = String(localDepDate.getDate()).padStart(2, '0');
-					const targetDateStr = `${Y}-${M}-${D}`; // 目标日期：出发当天
+			// 		// 1. 计算出发日期的 YYYY-MM-DD (修正时区，确保是北京时间)
+			// 		const depObj = new Date(snapshot.departure_date);
+			// 		const localDepTime = depObj.getTime() + depObj.getTimezoneOffset() * 60 * 1000;
+			// 		const localDepDate = new Date(localDepTime);
+			// 		const Y = localDepDate.getFullYear();
+			// 		const M = String(localDepDate.getMonth() + 1).padStart(2, '0');
+			// 		const D = String(localDepDate.getDate()).padStart(2, '0');
+			// 		const targetDateStr = `${Y}-${M}-${D}`; // 目标日期：出发当天
 
-					console.log(`[RPA] 正在匹配天气，出发日期: ${targetDateStr}`);
+			// 		console.log(`[RPA] 正在匹配天气，出发日期: ${targetDateStr}`);
 
-					// 2. 在预报列表中查找出发日期
-					const startIndex = allCasts.findIndex((c) => c.date === targetDateStr);
+			// 		// 2. 在预报列表中查找出发日期
+			// 		const startIndex = allCasts.findIndex((c) => c.date === targetDateStr);
 
-					let targetCasts = [];
-					if (startIndex !== -1) {
-						// 3. 如果找到了，就从出发日期开始取 3 天
-						targetCasts = allCasts.slice(startIndex, startIndex + 3);
-					} else {
-						// 4. 如果没找到（通常是因为行程在4天以后，或者已经是过去式）
-						// 为了不误导用户，这里可以选择置空，或者记录日志
-						console.warn(`[RPA] 天气预报范围(${allCasts[0].date}~${allCasts[allCasts.length - 1].date}) 未覆盖出发日期 ${targetDateStr}`);
-						// 这种情况下，weatherText 保持默认的 '暂无天气数据' 也许比给错的要好
-						// 或者你可以根据需求决定是否要 fallback 到 allCasts.slice(0, 3)
-					}
+			// 		let targetCasts = [];
+			// 		if (startIndex !== -1) {
+			// 			// 3. 如果找到了，就从出发日期开始取 3 天
+			// 			targetCasts = allCasts.slice(startIndex, startIndex + 3);
+			// 		} else {
+			// 			// 4. 如果没找到（通常是因为行程在4天以后，或者已经是过去式）
+			// 			// 为了不误导用户，这里可以选择置空，或者记录日志
+			// 			console.warn(`[RPA] 天气预报范围(${allCasts[0].date}~${allCasts[allCasts.length - 1].date}) 未覆盖出发日期 ${targetDateStr}`);
+			// 			// 这种情况下，weatherText 保持默认的 '暂无天气数据' 也许比给错的要好
+			// 			// 或者你可以根据需求决定是否要 fallback 到 allCasts.slice(0, 3)
+			// 		}
 
-					if (targetCasts.length > 0) {
-						const forecasts = targetCasts.map((c) => `${c.date}: ${c.dayweather}, ${c.nighttemp}~${c.daytemp}℃`).join('; ');
-						weatherText = forecasts;
-					}
-				}
-			} catch (e) {
-				console.error('[RPA] 天气查询失败:', e);
-			}
+			// 		if (targetCasts.length > 0) {
+			// 			const forecasts = targetCasts.map((c) => `${c.date}: ${c.dayweather}, ${c.nighttemp}~${c.daytemp}℃`).join('; ');
+			// 			weatherText = forecasts;
+			// 		}
+			// 	}
+			// } catch (e) {
+			// 	console.error('[RPA] 天气查询失败:', e);
+			// }
 
 			// 辅助函数：判断是否在白名单
 			const isAllowed = (name) => {
@@ -836,8 +1478,8 @@ const serviceModule = {
 			});
 
 			// 2. 遍历行程 Day 1 到 Day N-1，缺失则补全
-			for (let i = 1; i < totalDays; i++) {
-				if (!existingReminderDays.has(i)) {
+			for (let i = 1; i <= totalDays; i++) {
+				if (i < totalDays && !existingReminderDays.has(i)) {
 					// 计算日期：出发日期 + (第i天 - 1)
 					const d = new Date(snapshot.departure_date);
 					d.setDate(d.getDate() + (i - 1));
@@ -849,7 +1491,7 @@ const serviceModule = {
 
 					// 生成随机时间 17:00 - 17:59
 					const randMin = Math.floor(Math.random() * 60);
-					const timeStr = `${Y}-${M}-${D} 17:${String(randMin).padStart(2, '0')}:00`;
+					const timeStr = `${Y}-${M}-${D} 18:${String(randMin).padStart(2, '0')}:00`;
 
 					console.log(`[RPA] 自动补全 Day ${i} 的明日提醒: ${timeStr}`);
 
@@ -862,14 +1504,59 @@ const serviceModule = {
 						score: ''
 					});
 				}
+
+				// 计算该天的日期字符串
+				const d = new Date(snapshot.departure_date);
+				d.setDate(d.getDate() + (i - 1));
+				const Y = d.getFullYear();
+				const M = String(d.getMonth() + 1).padStart(2, '0');
+				const D = String(d.getDate()).padStart(2, '0');
+				const dateStrPrefix = `${Y}-${M}-${D}`;
+
+				const hasMapTask = rawTasks.some((t) => t.name && t.name.includes('景区游览线路图') && t.start && t.start.startsWith(dateStrPrefix));
+
+				if (!hasMapTask) {
+					// 2. 检查这一天是否有包含地图的 POI
+					const dayData = itinerary.find((item) => item.day === i);
+					let hasValidPoiImage = false;
+
+					if (dayData && dayData.activities) {
+						const hasScenic = dayData.activities.some((act) => act.elementType === 'scenic');
+						if (hasScenic) {
+							// 生成 09:00 ~ 09:30 之间的随机时间
+							const rMin = Math.floor(Math.random() * 30);
+							const rSec = Math.floor(Math.random() * 60);
+							const sendTimeStr = `${dateStrPrefix} 09:${String(rMin).padStart(2, '0')}:${String(rSec).padStart(2, '0')}`;
+
+							console.log(`[RPA] 自动补全 Day ${i} 的景区游览线路图任务`);
+
+							rawTasks.push({
+								name: '景区游览线路图', // 确保名字包含关键字
+								start: sendTimeStr,
+								end: sendTimeStr,
+								template: {
+									text: '',
+									image: '' // 占位，等待主循环填入
+								},
+								score: ''
+							});
+						}
+					}
+				}
 			}
 
 			// ================= 2. 任务遍历与分流 =================
+			const dailyMapProcessed = new Set();
+
 			for (const task of rawTasks) {
 				if (task.order_context) continue;
 
 				const taskName = task.name || '未命名任务';
 				const taskScore = task.score || '';
+
+				if (taskName.includes('游览线路及最佳拍摄点推荐')) {
+					continue;
+				}
 
 				// if (!isAllowed(taskName)) {
 				// 	console.log(`[RPA] 任务 "${taskName}" 不在白名单中，跳过。`);
@@ -886,20 +1573,107 @@ const serviceModule = {
 				const isLastDay = dayIndex >= snapshot.total_days;
 				const isReturnPhase = dayIndex >= snapshot.total_days - 2;
 
+				if (taskName.includes('景区游览线路图')) {
+					// 如果这一天已经生成过地图任务，则跳过后续的
+					if (dailyMapProcessed.has(dayKey)) {
+						continue;
+					}
+
+					let foundImage = false;
+
+					const currentDayData = itinerary.find((d) => d.day === dayIndex);
+					if (currentDayData && currentDayData.activities) {
+						const poiIdsToFetch = [];
+						currentDayData.activities.forEach((act) => {
+							if (act.elementType === 'scenic' && act.elementData?.scenic_spots) {
+								act.elementData.scenic_spots.forEach((spot) => {
+									if (spot.linked_poi_id) {
+										poiIdsToFetch.push(spot.linked_poi_id);
+									}
+								});
+							}
+						});
+
+						if (poiIdsToFetch.length > 0) {
+							try {
+								const dbCmd = db.command;
+								// 查库找图片
+								const poiRes = await db
+									.collection('a-poi-database')
+									.where({ _id: dbCmd.in(poiIdsToFetch) })
+									.field({ route_map_image: true })
+									.get();
+
+								if (poiRes.data) {
+									// 找到第一个有图的 POI
+									const validPoi = poiRes.data.find((p) => p.route_map_image && p.route_map_image.url);
+									if (validPoi) {
+										console.log(`[RPA] 景区线路图任务：已替换为 POI 图片 -> ${validPoi.route_map_image.url}`);
+										task.template.image = validPoi.route_map_image.url;
+										task.template.text = '这是今日的游玩线路图/景区游览图，您可以参考一下哦';
+										foundImage = true;
+									}
+								}
+							} catch (e) {
+								console.error('[RPA] 景区线路图查询图片失败:', e);
+							}
+						}
+					}
+
+					if (foundImage) {
+						dailyMapProcessed.add(dayKey); // 只有成功了才标记该天已处理
+					} else {
+						task.template.text = '';
+						task.template.image = '';
+						console.log(`[RPA] Day ${dayIndex} 因未查到POI地图，该任务将被丢弃`);
+						continue; // 直接跳过本次循环
+					}
+				}
+
 				let templateText = cleanText(task.template?.text || '');
 				let templateImage = task.template?.image || '';
 
 				let finalSendTimeStr = '';
 				const datePart = cleanStart.split(' ')[0]; // 获取 YYYY-MM-DD
 
-				// 逻辑分支 A: 明日提醒 (17:00 - 18:00)
+				// 逻辑分支 A: 明日提醒
 				if (taskName.includes('明日提醒')) {
-					const h = 17;
-					const m = Math.floor(Math.random() * 60); // 0-59随机分
-					// 简单拼凑时间字符串
-					finalSendTimeStr = `${datePart} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+					// 1. 解析任务原始的开始时间
+					let targetDate = new Date(cleanStart);
+
+					// 2. 如果解析失败（比如原始时间为空），兜底回 18:00
+					if (isNaN(targetDate.getTime())) {
+						const h = 18;
+						const m = Math.floor(Math.random() * 60);
+						finalSendTimeStr = `${datePart} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+					} else {
+						// 3. 在原始时间基础上，增加 1 到 10 分钟的随机延迟 (避免早于开始时间)
+						const randomDelay = Math.floor(Math.random() * 10 * 60 * 1000);
+						const finalTimeMs = targetDate.getTime() + randomDelay;
+
+						// 4. 格式化回字符串
+						const d = new Date(finalTimeMs);
+						const Y = d.getFullYear();
+						const M = String(d.getMonth() + 1).padStart(2, '0');
+						const D = String(d.getDate()).padStart(2, '0');
+						const H = String(d.getHours()).padStart(2, '0');
+						const Min = String(d.getMinutes()).padStart(2, '0');
+						const S = String(d.getSeconds()).padStart(2, '0');
+						finalSendTimeStr = `${Y}-${M}-${D} ${H}:${Min}:${S}`;
+					}
 				}
-				// 逻辑分支 B: 普通任务
+
+				// 逻辑分支 B: 景区游览线路图 -> 强制锁定在 09:00 - 09:30
+				else if (taskName.includes('景区游览线路图')) {
+					const rMin = Math.floor(Math.random() * 30);
+					const rSec = Math.floor(Math.random() * 60);
+					finalSendTimeStr = `${datePart} 09:${String(rMin).padStart(2, '0')}:${String(rSec).padStart(2, '0')}`;
+
+					// 同时更新时间占用记录，防止后续其他任务撞到这个点
+					dailyScheduleTracker[datePart] = new Date(finalSendTimeStr).getTime();
+				}
+
+				// 逻辑分支 C: 普通任务
 				else {
 					// 解析原始建议时间
 					let targetDate = new Date(cleanStart);
@@ -1056,32 +1830,37 @@ const serviceModule = {
 								});
 							});
 
-							weatherText = '暂无天气数据';
-							const strPieces = routeStr.split(' ');
-							const locations = strPieces[0].split('-');
-							const cityName = locations[locations.length - 1];
-							console.log('cityName: ', cityName);
-							try {
-								const wRes = await uniCloud.callFunction({
-									name: 'a-weather',
-									data: {
-										action: 'getWeatherByCityName',
-										cityName: cityName || '拉萨', // 默认城市
-										extensions: 'all' // 获取预报
-									}
-								});
+							// weatherText = '暂无天气数据';
+							// const strPieces = routeStr.split(' ');
+							// const locations = strPieces[0].split('-');
+							// const cityName = locations[locations.length - 1] || '拉萨';
+							// console.log('cityName: ', cityName);
+							// weatherText = `{{WEATHER::${cityName}::1}}`;
 
-								if (wRes.result.errCode === 0 && wRes.result.data?.casts) {
-									// 提取未来几天天气，简化成字符串喂给 AI
-									const forecasts = wRes.result.data.casts
-										.slice(0, 3)
-										.map((c) => `${c.date}: ${c.dayweather}, ${c.nighttemp}~${c.daytemp}℃`)
-										.join('; ');
-									weatherText = forecasts;
-								}
-							} catch (e) {
-								console.error('[RPA] 天气查询失败:', e);
-							}
+							const rawRoute = routeStr.split(' ')[0] || '拉萨';
+							weatherText = `{{WEATHER::${rawRoute}::1}}`;
+
+							// try {
+							// 	const wRes = await uniCloud.callFunction({
+							// 		name: 'a-weather',
+							// 		data: {
+							// 			action: 'getWeatherByCityName',
+							// 			cityName: cityName || '拉萨', // 默认城市
+							// 			extensions: 'all' // 获取预报
+							// 		}
+							// 	});
+
+							// 	if (wRes.result.errCode === 0 && wRes.result.data?.casts) {
+							// 		// 提取未来几天天气，简化成字符串喂给 AI
+							// 		const forecasts = wRes.result.data.casts
+							// 			.slice(0, 3)
+							// 			.map((c) => `${c.date}: ${c.dayweather}, ${c.nighttemp}~${c.daytemp}℃`)
+							// 			.join('; ');
+							// 		weatherText = forecasts;
+							// 	}
+							// } catch (e) {
+							// 	console.error('[RPA] 天气查询失败:', e);
+							// }
 
 							const isLastDayTarget = nextDay === totalDays;
 							const realDataBlock = `
@@ -1109,15 +1888,15 @@ const serviceModule = {
 
 							// 处理图片 (Route Map Image)
 							// 只有当 a-poi-database 里查到了图片，才添加到 payload
-							scenicSpotsList.forEach((spot) => {
-								if (spot.linked_poi_id && poiDetailMap[spot.linked_poi_id]) {
-									const poiData = poiDetailMap[spot.linked_poi_id];
-									if (poiData.route_map_image && poiData.route_map_image.url) {
-										console.log(`[RPA] 发现路线导览图: ${spot.name}`);
-										processedPayload.push({ type: 'image', data: poiData.route_map_image.url });
-									}
-								}
-							});
+							// scenicSpotsList.forEach((spot) => {
+							// 	if (spot.linked_poi_id && poiDetailMap[spot.linked_poi_id]) {
+							// 		const poiData = poiDetailMap[spot.linked_poi_id];
+							// 		if (poiData.route_map_image && poiData.route_map_image.url) {
+							// 			console.log(`[RPA] 发现路线导览图: ${spot.name}`);
+							// 			processedPayload.push({ type: 'image', data: poiData.route_map_image.url });
+							// 		}
+							// 	}
+							// });
 						} else {
 							continue; // 没有明天行程，跳过
 						}
@@ -1131,8 +1910,8 @@ const serviceModule = {
 							type: 'weather_packing',
 							template: CONFIG.aiTemplates.weather_packing,
 							params: {
-								weather_data: weatherText,
-								destination: snapshot.destination_city || '西藏'
+								weather_data: '西藏地区海拔高，气候多变，昼夜温差大。建议您穿着保暖衣物，如厚外套、羽绒服，内搭毛衣或抓绒衣。请注意根据体感温度及时增减衣物，以防感冒。',
+								destination: snapshot.destination_city || '拉萨'
 							}
 						};
 					} else if (taskName.includes('交通信息')) {
@@ -1203,6 +1982,7 @@ const serviceModule = {
 						// 占位
 						finalQueue.push({
 							task_id: taskId,
+							agent_id: executeAgentId,
 							account_name: executeAccount,
 							group_name: groupName,
 							task_name: taskName,
@@ -1218,6 +1998,7 @@ const serviceModule = {
 				} else if (processedPayload.length > 0) {
 					finalQueue.push({
 						task_id: taskId,
+						agent_id: executeAgentId,
 						account_name: executeAccount,
 						group_name: groupName,
 						task_name: taskName,
@@ -1298,6 +2079,7 @@ const serviceModule = {
 							// 推入队列
 							finalQueue.push({
 								task_id: taskId,
+								agent_id: executeAgentId,
 								account_name: executeAccount,
 								group_name: groupName,
 								task_name: `酒店服务-${setting.category}`, // 任务名方便识别
@@ -1332,6 +2114,7 @@ const serviceModule = {
 
 					finalQueue.push({
 						task_id: taskId,
+						agent_id: executeAgentId,
 						account_name: executeAccount,
 						group_name: groupName,
 						task_name: customTask.task_name,
@@ -1438,6 +2221,59 @@ const serviceModule = {
 				});
 			}
 
+			// ============================================================
+			// 注入全局批量任务 (Persistent Batch Tasks)
+			// ============================================================
+			try {
+				const nowStr = new Date().toISOString(); // 或者使用你偏好的时区格式
+
+				// 1. 查询所有“启用中”且“发送时间在未来”的全局任务
+				const batchRes = await db
+					.collection('a-task-batch')
+					.where({
+						status: 'active'
+					})
+					.get();
+
+				const globalTasks = batchRes.data || [];
+				const nowMs = Date.now();
+
+				globalTasks.forEach((gTask) => {
+					// A. 检查时间：必须是未来的任务
+					const sendTimeMs = new Date(gTask.send_time).getTime();
+					if (sendTimeMs > nowMs) {
+						// B. 检查筛选条件：如果设置了 filter_agent_id，必须匹配当前订单的 agent_id
+						if (gTask.filter_agent_id && gTask.filter_agent_id !== executeAgentId) {
+							return; // 不匹配，跳过
+						}
+
+						console.log(`[RPA] 注入全局任务: ${gTask.task_name} -> ${groupName}`);
+
+						// C. 注入队列
+						finalQueue.push({
+							task_id: taskId,
+							agent_id: executeAgentId,
+							account_name: executeAccount,
+							group_name: groupName,
+							batch_id: gTask._id,
+							task_name: gTask.task_name, // 继承全局任务名
+							score: '',
+							start_time: gTask.send_time, // 窗口开始时间
+							end_time: gTask.send_time, // 窗口结束时间
+							status: 'manual_stop', // 默认暂停，安全起见
+							payload: gTask.payload, // 继承内容
+							send_time: gTask.send_time, // 设定发送时间
+							created_at: Date.now(),
+							source: 'batch_inject' // 标记来源
+						});
+					}
+				});
+			} catch (e) {
+				console.error('[RPA] 注入全局任务失败:', e);
+				// 不阻断主流程
+			}
+			// ============================================================
+
 			// ================= 4. 入库 (覆盖模式) =================
 
 			// 过滤掉 payload 为空的无效任务
@@ -1455,6 +2291,602 @@ const serviceModule = {
 				return { errCode: 0, msg: `成功生成 ${validQueue.length} 条消息` };
 			} else {
 				return { errCode: 0, msg: '无有效消息生成' };
+			}
+		} catch (e) {
+			console.error(e);
+			return { errCode: 500, errMsg: e.message };
+		}
+	},
+
+	/**
+	 * 检查并生成缺失的任务数据（不直接入库，返回待添加数组）
+	 * @param {Object} taskOrder 订单对象
+	 * @param {Object} snapshot 快照对象
+	 * @param {Array} existingQueue 当前数据库里的任务列表
+	 * @param {Boolean} onlyRouteMap 是否只处理线路图（用于批量脚本）
+	 */
+	async _checkAndGenMissingTasks(taskOrder, snapshot, existingQueue, onlyRouteMap = false) {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+		const tasksToAdd = [];
+		const idsToDelete = [];
+
+		const departureDate = new Date(snapshot.departure_date);
+		const totalDays = snapshot.total_days;
+		const itinerary = snapshot.itinerary || [];
+
+		// 辅助函数：获取日期字符串
+		const getDateStr = (dayIndex) => {
+			const d = new Date(departureDate);
+			d.setDate(d.getDate() + (dayIndex - 1));
+			const Y = d.getFullYear();
+			const M = String(d.getMonth() + 1).padStart(2, '0');
+			const D = String(d.getDate()).padStart(2, '0');
+			return `${Y}-${M}-${D}`;
+		};
+
+		// 辅助函数：查找已存在的任务对象（返回对象以便获取_id）
+		const findExistingTask = (dayDateStr, keyword) => {
+			return existingQueue.find((t) => {
+				const nameMatch = t.task_name && t.task_name.includes(keyword);
+				// 匹配 send_time 或 start_time
+				const timeMatch = (t.send_time && t.send_time.startsWith(dayDateStr)) || (t.start_time && t.start_time.startsWith(dayDateStr));
+				return nameMatch && timeMatch;
+			});
+		};
+
+		for (let i = 1; i <= totalDays; i++) {
+			const dateStr = getDateStr(i);
+
+			// ================= logic 1: 智能处理“景区游览线路图” =================
+			// const isMiddlePhase = i > 1 && i < totalDays; // 除去第1天和最后1天
+
+			if (true) {
+				// 如果已存在，则直接跳过，不查库、不删除、不重新生成
+				if (findExistingTask(dateStr, '景区游览线路图')) {
+					continue;
+				}
+
+				// 1. 先尝试去库里找图
+				const dayData = itinerary.find((d) => d.day === i);
+				let foundImgUrl = null;
+
+				if (dayData && dayData.activities) {
+					const poiIds = [];
+					dayData.activities.forEach((act) => {
+						if (act.elementType === 'scenic' && act.elementData?.scenic_spots) {
+							act.elementData.scenic_spots.forEach((s) => {
+								if (s.linked_poi_id) poiIds.push(s.linked_poi_id);
+							});
+						}
+					});
+
+					if (poiIds.length > 0) {
+						const poiRes = await db
+							.collection('a-poi-database')
+							.where({
+								_id: dbCmd.in(poiIds),
+								'route_map_image.url': dbCmd.neq(null)
+							})
+							.field({ route_map_image: 1 })
+							.limit(1)
+							.get();
+
+						if (poiRes.data.length > 0) {
+							foundImgUrl = poiRes.data[0].route_map_image.url;
+						}
+					}
+				}
+
+				// 2. 只有查到了新图，才执行“删旧生新”
+				if (foundImgUrl) {
+					// 检查该天是否已经有旧任务
+					// const oldTask = findExistingTask(dateStr, '景区游览线路图');
+					// if (oldTask) {
+					// 	idsToDelete.push(oldTask._id); // 标记删除旧的
+					// }
+
+					// 准备新任务
+					const rMin = Math.floor(Math.random() * 30);
+					const rSec = Math.floor(Math.random() * 60);
+					const sendTime = `${dateStr} 09:${String(rMin).padStart(2, '0')}:${String(rSec).padStart(2, '0')}`;
+
+					tasksToAdd.push({
+						task_id: taskOrder._id,
+						agent_id: taskOrder.agent_id,
+						account_name: taskOrder.account_name,
+						group_name: taskOrder.order_id,
+						task_name: '景区游览线路图',
+						start_time: sendTime,
+						end_time: sendTime,
+						status: 'manual_stop',
+						payload: [
+							{ type: 'text', data: '这是今日的游玩线路图/景区游览图，您可以参考一下哦' },
+							{ type: 'image', data: foundImgUrl }
+						],
+						send_time: sendTime,
+						created_at: Date.now()
+					});
+				}
+				// else: 没查到图 -> 如果原来有旧任务，保留不动；如果没有，也不生成。
+			}
+
+			// ================= logic 2: 补全“明日提醒” (保持原有“仅补全”逻辑) =================
+			// if (!onlyRouteMap) {
+			// 	if (i < totalDays && !findExistingTask(dateStr, '明日提醒')) {
+			// 		const rMin = Math.floor(Math.random() * 60);
+			// 		const sendTime = `${dateStr} 18:${String(rMin).padStart(2, '0')}:00`;
+
+			// 		tasksToAdd.push({
+			// 			task_id: taskOrder._id,
+			// 			agent_id: taskOrder.agent_id,
+			// 			account_name: taskOrder.account_name,
+			// 			group_name: taskOrder.order_id,
+			// 			task_name: '明日提醒',
+			// 			start_time: sendTime,
+			// 			end_time: sendTime,
+			// 			status: 'manual_stop',
+			// 			payload: [{ type: 'text', data: '明日行程预告（系统自动补全，请编辑内容）' }],
+			// 			send_time: sendTime,
+			// 			created_at: Date.now()
+			// 		});
+			// 	}
+			// }
+		}
+
+		return { tasksToAdd, idsToDelete };
+	},
+
+	/**
+	 * 前端“刷新状态”按钮调用 - 自动补全当前订单缺失任务
+	 */
+	async patchMissingTasks(taskId) {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+		if (!taskId) return { errCode: 1, msg: 'Missing taskId' };
+
+		// 1. 获取订单
+		const orderRes = await db.collection('a-task-orders').doc(taskId).get();
+		if (orderRes.data.length === 0) return { errCode: 1, msg: 'Order not found' };
+		const order = orderRes.data[0];
+
+		// 2. 获取快照
+		const snapRes = await db.collection('a-snapshots').where({ order_id: order.order_id }).limit(1).get();
+		if (snapRes.data.length === 0) return { errCode: 1, msg: 'Snapshot not found' };
+		const snapshot = snapRes.data[0];
+
+		// 3. 获取现有队列
+		const queueRes = await db.collection('a-task-queue').where({ task_id: taskId }).limit(1000).get();
+		const existingQueue = queueRes.data;
+
+		// 1. 计算出需要增加的任务 和 需要删除的旧任务
+		const { tasksToAdd, idsToDelete } = await serviceModule._checkAndGenMissingTasks(order, snapshot, existingQueue, false);
+
+		let msg = '检查完毕';
+
+		// 2. 执行删除
+		if (idsToDelete.length > 0) {
+			await db
+				.collection('a-task-queue')
+				.where({
+					_id: dbCmd.in(idsToDelete)
+				})
+				.remove();
+			msg += `，替换了 ${idsToDelete.length} 条旧任务`;
+		}
+
+		// 3. 执行新增
+		if (tasksToAdd.length > 0) {
+			await db.collection('a-task-queue').add(tasksToAdd);
+			msg += `，新增了 ${tasksToAdd.length} 条任务`;
+		}
+
+		if (idsToDelete.length === 0 && tasksToAdd.length === 0) {
+			msg += '，暂无缺失或更新';
+		}
+
+		return { errCode: 0, msg: msg };
+	},
+
+	/**
+	 * 一次性脚本 - 扫描所有订单并补全线路图
+	 * 使用方法：在云函数 URL 或测试控制台调用此方法
+	 */
+	async batchFillAllRouteMaps() {
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+		console.log('[Batch] 开始批量优化线路图...');
+
+		const ordersRes = await db
+			.collection('a-task-orders')
+			.where({
+				// 可选：过滤条件
+			})
+			.limit(1000)
+			.get();
+
+		const orders = ordersRes.data;
+		let totalAdded = 0;
+		let totalDeleted = 0;
+		let processedOrders = 0;
+
+		for (const order of orders) {
+			try {
+				const snapRes = await db.collection('a-snapshots').where({ order_id: order.order_id }).limit(1).get();
+				if (snapRes.data.length === 0) continue;
+				const snapshot = snapRes.data[0];
+
+				const queueRes = await db.collection('a-task-queue').where({ task_id: order._id }).get();
+				const existingQueue = queueRes.data;
+
+				// 调用核心逻辑 (onlyRouteMap=true)
+				const { tasksToAdd, idsToDelete } = await serviceModule._checkAndGenMissingTasks(order, snapshot, existingQueue, true);
+
+				if (idsToDelete.length > 0) {
+					await db
+						.collection('a-task-queue')
+						.where({
+							_id: dbCmd.in(idsToDelete)
+						})
+						.remove();
+					totalDeleted += idsToDelete.length;
+				}
+
+				if (tasksToAdd.length > 0) {
+					await db.collection('a-task-queue').add(tasksToAdd);
+					totalAdded += tasksToAdd.length;
+				}
+
+				if (tasksToAdd.length > 0 || idsToDelete.length > 0) {
+					console.log(`[Batch] 订单 ${order.order_id}: 删${idsToDelete.length}/增${tasksToAdd.length}`);
+				}
+				processedOrders++;
+			} catch (e) {
+				console.error(`[Batch] 处理订单 ${order.order_id} 失败:`, e);
+			}
+		}
+
+		return { errCode: 0, msg: `处理完成: 扫描${processedOrders}个订单, 替换(删除)${totalDeleted}条, 新增${totalAdded}条` };
+	},
+
+	/**
+	 * 当行程发生变动（删除天数、交换顺序）时，同步调整任务队列的时间
+	 * @param {Object} params
+	 * @param {String} params.orderId 订单号
+	 * @param {String} params.action 'delete' | 'swap' | 'insert'
+	 * @param {Object} params.data 具体参数 { dayIndex, fromIndex, toIndex, totalDaysBefore }
+	 */
+	async handleItineraryChange(params) {
+		const { orderId, action, data } = params;
+		if (!orderId) return { errCode: 1, errMsg: 'Missing orderId' };
+
+		const db = uniCloud.database();
+		const dbCmd = db.command;
+
+		// 1. 获取快照以确定出发日期
+		const snapRes = await db.collection('a-snapshots').where({ order_id: orderId }).field({ departure_date: 1 }).limit(1).get();
+
+		if (snapRes.data.length === 0) return { errCode: 1, errMsg: 'Snapshot not found' };
+
+		// 获取出发日期对象（注意时区，这里统一按 Beijing Time 0点处理计算天数偏移）
+		const departureTimestamp = snapRes.data[0].departure_date;
+
+		// 辅助函数：根据天数索引获取日期字符串前缀 (YYYY-MM-DD)
+		const getDateStr = (dayIdx) => {
+			const d = new Date(departureTimestamp);
+			d.setDate(d.getDate() + dayIdx); // dayIdx 0 = Day1
+			const Y = d.getFullYear();
+			const M = String(d.getMonth() + 1).padStart(2, '0');
+			const D = String(d.getDate()).padStart(2, '0');
+			return `${Y}-${M}-${D}`;
+		};
+
+		// 辅助函数：调整时间字符串的天数
+		const shiftTimeStr = (timeStr, dayOffset) => {
+			try {
+				const d = new Date(timeStr);
+				d.setDate(d.getDate() + dayOffset);
+				const Y = d.getFullYear();
+				const M = String(d.getMonth() + 1).padStart(2, '0');
+				const D = String(d.getDate()).padStart(2, '0');
+				const H = String(d.getHours()).padStart(2, '0');
+				const Min = String(d.getMinutes()).padStart(2, '0');
+				const S = String(d.getSeconds()).padStart(2, '0');
+				return `${Y}-${M}-${D} ${H}:${Min}:${S}`;
+			} catch (e) {
+				return timeStr;
+			}
+		};
+
+		// 辅助函数：计算两个日期相差的天数
+		const getDiffDays = (dateStr) => {
+			try {
+				const target = new Date(dateStr.split(' ')[0]);
+				const start = new Date(getDateStr(0));
+				// 忽略时分秒，仅计算日期差
+				target.setHours(0, 0, 0, 0);
+				start.setHours(0, 0, 0, 0);
+				return Math.round((target - start) / (1000 * 60 * 60 * 24));
+			} catch (e) {
+				return -1;
+			}
+		};
+
+		let limitDateStr = null;
+		if (data.totalDaysBefore) {
+			// totalDaysBefore 是总天数 (如 5)，转为索引是 4
+			limitDateStr = getDateStr(data.totalDaysBefore - 1);
+		}
+
+		try {
+			// 获取该订单下的所有未完成任务
+			// 注意：已完成(done)的任务通常不建议修改，防止历史记录混乱，这里只改待发送的
+			const queueRes = await db
+				.collection('a-task-queue')
+				.where({
+					group_name: orderId, // group_name 通常存的是 order_id
+					status: dbCmd.in(['pending', 'manual_stop', 'failed'])
+				})
+				.limit(1000)
+				.get();
+
+			const tasks = queueRes.data;
+			if (tasks.length === 0) return { errCode: 0, msg: '没有需要调整的任务' };
+
+			// === 场景 A: 删除某一天 (Delete) ===
+			if (action === 'delete') {
+				const targetDayIndex = data.dayIndex; // 0-based index
+				const targetDateStr = getDateStr(targetDayIndex);
+
+				const deleteIds = [];
+				const updateTasks = [];
+
+				for (const task of tasks) {
+					const taskTime = task.send_time || task.start_time;
+					if (!taskTime) continue;
+
+					if (limitDateStr && taskTime.split(' ')[0] > limitDateStr) {
+						continue;
+					}
+
+					const currentSendIdx = getDiffDays(taskTime);
+					if (currentSendIdx < 0) continue;
+
+					// 确定内容关联日
+					const isTomorrowReminder = task.task_name && task.task_name.includes('明日提醒');
+					let targetItineraryIdx = isTomorrowReminder ? currentSendIdx + 1 : currentSendIdx;
+
+					// 逻辑修正：
+					// 1. 如果任务的“发送日”被删了 (例如删D2，D2上的提醒)
+					if (currentSendIdx === targetDayIndex) {
+						if (currentSendIdx > 0) {
+							// 保护机制：如果前面还有日子(如D1)，则把该任务前移到D1发送
+							// 场景：删D2，原D2发的是关于D3的。现在D3变成了D2，所以要在D1发
+							updateTasks.push({
+								_id: task._id,
+								send_time: shiftTimeStr(task.send_time, -1),
+								start_time: shiftTimeStr(task.start_time, -1),
+								end_time: shiftTimeStr(task.end_time, -1)
+							});
+						} else {
+							// 如果删的是D1，前面没日子了，只能删除
+							deleteIds.push(task._id);
+						}
+					}
+					// 2. 如果任务的“内容关联日”被删了 (例如删D2，D1上发的关于D2的提醒)
+					else if (targetItineraryIdx === targetDayIndex) {
+						// 内容都没了，提醒必须删
+						deleteIds.push(task._id);
+					}
+					// 3. 如果内容关联日 在被删除日期之后 -> 整体前移
+					else if (targetItineraryIdx > targetDayIndex) {
+						updateTasks.push({
+							_id: task._id,
+							send_time: shiftTimeStr(task.send_time, -1),
+							start_time: shiftTimeStr(task.start_time, -1),
+							end_time: shiftTimeStr(task.end_time, -1)
+						});
+					}
+				}
+
+				// 执行数据库操作
+				if (deleteIds.length > 0) {
+					await db
+						.collection('a-task-queue')
+						.where({ _id: dbCmd.in(deleteIds) })
+						.remove();
+				}
+
+				// 批量更新太慢，循环更新 (或者使用 Promise.all)
+				for (const u of updateTasks) {
+					await db.collection('a-task-queue').doc(u._id).update({
+						send_time: u.send_time,
+						start_time: u.start_time,
+						end_time: u.end_time,
+						updated_at: Date.now()
+					});
+				}
+
+				return { errCode: 0, msg: `删除了 ${deleteIds.length} 个任务，调整了 ${updateTasks.length} 个任务` };
+			}
+
+			// === 场景 B: 交换两天顺序 (Swap) ===
+			if (action === 'swap') {
+				const { fromIndex, toIndex } = data;
+
+				const updateTasks = [];
+
+				for (const task of tasks) {
+					const taskTime = task.send_time || task.start_time;
+					if (!taskTime) continue;
+
+					const currentSendIdx = getDiffDays(taskTime);
+					if (currentSendIdx < 0) continue;
+
+					const isTomorrowReminder = task.task_name && task.task_name.includes('明日提醒');
+					let targetItineraryIdx = isTomorrowReminder ? currentSendIdx + 1 : currentSendIdx;
+
+					// 核心逻辑：只看“内容关联日”是否涉及交换
+					// 如果 targetItineraryIdx 是被交换的那两天之一，则更新 Target
+					let newTargetIdx = targetItineraryIdx;
+					if (targetItineraryIdx === fromIndex) newTargetIdx = toIndex;
+					else if (targetItineraryIdx === toIndex) newTargetIdx = fromIndex;
+
+					// 如果 Target 没变（例如 D2上的提醒关于D3，D3没动），则 newSendIdx 也不变，任务不动。
+
+					let newSendIdx = isTomorrowReminder ? newTargetIdx - 1 : newTargetIdx;
+
+					if (newSendIdx !== currentSendIdx) {
+						const dayOffset = newSendIdx - currentSendIdx;
+						updateTasks.push({
+							_id: task._id,
+							send_time: shiftTimeStr(task.send_time, dayOffset),
+							start_time: shiftTimeStr(task.start_time, dayOffset),
+							end_time: shiftTimeStr(task.end_time, dayOffset)
+						});
+					}
+				}
+
+				for (const u of updateTasks) {
+					await db.collection('a-task-queue').doc(u._id).update({
+						send_time: u.send_time,
+						start_time: u.start_time,
+						end_time: u.end_time,
+						updated_at: Date.now()
+					});
+				}
+
+				return { errCode: 0, msg: `交换了 ${updateTasks.length} 个任务的时间` };
+			}
+
+			// === 场景 C: 插入一天 (Insert) ===
+			if (action === 'insert') {
+				const insertIndex = data.insertIndex; // 新的一天被插入的位置索引
+
+				const updateTasks = [];
+
+				for (const task of tasks) {
+					const taskTime = task.send_time || task.start_time;
+					if (!taskTime) continue;
+
+					if (limitDateStr && taskTime.split(' ')[0] > limitDateStr) {
+						continue;
+					}
+
+					const currentSendIdx = getDiffDays(taskTime);
+					if (currentSendIdx < 0) continue;
+					const isTomorrowReminder = task.task_name && task.task_name.includes('明日提醒');
+					let targetItineraryIdx = isTomorrowReminder ? currentSendIdx + 1 : currentSendIdx;
+
+					// 逻辑：如果 内容关联日 >= 插入位置，说明这天的内容被挤到后面去了
+					// 例如插入在 Index 1 (D2)。
+					// 任务A：Sent D1, Target D2 (Idx 1)。 Target 1 >= 1。 Shift +1。 -> Sent D2, Target D3. (D1空缺，正确)
+					if (targetItineraryIdx >= insertIndex) {
+						updateTasks.push({
+							_id: task._id,
+							send_time: shiftTimeStr(task.send_time, 1),
+							start_time: shiftTimeStr(task.start_time, 1),
+							end_time: shiftTimeStr(task.end_time, 1)
+						});
+					}
+				}
+
+				// 批量更新
+				for (const u of updateTasks) {
+					await db.collection('a-task-queue').doc(u._id).update({
+						send_time: u.send_time,
+						start_time: u.start_time,
+						end_time: u.end_time,
+						updated_at: Date.now()
+					});
+				}
+
+				return { errCode: 0, msg: `因插入天数，顺延了 ${updateTasks.length} 个任务` };
+			}
+
+			// === 场景 D: 移动/插入排序 (Move) ===
+			if (action === 'move') {
+				const { fromIndex, toIndex } = data; // 0-based index
+
+				// 如果位置没变，直接返回
+				if (fromIndex === toIndex) return { errCode: 0 };
+
+				const updateTasks = [];
+
+				for (const task of tasks) {
+					const taskTime = task.send_time || task.start_time;
+					if (!taskTime) continue;
+
+					// 1. 计算当前任务属于“第几天”的行程
+					// 注意：0代表Day1。
+					let currentDayIdx = getDiffDays(taskTime);
+
+					// 2. 特殊处理【明日提醒】
+					// 明日提醒通常在 Day N 发送，内容是关于 Day N+1 的
+					// 所以它的“关联行程索引”应该是 currentDayIdx + 1
+					let associatedItineraryIdx = currentDayIdx;
+					const isTomorrowReminder = task.task_name && task.task_name.includes('明日提醒');
+
+					if (isTomorrowReminder) {
+						associatedItineraryIdx = currentDayIdx + 1;
+					}
+
+					// 3. 计算移动后的新索引
+					let newItineraryIdx = associatedItineraryIdx;
+
+					if (fromIndex < toIndex) {
+						// 从前向后拖动 (例如把 Day1 拖到 Day3 后面)
+						if (associatedItineraryIdx === fromIndex) {
+							// 被拖动的这一天，直接变更为目标位置
+							newItineraryIdx = toIndex;
+						} else if (associatedItineraryIdx > fromIndex && associatedItineraryIdx <= toIndex) {
+							// 中间的日子，自动前移一位 (Day2 -> Day1)
+							newItineraryIdx = associatedItineraryIdx - 1;
+						}
+					} else {
+						// 从后向前拖动 (例如把 Day4 拖到 Day2 前面)
+						if (associatedItineraryIdx === fromIndex) {
+							// 被拖动的这一天，直接变更为目标位置
+							newItineraryIdx = toIndex;
+						} else if (associatedItineraryIdx >= toIndex && associatedItineraryIdx < fromIndex) {
+							// 中间的日子，自动后移一位 (Day2 -> Day3)
+							newItineraryIdx = associatedItineraryIdx + 1;
+						}
+					}
+
+					// 4. 如果索引发生了变化，计算新的时间
+					if (newItineraryIdx !== associatedItineraryIdx) {
+						// 反向计算：新的任务日期索引
+						let newTaskDayIdx = newItineraryIdx;
+
+						// 如果是明日提醒，任务日期要比行程日期早一天
+						if (isTomorrowReminder) {
+							newTaskDayIdx = newItineraryIdx - 1;
+						}
+
+						// 计算日期偏移量 (新 - 旧)
+						const dayOffset = newTaskDayIdx - currentDayIdx;
+
+						updateTasks.push({
+							_id: task._id,
+							send_time: shiftTimeStr(task.send_time, dayOffset),
+							start_time: shiftTimeStr(task.start_time, dayOffset),
+							end_time: shiftTimeStr(task.end_time, dayOffset)
+						});
+					}
+				}
+
+				// 批量更新
+				for (const u of updateTasks) {
+					await db.collection('a-task-queue').doc(u._id).update({
+						send_time: u.send_time,
+						start_time: u.start_time,
+						end_time: u.end_time,
+						updated_at: Date.now()
+					});
+				}
+
+				return { errCode: 0, msg: `因行程顺序调整，更新了 ${updateTasks.length} 个任务` };
 			}
 		} catch (e) {
 			console.error(e);

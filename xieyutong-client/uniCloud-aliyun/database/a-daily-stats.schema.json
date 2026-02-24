@@ -1,0 +1,37 @@
+{
+	"bsonType": "object",
+	"required": ["date", "count"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid != null",
+		"delete": "'admin' in auth.role || 'super_admin in auth.role'"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"date": {
+			"bsonType": "string",
+			"description": "日期字符串 YYYY-MM-DD",
+			"index": {
+				"unique": true
+			}
+		},
+		"ineffective_count": {
+			"bsonType": "int",
+			"description": "无效沟通次数",
+			"minimum": 0
+		},
+		"updated_by": {
+			"bsonType": "string",
+			"description": "最后操作人"
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

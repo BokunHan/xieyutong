@@ -1,0 +1,182 @@
+{
+	"bsonType": "object",
+	"required": ["order_id", "user_id"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid != null",
+		"delete": "auth.uid != null"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"order_id": {
+			"bsonType": "string",
+			"description": "关联订单ID",
+			"foreignKey": "a-snapshots.order_id"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "提交需求的用户ID"
+		},
+		"selected_services": {
+			"bsonType": "array",
+			"description": "用户勾选的服务快照",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"id": {
+						"bsonType": "string"
+					},
+					"name": {
+						"bsonType": "string"
+					},
+					"quantity": {
+						"bsonType": "int"
+					}
+				}
+			}
+		},
+		"selected_supplies": {
+			"bsonType": "array",
+			"description": "用户勾选的单项物资ID列表",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"id": {
+						"bsonType": "string"
+					},
+					"quantity": {
+						"bsonType": "int"
+					}
+				}
+			}
+		},
+		"supplies": {
+			"bsonType": "array",
+			"description": "汇总后的物资清单",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"id": {
+						"bsonType": "string"
+					},
+					"name": {
+						"bsonType": "string"
+					},
+					"image": {
+						"bsonType": "string"
+					},
+					"is_on_demand": {
+						"bsonType": "bool",
+						"description": "是否按需决定数量"
+					},
+					"is_consumable": {
+						"bsonType": "bool",
+						"description": "是否为消耗品"
+					},
+					"total_quantity": {
+						"bsonType": "int",
+						"description": "预订总数"
+					},
+					"pickup_quantity": {
+						"bsonType": "int",
+						"description": "实际领用数量"
+					},
+					"return_normal_quantity": {
+						"bsonType": "int",
+						"description": "完好归还数量"
+					},
+					"return_damaged_quantity": {
+						"bsonType": "int",
+						"description": "报修数量"
+					},
+					"return_lost_quantity": {
+						"bsonType": "int",
+						"description": "报失数量"
+					},
+					"status": {
+						"bsonType": "string",
+						"enum": ["pending", "picked_up", "returned"],
+						"description": "状态：待领/已领/已还"
+					},
+					"return_status": {
+						"bsonType": "string",
+						"enum": ["normal", "damaged", "lost"],
+						"description": "归还时的状况：完好/报修/报失"
+					},
+					"return_evidence": {
+						"bsonType": "array",
+						"description": "报修照片凭证"
+					}
+				}
+			}
+		},
+		"user_remark": {
+			"bsonType": "string",
+			"description": "客户诉求留言"
+		},
+		"is_user_confirmed": {
+			"bsonType": "bool",
+			"description": "用户是否已确认物资清单(用于判断是否弹窗)",
+			"default": false
+		},
+		"pickup_info": {
+			"bsonType": "object",
+			"properties": {
+				"time": {
+					"bsonType": "timestamp"
+				},
+				"photos": {
+					"bsonType": "array"
+				},
+				"operator_id": {
+					"bsonType": "string"
+				}
+			}
+		},
+		"return_info": {
+			"bsonType": "object",
+			"properties": {
+				"time": {
+					"bsonType": "timestamp"
+				},
+				"photos": {
+					"bsonType": "array"
+				},
+				"operator_id": {
+					"bsonType": "string"
+				},
+				"remark": {
+					"bsonType": "string",
+					"description": "归还备注"
+				}
+			}
+		},
+		"status": {
+			"bsonType": "string",
+			"enum": ["created", "processing", "completed"],
+			"description": "整体流转状态: created=待领用, processing=使用中, completed=已归还"
+		},
+		"is_returning": {
+			"bsonType": "bool",
+			"default": false,
+			"description": "是否已进入归还流程(true表示已进入归还流程，不可再编辑出库信息)"
+		},
+		"created_at": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_at": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

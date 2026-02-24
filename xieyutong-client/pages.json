@@ -2,7 +2,7 @@
 	"pages": [{
 			"path": "pages/home/home",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationBarTitleText": "首页"
 			},
 			"needLogin": false
 		},
@@ -196,6 +196,42 @@
 			"style": {
 				"navigationBarTitleText": "绑定确认"
 			}
+		},
+		{
+			"path": "pages/order/order-services",
+			"style": {
+				"navigationBarTitleText": "订单服务"
+			}
+		},
+		{
+			"path": "pages/guide/list",
+			"style": {
+				"navigationBarTitleText": "超能领队"
+			}
+		},
+		{
+			"path": "pages/guide/detail",
+			"style": {
+				"navigationBarTitleText": "私导详情"
+			}
+		},
+		{
+			"path": "pages/home/premium-products",
+			"style": {
+				"navigationBarTitleText": "精品小团"
+			}
+		},
+		{
+			"path": "pages/home/personal-theme",
+			"style": {
+				"navigationBarTitleText": "私家主题"
+			}
+		},
+		{
+			"path": "pages/home/customize",
+			"style": {
+				"navigationBarTitleText": "高端定制"
+			}
 		}
 	],
 	"globalStyle": {
@@ -250,13 +286,5 @@
 				"selectedIconPath": "static/tab_icons/my_cur.png"
 			}
 		]
-	},
-	"condition": { //模式配置，仅开发期间生效
-		"current": 0, //当前激活的模式(list 的索引项)
-		"list": [{
-			"name": "", //模式名称
-			"path": "", //启动页面，必选
-			"query": "" //启动参数，在页面的onLoad函数里面得到
-		}]
 	}
 }

@@ -1,0 +1,82 @@
+{
+	"bsonType": "object",
+	"required": ["queue_id", "status", "actual_time"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": false,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "日志ID，自动生成"
+		},
+		"queue_id": {
+			"bsonType": "string",
+			"title": "关联队列ID",
+			"description": "对应 a-task-queue 表中的 _id"
+		},
+		"order_id": {
+			"bsonType": "string",
+			"title": "关联订单号",
+			"description": "冗余存储订单号"
+		},
+		"agent_id": {
+			"bsonType": "string",
+			"title": "管家用户ID",
+			"description": "关联 uni-id-users 的 _id",
+			"foreignKey": "uni-id-users._id"
+		},
+		"account_name": {
+			"bsonType": "string",
+			"title": "管家用户名称",
+			"description": "仅作为显示用的名称"
+		},
+		"scheduled_time": {
+			"bsonType": "string",
+			"title": "设定发送时间",
+			"description": "原始计划的时间 (格式: YYYY-MM-DD HH:mm:ss)"
+		},
+		"actual_time": {
+			"bsonType": "timestamp",
+			"title": "实际发送时间",
+			"defaultValue": {
+				"$env": "now"
+			},
+			"description": "记录日志入库的时间，即实际发送完成时间"
+		},
+		"delay_seconds": {
+			"bsonType": "int",
+			"title": "延迟时长(秒)",
+			"description": "实际时间 - 设定时间。正数表示延迟，0或负数表示准时/提前"
+		},
+		"status": {
+			"bsonType": "string",
+			"title": "最终状态",
+			"enum": [{
+					"value": "sent",
+					"text": "发送成功"
+				},
+				{
+					"value": "failed",
+					"text": "发送失败"
+				}
+			]
+		},
+		"content_snapshot": {
+			"bsonType": "string",
+			"title": "内容摘要",
+			"description": "记录发送内容的前50个字符，方便快速辨识是哪条消息"
+		},
+		"error_msg": {
+			"bsonType": "string",
+			"title": "错误堆栈",
+			"description": "如果失败，记录具体的报错信息"
+		},
+		"client_ip": {
+			"bsonType": "string",
+			"title": "客户端IP",
+			"description": "执行机器的IP，用于区分是哪台电脑跑的爬虫/机器人"
+		}
+	}
+}

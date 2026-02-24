@@ -7,7 +7,7 @@
 				<view class="logo-container">
 					<image src="/static/logo.jpg" class="logo-img" mode="aspectFill"></image>
 					<view class="logo-text-group">
-						<view class="app-title">风漫国际管家</view>
+						<view class="app-title">风漫国际旅行</view>
 						<view class="app-slogan">随风漫行 × 向心而生</view>
 					</view>
 				</view>
@@ -78,24 +78,20 @@
 				</template>
 			</view>
 
-			<!-- <view class="icon-grid-container">
+			<view class="icon-grid-container">
 				<view class="icon-grid">
-					<view class="icon-item" v-for="(item, index) in iconGridList" :key="index">
+					<view class="icon-item" v-for="(item, index) in iconGridList" :key="index" @click="handleIconClick(item.url)">
 						<view class="icon-wrapper">
 							<image :src="item.icon" class="icon-item-img" mode="aspectFit" />
 						</view>
 						<text class="icon-label">{{ item.label }}</text>
 					</view>
 				</view>
-			</view> -->
+			</view>
 
 			<view class="content-area" id="content-area">
 				<view class="section-title">
-					<text class="section-title-text">精品私家团</text>
-					<!-- <view class="section-title-more">
-						<text class="section-title-more-text">查看全部</text>
-						<image src="/static/icons/right.svg" class="right-icon" mode="aspectFit" />
-					</view> -->
+					<text class="section-title-text">热门推荐</text>
 				</view>
 
 				<view v-if="productLoading" class="product-loading">
@@ -110,24 +106,24 @@
 				</view>
 
 				<template v-else-if="displayProductList.length > 0">
-					<view v-for="(product, index) in displayProductList" :key="product.id || index" class="product-card" @click="goToProductDetail(product.id)">
-						<image :src="getOptimizedImage(product.image, 400, 400)" class="product-img" mode="aspectFill"></image>
-						<view class="product-info">
-							<view class="product-title">{{ product.title }}</view>
-							<view class="product-meta">
-								<view class="product-rating">
-									<image src="/static/icons/star.svg" class="star-icon" mode="aspectFit" />
-									<!-- <text class="fa fa-star rating-star"></text> -->
-									<text>{{ product.rating }}分</text>
+					<view class="product-list-grid">
+						<view v-for="(product, index) in displayProductList" :key="product.id || index" class="product-card" @click="goToProductDetail(product.id)">
+							<image :src="getOptimizedImage(product.image, 400, 400)" class="product-img" mode="aspectFill"></image>
+							<view class="product-info">
+								<view class="product-title">{{ product.title }}</view>
+								<view class="product-meta">
+									<view class="product-rating">
+										<image src="/static/icons/star.svg" class="star-icon" mode="aspectFit" />
+										<text>{{ product.rating }}分</text>
+									</view>
+									<view>已售{{ product.soldCount }}</view>
 								</view>
-								<view>已售{{ product.soldCount }}人</view>
-							</view>
-							<view class="product-price">
-								<view>
-									<text class="price">{{ product.price }}</text>
-									<text class="price-label">/人起</text>
+								<view class="product-price">
+									<view>
+										<text class="price">{{ product.price }}</text>
+										<text class="price-label">/人起</text>
+									</view>
 								</view>
-								<view class="promotion-tag">{{ product.tag }}</view>
 							</view>
 						</view>
 					</view>
@@ -171,14 +167,14 @@ export default {
 			hotSearchTags: ['北疆', '禾木雪村', '喀纳斯', '滑雪', '领队带玩'],
 
 			iconGridList: [
-				{ label: '国内出游', icon: '/static/icons/map-o.svg' },
-				{ label: '境外逸游', icon: '/static/icons/earth-o.svg' },
-				{ label: '精品小团', icon: '/static/icons/truck-o.svg' },
-				{ label: '私家主题', icon: '/static/icons/star-o.svg' },
-				{ label: '野奢营地', icon: '/static/icons/house-o.svg' },
-				{ label: '高端定制', icon: '/static/icons/write-o.svg' },
-				{ label: '超能领队', icon: '/static/icons/circle-user-o.svg' },
-				{ label: '旅行日历', icon: '/static/icons/calendar-o.svg' }
+				// { label: '国内出游', icon: '/static/icons/map-o.svg' },
+				// { label: '境外逸游', icon: '/static/icons/earth-o.svg' },
+				{ label: '精品小团', icon: '/static/icons/truck-o.svg', url: '/pages/home/premium-products' },
+				{ label: '私家主题', icon: '/static/icons/star-o.svg', url: '/pages/home/personal-theme' },
+				// { label: '野奢营地', icon: '/static/icons/house-o.svg' },
+				{ label: '高端定制', icon: '/static/icons/write-o.svg', url: '/pages/home/customize' },
+				{ label: '超能私导', icon: '/static/icons/circle-user-o.svg', url: '/pages/guide/list' }
+				// { label: '旅行日历', icon: '/static/icons/calendar-o.svg' }
 			],
 
 			showCouponModal: false,
@@ -597,6 +593,24 @@ export default {
 			}
 		},
 
+		handleIconClick(url) {
+			console.log('🚀 跳转URL:', url);
+
+			uni.navigateTo({
+				url: url,
+				success: (res) => {
+					console.log('✅ 网格页面跳转成功:', res);
+				},
+				fail: (err) => {
+					console.error('❌ 网格页面跳转失败:', err);
+					uni.showToast({
+						title: '页面跳转失败',
+						icon: 'none'
+					});
+				}
+			});
+		},
+
 		goToProductDetail(productId) {
 			console.log('=== goToProductDetail 开始 ===');
 			console.log('🔗 跳转到产品详情页，产品ID:', productId);
@@ -885,34 +899,35 @@ export default {
 		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
 			if (!url) return '';
 
-			// 1. 如果已经是处理过的链接，直接返回 (防止重复拼接)
+			// 2. 识别域名
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+			const isCtrip = url.includes('ctrip.com') || url.includes('trip.com');
+
+			// 3. 【携程图片】特殊处理：清洗旧参数 + 编码 + 追加新参数
+			if (isCtrip) {
+				// 正则匹配 _C_ 或 _R_ 开头的旧参数并移除
+				const ctripParamRegex = /_[A-Z]_\d+_\d+.*$/i;
+				const cleanUrl = url.replace(ctripParamRegex, '');
+
+				if (height > 0) {
+					return cleanUrl + `_C_${width}_${height}_Q${quality}.jpg`;
+				}
+				return cleanUrl + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			// 4. 检查是否已经是处理过的链接（针对非携程）
+			// 如果已包含参数，直接返回编码后的 URL，不再追加
 			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) {
 				return url;
 			}
 
-			// 2. 识别域名
-			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com'); // 自家云存储
-			const isCtrip = url.includes('ctrip.com'); // 携程图片
-
-			// 3. 【自家云存储】使用 OSS 参数
+			// 5. 【自家云存储 (阿里云OSS)】
+			// 关键修复：先使用 getEncodedUrl 对包含中文/特殊字符的路径进行编码，再拼接参数
 			if (isAliyun) {
-				// resize,w_800: 宽缩放到800
-				// format,webp: 强制 WebP (携程暂不加 webp 以防兼容问题)
 				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
 			}
 
-			// 4. 【携程图片】使用携程后缀参数
-			if (isCtrip) {
-				// 模式 A: 指定了宽高 (如 200x200 的头像/缩略图) -> 使用裁剪模式 (_C_)
-				if (height > 0) {
-					return url + `_C_${width}_${height}_Q${quality}.jpg`;
-				}
-				// 模式 B: 只指定宽度 (如 Banner/列表大图) -> 使用限宽模式 (_R_)
-				// _R_宽_10000: 限制宽度，高度自适应(最高10000)
-				return url + `_R_${width}_10000_Q${quality}.jpg`;
-			}
-
-			// 5. 其他域名不处理
+			// 6. 其他域名，仅做编码处理
 			return url;
 		},
 		getOssVideoPoster(url) {
@@ -1069,8 +1084,8 @@ export default {
 	z-index: 100;
 	/* 背景改为白色 */
 	background-color: white;
-	padding-top: constant(safe-area-inset-top);
-	padding-top: env(safe-area-inset-top);
+	/* padding-top: constant(safe-area-inset-top); */
+	/* padding-top: env(safe-area-inset-top); */
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
@@ -1248,8 +1263,8 @@ export default {
 
 /* 4. 新增图标网格 */
 .icon-grid-container {
-	margin: 8px 12px 8px 12px;
-	padding: 20px 16px;
+	margin: 12px;
+	padding: 20px 16px 6px;
 	border-radius: 16px;
 	position: relative;
 }
@@ -1324,51 +1339,61 @@ export default {
 	height: 18px;
 }
 
+.product-list-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr); /* 两列，等宽 */
+	gap: 10px; /* 卡片之间的间距 */
+}
+
 /* 产品卡片 - 匹配设计图样式 */
 .product-card {
 	background-color: white;
 	border-radius: 12px;
 	overflow: hidden;
-	margin-bottom: 16px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 	transition: all 0.2s ease;
 	border: 1px solid #f0f0f0;
+	display: flex;
+	flex-direction: column;
 }
 
-/* ... (产品卡片 .product-card 内部样式保持不变) ... */
 .product-card:active {
 	transform: scale(0.98);
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .product-img {
 	width: 100%;
-	height: 180px;
+	height: 170px;
 	object-fit: cover;
 }
 
 .product-info {
-	padding: 12px 16px 16px;
+	padding: 10px;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .product-title {
 	font-weight: 600;
-	margin-bottom: 8px;
-	font-size: 15px;
+	margin-bottom: 6px;
+	font-size: 14px;
 	line-height: 1.4;
 	color: #333333;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
+	min-height: 40px;
 }
 
 .product-meta {
 	display: flex;
 	justify-content: space-between;
-	margin-bottom: 10px;
-	font-size: 13px;
-	color: #666666;
+	margin-bottom: 8px;
+	font-size: 11px;
+	color: #999;
 }
 
 .product-rating {
@@ -1377,9 +1402,9 @@ export default {
 }
 
 .star-icon {
-	width: 16px;
-	height: 16px;
-	margin-right: 3px;
+	width: 12px;
+	height: 12px;
+	margin-right: 2px;
 }
 
 /* .rating-star {
@@ -1390,20 +1415,19 @@ export default {
 .product-price {
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	align-items: flex-end;
 }
 
 .price {
 	color: #e53e3e;
 	font-weight: 700;
-	font-size: 18px;
+	font-size: 16px;
 }
 
 .price-label {
-	font-size: 12px;
+	font-size: 10px;
 	color: #999999;
-	margin-left: 4px;
-	font-weight: 400;
+	margin-left: 2px;
 }
 
 .promotion-tag {

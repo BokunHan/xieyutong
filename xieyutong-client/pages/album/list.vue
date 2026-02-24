@@ -1,10 +1,28 @@
 <template>
 	<view class="album-list-container">
-		<view :style="{ paddingTop: statusBarHeight + 150 + 'rpx' }">
+		<view :style="{ paddingTop: statusBarHeight + 20 + 'px' }">
+			<view v-if="filteredList.length > 0" class="page-header">
+				<text class="main-title">我的旅程</text>
+				<text class="sub-title">收藏时光里的独家记忆</text>
+			</view>
+
+			<view v-if="filteredList.length > 0" class="filter-scroll-container">
+				<scroll-view scroll-x="true" class="year-tabs" show-scrollbar="false">
+					<view class="tab-wrapper">
+						<view class="year-tab" :class="{ active: selectedYear === 'all' }" @click="selectYear('all')">
+							<uni-icons v-if="selectedYear === 'all'" type="images" size="14" color="#fff" style="margin-right: 4rpx"></uni-icons>
+							<text>全部</text>
+						</view>
+						<view class="year-tab" v-for="year in yearList" :key="year" :class="{ active: selectedYear === year }" @click="selectYear(year)">
+							<text>{{ year }}</text>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
 			<block v-if="loading">
 				<view class="loading-tip">正在加载...</view>
 			</block>
-			<block v-else-if="albumList.length === 0">
+			<block v-else-if="filteredList.length === 0">
 				<view class="empty-state">
 					<view class="empty-state-icon">
 						<!-- <text class="fa fa-images"></text> -->
@@ -21,11 +39,21 @@
 				</view>
 			</block>
 			<block v-else>
-				<view class="album-list">
-					<view v-for="album in albumList" :key="album._id" class="album-item" @click="goToDetail(album._id)">
-						<image class="album-cover" :src="getOptimizedImage(album.cover_image || product_image)" mode="aspectFill"></image>
-						<view class="album-overlay"></view>
-						<view class="album-info">
+				<view class="album-grid">
+					<view v-for="(album, index) in filteredList" :key="album._id" class="album-card" :class="{ 'hero-card': index === 0 }" @click="goToDetail(album._id)">
+						<view class="card-image-wrapper">
+							<image class="album-cover" :src="getOptimizedImage(album.cover_image || product_image)" mode="aspectFill"></image>
+
+							<block v-if="index === 0">
+								<view class="album-overlay"></view>
+								<view class="hero-info">
+									<text class="album-name">{{ album.album_name }}</text>
+									<text class="album-date">{{ formatDateRange(album) }}</text>
+								</view>
+							</block>
+						</view>
+
+						<view class="standard-info" v-if="index !== 0">
 							<text class="album-name">{{ album.album_name }}</text>
 							<text class="album-date">{{ formatDateRange(album) }}</text>
 						</view>
@@ -47,7 +75,8 @@ export default {
 			albumList: [],
 			loading: false,
 			isNavigating: false,
-			product_image: '' // 当前行程的商品图片作为所有相册的备用封面
+			product_image: '', // 当前行程的商品图片作为所有相册的备用封面
+			selectedYear: 'all'
 		};
 	},
 	onLoad() {
@@ -70,6 +99,29 @@ export default {
 		// 调用检查，并传入 true 强制刷新
 		await this.checkAndRedirectToCurrentItinerary();
 	},
+	computed: {
+		// 自动从 albumList 中提取所有出现的年份，去重并降序排列
+		yearList() {
+			if (!this.albumList || this.albumList.length === 0) return [];
+			const years = this.albumList
+				.map((album) => {
+					const date = new Date(album.departure_date || Date.now());
+					return date.getFullYear();
+				})
+				.filter((value, index, self) => self.indexOf(value) === index); // 去重
+			return years.sort((a, b) => b - a); // 降序
+		},
+		// 根据选中的年份筛选相册
+		filteredList() {
+			if (this.selectedYear === 'all') {
+				return this.albumList;
+			}
+			return this.albumList.filter((album) => {
+				const date = new Date(album.departure_date || Date.now());
+				return date.getFullYear() === this.selectedYear;
+			});
+		}
+	},
 	methods: {
 		browseProducts() {
 			// 跳转到首页或产品列表页 (假设是tabBar页面)
@@ -83,6 +135,9 @@ export default {
 					});
 				}
 			});
+		},
+		selectYear(year) {
+			this.selectedYear = year;
 		},
 
 		// 检查用户是否有进行中的行程
@@ -172,10 +227,18 @@ export default {
 			});
 		},
 
-		formatDate(timestamp) {
+		formatDate(timestamp, includeYear = true) {
 			if (!timestamp) return '';
 			const date = new Date(timestamp);
-			return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+			const year = date.getFullYear();
+			const month = date.getMonth() + 1;
+			const day = date.getDate();
+
+			if (includeYear) {
+				return `${year}.${month}.${day}`;
+			} else {
+				return `${month}.${day}`;
+			}
 		},
 
 		formatDateRange(album) {
@@ -183,17 +246,28 @@ export default {
 				return '日期未知';
 			}
 
-			const startDate = this.formatDate(album.departure_date);
+			const startDateObj = new Date(album.departure_date);
+			const startYear = startDateObj.getFullYear();
+			const startStr = this.formatDate(album.departure_date); // 默认带年份
 
 			if (album.total_days && album.total_days > 1) {
 				const endDateObj = new Date(album.departure_date);
 				endDateObj.setDate(endDateObj.getDate() + album.total_days - 1);
-				const endDate = this.formatDate(endDateObj.getTime());
-				return `${startDate} 至 ${endDate}`;
+
+				// 判断是否跨年
+				if (startYear === endDateObj.getFullYear()) {
+					// 同一年，结束日期不显示年份
+					const endStr = this.formatDate(endDateObj.getTime(), false);
+					return `${startStr} - ${endStr}`;
+				} else {
+					// 跨年，结束日期显示年份
+					const endStr = this.formatDate(endDateObj.getTime(), true);
+					return `${startStr} - ${endStr}`;
+				}
 			}
 
-			// 5. 如果 total_days 为 1 或不存在，只显示开始日期
-			return startDate;
+			// 只有一天
+			return startStr;
 		},
 
 		// 智能图片压缩工具
@@ -230,13 +304,69 @@ export default {
 
 <style scoped>
 .album-list-container {
-	padding: 0 30rpx 30rpx;
+	padding: 0 12rpx 40rpx;
+	background-color: #f7f8fa;
+	min-height: 100vh;
+}
+
+/* 1. 标题区域 */
+.page-header {
+	padding: 20rpx 32rpx;
+	margin-bottom: 20rpx;
+}
+.main-title {
+	font-size: 56rpx;
+	font-weight: 800;
+	color: #333;
+	display: block;
+	margin-bottom: 8rpx;
+	letter-spacing: 2rpx;
+}
+.sub-title {
+	font-size: 26rpx;
+	color: #999;
+	letter-spacing: 1rpx;
+	font-weight: 400;
+}
+
+/* 2. 筛选胶囊 */
+.filter-scroll-container {
+	margin-bottom: 40rpx;
+	height: 60rpx; /* 显式高度防止坍塌 */
+}
+.year-tabs {
+	width: 100%;
+	white-space: nowrap;
+}
+.tab-wrapper {
+	display: flex;
+	padding: 0 32rpx;
+}
+.year-tab {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10rpx 32rpx;
+	margin-right: 20rpx;
+	border-radius: 100rpx; /* 胶囊圆角 */
+	background-color: #f0f2f5;
+	color: #666;
+	font-size: 26rpx;
+	transition: all 0.3s ease;
+}
+.year-tab.active {
+	background-color: #eb6d20; /* 橙色主题 */
+	color: #fff;
+	font-weight: 600;
+	box-shadow: 0 4rpx 12rpx rgba(235, 109, 32, 0.3);
 }
 
 .loading-tip {
 	text-align: center;
-	margin-top: 200rpx;
+	margin-top: 300rpx;
 	color: #999;
+	font-size: 28rpx;
+	letter-spacing: 2rpx;
 }
 
 .empty-state {
@@ -244,27 +374,26 @@ export default {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	padding-top: 150rpx;
+	padding-top: 200rpx;
 	text-align: center;
 }
 
 .empty-state-icon {
-	font-size: 120rpx; /* 图标大小 */
-	color: #eb6d20;
-	width: 240rpx;
-	height: 240rpx;
+	width: 200rpx;
+	height: 200rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	text-align: center;
-	background-color: #f0f9ff;
-	border-radius: 50%;
-	margin-bottom: 60rpx;
+	background: linear-gradient(135deg, #fff5f0 0%, #fff 100%);
+	border-radius: 40rpx;
+	margin-bottom: 40rpx;
+	box-shadow: 0 20rpx 40rpx rgba(235, 109, 32, 0.08);
 }
 
 .images-icon {
-	width: 140rpx;
-	height: 124rpx;
+	width: 142rpx;
+	height: 128rpx;
+	margin-right: 12rpx;
 }
 
 .search-icon {
@@ -279,81 +408,149 @@ export default {
 	justify-content: center;
 	background-color: #eb6d20;
 	color: #ffffff;
-	padding: 20rpx 48rpx;
-	border-radius: 9999px; /* 胶囊按钮 */
-	font-size: 32rpx;
-	font-weight: 500;
-	margin-top: 60rpx;
-	cursor: pointer;
-	transition: background-color 0.2s;
+	padding: 24rpx 64rpx;
+	border-radius: 100rpx;
+	font-size: 30rpx;
+	font-weight: 600;
+	margin-top: 80rpx;
+	box-shadow: 0 16rpx 32rpx rgba(235, 109, 32, 0.25);
+	transition: all 0.3s ease;
+}
+
+.action-button:active {
+	transform: scale(0.98);
+	box-shadow: 0 8rpx 16rpx rgba(235, 109, 32, 0.2);
 }
 
 .action-button:hover {
 	background-color: #f44336; /* 蓝色 (Tailwind blue-800) */
 }
 
-.album-list {
-	width: 100%;
+/* 3. 相册网格流布局*/
+.album-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr); /* 两列 */
+	gap: 40rpx;
+	row-gap: 40rpx;
+	padding: 0 32rpx 60rpx;
 }
 
-.album-item {
+.album-card {
+	position: relative;
+	background-color: transparent;
+	box-shadow: none;
+	border-radius: 0;
+}
+
+.card-image-wrapper {
+	position: relative;
 	width: 100%;
-	height: 400rpx; /* 增加卡片高度，使其更突出 */
-	border-radius: 24rpx; /* 增加圆角，提升高级感 */
-	overflow: hidden;
-	background-color: #f0f0f0; /* 图片加载时的底色 */
-	position: relative; /* 设为相对定位，作为子元素的锚点 */
-	margin-bottom: 30rpx; /* 卡片之间的间距 */
-	box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.08);
+	background-color: #fff;
+	padding: 10rpx;
+	border-radius: 68rpx; /* 图片圆角 */
+	box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+	transition: transform 0.3s ease;
+	box-sizing: border-box;
+}
+.album-card:active .card-image-wrapper {
+	transform: scale(0.98);
+}
+
+/* 最上方一个：占一行，较扁 */
+.hero-card {
+	grid-column: span 2; /* 跨两列 */
+}
+.hero-card .card-image-wrapper {
+	aspect-ratio: 16 / 9; /* 扁平比例 */
+	padding: 0;
+	background-color: transparent;
+}
+.hero-card .album-cover {
+	border-radius: 68rpx; /* 让圆角直接作用在图片上 */
 }
 
 .album-cover {
-	position: absolute;
-	top: 0;
-	left: 0;
 	width: 100%;
 	height: 100%;
-	z-index: 1;
+	display: block;
+	border-radius: 62rpx; /* 图片圆角略小于相框圆角 */
+	background-color: #f0f0f0; /* 图片加载前的底色 */
 }
 
 .album-overlay {
 	position: absolute;
-	bottom: 0;
+	bottom: 0; /* 匹配 padding */
 	left: 0;
-	width: 100%;
-	height: 50%; /* 蒙版只覆盖下半部分 */
-	background: linear-gradient(0deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0) 100%);
-	z-index: 2;
+	right: 0;
+	height: 60%;
+	background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
+	border-radius: 68rpx 68rpx 68rpx 68rpx; /* 匹配图片底部圆角 */
+	z-index: 1;
 }
 
-.album-info {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	padding: 24rpx; /* 增加内边距 */
+.hero-info {
+	position: absolute; /* 绝对定位在相框内 */
+	bottom: 30rpx;
+	left: 30rpx;
+	right: 30rpx;
+	z-index: 2;
 	display: flex;
 	flex-direction: column;
-	z-index: 3;
-	box-sizing: border-box;
+	align-items: flex-start;
 }
 
-.album-name {
-	font-size: 36rpx;
+.hero-card .album-name {
+	font-size: 30rpx;
+	font-weight: 700;
+	color: #fff;
+	margin: 0 12rpx 12rpx;
+	/* margin-bottom: 12rpx; */
+	text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2; /* 限制2行 */
+	overflow: hidden;
+}
+
+.hero-card .album-date {
+	font-size: 22rpx;
+	color: rgba(255, 255, 255, 0.95);
+	background: rgba(255, 255, 255, 0.2);
+	margin-left: 20rpx;
+	padding: 4rpx 22rpx 4rpx;
+	border-radius: 50rpx;
+	backdrop-filter: blur(4px);
+}
+
+/* === 样式 B: 普通相册 (竖长，文字在相框外) === */
+.album-card:not(.hero-card) .card-image-wrapper {
+	aspect-ratio: 4 / 5; /* 竖长比例 */
+}
+
+.standard-info {
+	margin-top: 16rpx; /* 文字与相框的距离 */
+	padding: 0 8rpx; /* 稍微缩进一点，视觉更平衡 */
+	display: flex;
+	flex-direction: column;
+}
+
+.standard-info .album-name {
+	font-size: 28rpx; /* 稍微调小一点，更精致 */
 	font-weight: bold;
-	color: #ffffff;
+	color: #333;
+	line-height: 1.4;
+	margin-bottom: 6rpx;
+
+	/* 限制两行 */
 	overflow: hidden;
 	text-overflow: ellipsis;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
-	line-height: 1.4;
-	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.album-date {
-	font-size: 26rpx;
-	color: #e0e0e0;
-	margin-top: 8rpx;
+.standard-info .album-date {
+	font-size: 22rpx;
+	color: #999;
 }
 </style>

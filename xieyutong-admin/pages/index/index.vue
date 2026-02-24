@@ -191,17 +191,17 @@
 							</view>
 							<text class="block text-center text-sm font-medium text-purple-900">会员管理</text>
 						</view>
-						<view class="bg-blue-50 hover:bg-blue-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-products/list')">
+						<view class="bg-rose-50 hover:bg-rose-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-customers/list')">
 							<view class="flex items-center justify-center mb-3">
-								<i class="fas fa-shopping-bag text-blue-600 text-2xl"></i>
+								<i class="fas fa-user-friends text-rose-600 text-2xl"></i>
 							</view>
-							<text class="block text-center text-sm font-medium text-blue-900">商品管理</text>
+							<text class="block text-center text-sm font-medium text-rose-900">客户管理</text>
 						</view>
-						<view class="bg-green-50 hover:bg-green-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-orders/list')">
+						<view class="bg-green-50 hover:bg-green-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-products-orders/list')">
 							<view class="flex items-center justify-center mb-3">
 								<i class="fas fa-list-alt text-green-600 text-2xl"></i>
 							</view>
-							<text class="block text-center text-sm font-medium text-green-900">订单管理</text>
+							<text class="block text-center text-sm font-medium text-green-900">商品与订单管理</text>
 						</view>
 						<view class="bg-red-50 hover:bg-red-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-group-albums/list')">
 							<view class="flex items-center justify-center mb-3">
@@ -214,6 +214,30 @@
 								<i class="fas fa-gift text-orange-600 text-2xl"></i>
 							</view>
 							<text class="block text-center text-sm font-medium text-orange-900">优惠券管理</text>
+						</view>
+						<view class="bg-indigo-50 hover:bg-indigo-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-operation-center/index')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-calendar-alt text-indigo-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-indigo-900">运营中心</text>
+						</view>
+						<view class="bg-amber-50 hover:bg-amber-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/b-employees/list')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-id-badge text-amber-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-amber-900">员工档案</text>
+						</view>
+						<view class="bg-teal-50 hover:bg-teal-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/a-supplies/overview')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-box-open text-teal-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-teal-900">物资管理</text>
+						</view>
+						<view class="bg-lime-50 hover:bg-lime-100 rounded-lg p-4 cursor-pointer transition-colors" @click="navigateTo('/pages/b-vehicle-profiles/list')">
+							<view class="flex items-center justify-center mb-3">
+								<i class="fas fa-car text-lime-600 text-2xl"></i>
+							</view>
+							<text class="block text-center text-sm font-medium text-lime-900">车辆管理</text>
 						</view>
 					</view>
 				</view>

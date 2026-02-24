@@ -115,6 +115,7 @@ export default {
 
 				if (res.errCode === 0) {
 					this.success = true;
+					uni.removeStorageSync('current_itinerary');
 					uni.showToast({ title: '绑定成功', icon: 'success' });
 					// 延迟跳转，让用户看清成功提示
 					setTimeout(() => {

@@ -42,6 +42,17 @@
 			"maxLength": 50,
 			"trim": "both"
 		},
+		"final_amount": {
+			"bsonType": "double",
+			"description": "成交金额"
+		},
+		"rank": {
+			"bsonType": "string",
+			"description": "订单等级",
+			"title": "订单等级",
+			"enum": ["D", "C", "B", "A"],
+			"default": "D"
+		},
 		"departure_date": {
 			"bsonType": "timestamp",
 			"description": "出发日期",
@@ -63,6 +74,21 @@
 				}
 			}
 		},
+		"travelers": {
+			"bsonType": "array",
+			"description": "无关联任务单时的手动录入原始名单",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"name": {
+						"bsonType": "string"
+					},
+					"phone": {
+						"bsonType": "string"
+					}
+				}
+			}
+		},
 		"staves": {
 			"bsonType": "array",
 			"description": "服务人员",
@@ -81,6 +107,13 @@
 					"description": "服务人员角色"
 				}
 			}
+		},
+		"vehicle_id": {
+			"bsonType": "string",
+			"description": "关联的车辆ID",
+			"title": "车辆ID",
+			"maxLength": 50,
+			"foreignKey": "b-vehicle-profiles._id"
 		},
 		"title": {
 			"bsonType": "string",
@@ -116,6 +149,43 @@
 			"description": "行程备注说明",
 			"title": "行程备注",
 			"maxLength": 1000
+		},
+		"custom_color": {
+			"bsonType": "string",
+			"description": "订单条自定义颜色 (Hex)",
+			"title": "自定义颜色",
+			"pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+		},
+		"custom_display_text": {
+			"bsonType": "string",
+			"description": "调度大盘自定义显示的文字（覆盖默认显示）",
+			"title": "大盘显示文字",
+			"maxLength": 200
+		},
+		"manual_markers": {
+			"bsonType": "object",
+			"description": "手动设置的标记信息",
+			"properties": {
+				"pickup": {
+					"bsonType": "string",
+					"description": "接机文字"
+				},
+				"dropoff": {
+					"bsonType": "string",
+					"description": "送机文字"
+				},
+				"potala": {
+					"bsonType": "object",
+					"properties": {
+						"day": {
+							"bsonType": "int"
+						},
+						"text": {
+							"bsonType": "string"
+						}
+					}
+				}
+			}
 		},
 		"itinerary": {
 			"bsonType": "array",

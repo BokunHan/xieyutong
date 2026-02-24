@@ -3,6 +3,7 @@ const createConfig = require('uni-config-center');
 const db = uniCloud.database();
 const dbCmd = db.command;
 const $ = dbCmd.aggregate;
+const opCenter = uniCloud.importObject('a-operation-center');
 
 const _buildWhereQuery = function (userId, collectionType, isGuide, tabIndex) {
 	const now = Date.now();
@@ -81,27 +82,43 @@ const _buildWhereQuery = function (userId, collectionType, isGuide, tabIndex) {
 };
 
 // 内部方法：获取微信 AccessToken (简化版，建议复用公共模块)
-const _getWxAccessToken = async function () {
+const _getWxAccessToken = async function (dcloudAppid) {
 	let appid, secret;
 
 	try {
 		// 1. 获取 uni-id 的配置
-		const uniIdConfig = createConfig({
+		const uniIdConfigRes = createConfig({
 			pluginId: 'uni-id' // 指定读取 uni-id 目录下的 config.json
 		}).config();
 
+		let currentConfig = uniIdConfigRes;
+
+		// 如果配置是数组（多端模式），则根据 dcloudAppid 查找对应配置
+		if (Array.isArray(uniIdConfigRes)) {
+			if (!dcloudAppid) {
+				throw new Error('多端配置模式下，必须传入 dcloudAppid');
+			}
+			// 在数组中找到匹配当前运行小程序的配置项
+			currentConfig = uniIdConfigRes.find((item) => item.dcloudAppid === dcloudAppid);
+
+			if (!currentConfig) {
+				throw new Error(`在 uni-id 配置中未找到 dcloudAppid 为 ${dcloudAppid} 的配置项`);
+			}
+		}
+
 		// 2. 提取 mp-weixin 下的配置
-		if (uniIdConfig['mp-weixin'] && uniIdConfig['mp-weixin'].oauth && uniIdConfig['mp-weixin'].oauth.weixin) {
-			appid = uniIdConfig['mp-weixin'].oauth.weixin.appid;
-			secret = uniIdConfig['mp-weixin'].oauth.weixin.appsecret;
+		if (currentConfig['mp-weixin'] && currentConfig['mp-weixin'].oauth && currentConfig['mp-weixin'].oauth.weixin) {
+			appid = currentConfig['mp-weixin'].oauth.weixin.appid;
+			secret = currentConfig['mp-weixin'].oauth.weixin.appsecret;
 		}
 	} catch (e) {
 		console.error('读取 uni-id 配置失败:', e);
+		throw e; // 抛出异常以便外层捕获
 	}
 
 	// 校验是否成功获取
 	if (!appid || !secret) {
-		throw new Error('未在 uni-id/config.json 中找到 mp-weixin 的 appid 或 appsecret 配置');
+		throw new Error(`应用 [${dcloudAppid}] 未配置 mp-weixin 的 appid 或 appsecret`);
 	}
 
 	// 3. 请求微信接口
@@ -118,7 +135,10 @@ const _getWxAccessToken = async function () {
 
 module.exports = {
 	async _before() {
-		this.uniIdCommon = uniIdCommon.createInstance({ context: this });
+		const clientInfo = this.getClientInfo();
+		this.uniIdCommon = uniIdCommon.createInstance({
+			clientInfo: clientInfo
+		});
 		const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
 		if (checkResult.errCode !== 0) {
 			return {
@@ -266,20 +286,62 @@ module.exports = {
 			const [orderRes, snapshotRes] = await Promise.all([queryOrders, querySnapshots]);
 
 			let imageMap = new Map();
+			let taskCountMap = new Map();
+
 			if (snapshotRes.data && snapshotRes.data.length > 0) {
 				const productIds = snapshotRes.data.map((s) => s.product_id).filter((id) => id);
+				const orderIds = snapshotRes.data.map((s) => s.order_id).filter((id) => id);
+
+				const promises = [];
+
 				if (productIds.length > 0) {
-					const productRes = await db
-						.collection('a-products')
-						.where({ _id: dbCmd.in(productIds) })
-						.field({ _id: true, product_images: true })
-						.get();
-					imageMap = new Map(productRes.data.map((p) => [p._id, p.product_images?.[0]]));
+					promises.push(
+						db
+							.collection('a-products')
+							.where({ _id: dbCmd.in(productIds) })
+							.field({ _id: true, product_images: true })
+							.get()
+							.then((res) => ({ type: 'product', data: res.data }))
+					);
 				}
+
+				if (orderIds.length > 0) {
+					promises.push(
+						db
+							.collection('a-task-orders')
+							.where({ order_id: dbCmd.in(orderIds) })
+							.field({ order_id: true, raw_data: true })
+							.get()
+							.then((res) => {
+								const countMap = new Map();
+								res.data.forEach((item) => {
+									try {
+										// 安全获取长度
+										const count = item.raw_data?.[0]?.order_context?.travelers?.length;
+										if (count) {
+											countMap.set(item.order_id, count);
+										}
+									} catch (e) {}
+								});
+								return { type: 'task', data: countMap }; // 返回只包含{order_id: count}的Map
+							})
+					);
+				}
+
+				const results = await Promise.all(promises);
+
+				results.forEach((res) => {
+					if (res.type === 'product') {
+						imageMap = new Map(res.data.map((p) => [p._id, p.product_images?.[0]]));
+					} else if (res.type === 'task') {
+						taskCountMap = res.data;
+					}
+				});
 			}
 
 			const mappedSnapshots = snapshotRes.data.map((snapshot) => {
 				snapshot.product_image_url = imageMap.get(snapshot.product_id);
+				snapshot.task_traveler_count = taskCountMap.get(snapshot.order_id);
 				return snapshot;
 			});
 
@@ -331,7 +393,9 @@ module.exports = {
 		}
 
 		// 3. 获取微信 Access Token
-		const accessToken = await _getWxAccessToken();
+		const clientInfo = this.getClientInfo();
+		const currentAppId = clientInfo.appId;
+		const accessToken = await _getWxAccessToken('__UNI__5377474');
 
 		// 4. 生成小程序码
 		// 场景值直接传 ID。
@@ -391,18 +455,21 @@ module.exports = {
 		// 2. 确定目标表 (a-orders 还是 a-snapshots)
 		let targetCollection = '';
 		let targetWhere = '';
+		let targetRecord = null;
 
 		// 先检查是不是普通订单
 		const orderCheck = await db.collection('a-orders').where({ order_no: id }).get();
 		if (orderCheck.data && orderCheck.data.length > 0) {
 			targetCollection = 'a-orders';
 			targetWhere = { order_no: id };
+			targetRecord = orderCheck.data[0];
 		} else {
 			// 再检查是不是快照
 			const snapshotCheck = await db.collection('a-snapshots').where({ order_id: id }).get();
 			if (snapshotCheck.data && snapshotCheck.data.length > 0) {
 				targetCollection = 'a-snapshots';
 				targetWhere = { order_id: id };
+				targetRecord = snapshotCheck.data[0];
 			}
 		}
 
@@ -410,30 +477,111 @@ module.exports = {
 			return { errCode: 404, errMsg: '未找到对应的订单或快照' };
 		}
 
-		// 3. 执行绑定 (动态集合名称)
-		// 两个表的字段结构里都有 travel_users，所以逻辑通用
-		const updateRes = await db
-			.collection(targetCollection)
-			.where(targetWhere)
-			.update({
-				travel_users: dbCmd.addToSet(userInfo)
-			});
+		const isUserBound = targetRecord.travel_users && targetRecord.travel_users.some((u) => u.id === this.uid);
+
+		if (!isUserBound) {
+			// 3. 执行绑定 (动态集合名称)
+			// 两个表的字段结构里都有 travel_users，所以逻辑通用
+			const updateRes = await db
+				.collection(targetCollection)
+				.where(targetWhere)
+				.update({
+					travel_users: dbCmd.addToSet(userInfo)
+				});
+		}
 
 		// 4. 绑定到相册 (a-group-albums)
 		// 假设相册也是通过 order_id 关联的 (注意：如果你快照也有相册，这里的逻辑可能也要适配，暂时按原样处理关联)
 		const albumRes = await db.collection('a-group-albums').where({ order_id: id }).get();
 		if (albumRes.data && albumRes.data.length > 0) {
-			await db
-				.collection('a-group-albums')
-				.where({ order_id: id })
-				.update({
-					members: dbCmd.addToSet(userInfo)
-				});
+			const albumRecord = albumRes.data[0];
+			const isAlbumMember = albumRecord.members && albumRecord.members.some((m) => m.id === this.uid);
+
+			if (!isAlbumMember) {
+				await db
+					.collection('a-group-albums')
+					.where({ order_id: id })
+					.update({
+						members: dbCmd.addToSet(userInfo)
+					});
+			}
 		}
 
 		return {
 			errCode: 0,
 			errMsg: '绑定成功'
+		};
+	},
+
+	/**
+	 * 获取司导首页仪表盘统计数据
+	 * 1. 本月接单：查询本月出发的订单
+	 * 2. 本月完单：查询本月出发且时间已结束的订单
+	 * 3. 综合评分：调用运营中心考核数据
+	 */
+	async getGuideHomeStats() {
+		// 获取当前请求的用户ID
+		if (!this.uid) return { monthOrders: 0, monthCompleted: 0, rating: '100.0' };
+
+		// --- 1. 时间计算 ---
+		const now = new Date();
+		const nowTs = now.getTime();
+		// 本月第一天 00:00:00
+		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+		// 本月最后一天 23:59:59
+		const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).getTime();
+
+		// --- 2. 查询本月相关订单 ---
+		// 查询条件：staves数组中包含当前用户且角色为guide，且出发日期在本月
+		const whereClause = {
+			staves: dbCmd.elemMatch({
+				id: this.uid,
+				role: new RegExp('guide') // 匹配 guide, head-guide 等
+			}),
+			departure_date: dbCmd.gte(startOfMonth).and(dbCmd.lte(endOfMonth))
+		};
+
+		console.log('whereClause: ', whereClause);
+
+		// 只需要查询出发日期和总天数，用于计算是否完单
+		const ordersRes = await db.collection('a-snapshots').where(whereClause).field({ departure_date: 1, total_days: 1 }).get();
+
+		console.log('ordersRes: ', ordersRes);
+
+		const monthOrders = ordersRes.data;
+		const totalOrdersCount = monthOrders.length;
+
+		// --- 3. 计算完单数 ---
+		// 逻辑：本月出发的订单中，(出发日期 + 行程天数) 小于 当前时间 的视为已完单
+		let completedCount = 0;
+		monthOrders.forEach((o) => {
+			// 计算行程结束时间戳 (总天数 * 24小时)
+			const endTime = o.departure_date + o.total_days * 24 * 60 * 60 * 1000;
+			if (endTime < nowTs) {
+				completedCount++;
+			}
+		});
+
+		// --- 4. 获取评分 (调用运营中心) ---
+		let ratingStr = '100.0';
+		try {
+			const assessmentRes = await opCenter.getAssessmentData({
+				role: 'guide',
+				target_id: this.uid
+			});
+			console.log('assessmentRes: ', assessmentRes);
+
+			if (assessmentRes.data && assessmentRes.data.total_score !== undefined) {
+				ratingStr = assessmentRes.data.total_score.toFixed(1);
+			}
+		} catch (e) {
+			console.error('获取评分失败，使用默认值', e);
+		}
+
+		return {
+			monthOrders: totalOrdersCount,
+			monthCompleted: completedCount,
+			rating: ratingStr
 		};
 	}
 };

@@ -9,8 +9,9 @@ module.exports = {
 		console.log('云对象调用开始');
 
 		// 创建 uni-id-common 实例
+		const clientInfo = this.getClientInfo();
 		this.uniIdCommon = uniIdCommon.createInstance({
-			context: this
+			clientInfo: clientInfo
 		});
 
 		// 获取客户端信息

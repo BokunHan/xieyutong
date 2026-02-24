@@ -527,23 +527,34 @@ export default {
 		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
 			if (!url) return '';
 
-			// 1. 检查是否已包含处理参数
-			if (url.includes('x-oss-process') || /[_][RC]_\d+/.test(url) || url.includes('proc=')) {
+			// 1. 预处理：判断是否为携程系域名
+			const isCtrip = url.includes('ctrip.com') || url.includes('trip.com') || url.includes('qunar.com');
+			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
+
+			// 2. 携程图片特殊处理 (清洗旧参数 + 追加新参数)
+			if (isCtrip) {
+				// 正则匹配 _C_800_600 或 _R_800_10000 这类后缀
+				const ctripParamRegex = /_[A-Z]_\d+_\d+.*$/i;
+				// 移除旧参数
+				const cleanUrl = rawUrl.replace(ctripParamRegex, '');
+
+				// 重新拼接参数
+				if (height > 0) {
+					// 模式 A: 指定宽高 (裁剪)
+					return cleanUrl + `_C_${width}_${height}_Q${quality}.jpg`;
+				}
+				// 模式 B: 只指定宽度 (限宽，高度自适应)
+				return cleanUrl + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			// 3. 如果已经包含处理参数（非携程），直接返回
+			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) {
 				return url;
 			}
 
-			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
-			const isCtrip = url.includes('ctrip.com');
-
-			// 2. 阿里云 OSS: 缩放 + WebP
+			// 4. 阿里云 OSS 处理
 			if (isAliyun) {
 				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
-			}
-
-			// 3. 携程图片: 裁剪(_C_) 或 限宽(_R_)
-			if (isCtrip) {
-				if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
-				return url + `_R_${width}_10000_Q${quality}.jpg`;
 			}
 
 			return url;

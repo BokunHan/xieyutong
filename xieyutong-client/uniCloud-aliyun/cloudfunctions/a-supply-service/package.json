@@ -1,0 +1,7 @@
+{
+  "name": "a-supply-service",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

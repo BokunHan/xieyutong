@@ -1,0 +1,223 @@
+{
+	"bsonType": "object",
+	"required": ["user_id", "real_name", "mobile", "id_card_front", "id_card_back", "driver_license", "personal_photo"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid == doc.user_id || 'admin' in auth.role || 'super_admin' in auth.role",
+		"delete": "'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"user_id": {
+			"description": "关联uni-id-users的_id",
+			"foreignKey": "uni-id-users._id"
+		},
+		"real_name": {
+			"bsonType": "string",
+			"description": "真实姓名"
+		},
+		"gender": {
+			"bsonType": "int",
+			"description": "性别 1男 2女"
+		},
+		"mobile": {
+			"bsonType": "string",
+			"description": "手机号码"
+		},
+		"introduction": {
+			"bsonType": "string",
+			"description": "自我介绍",
+			"defaultValue": "暂无"
+		},
+		"rank": {
+			"bsonType": "string",
+			"description": "私导身份",
+			"enum": ["regular", "excellent"],
+			"default": "regular"
+		},
+		"rating": {
+			"bsonType": "double",
+			"description": "综合评分",
+			"defaultValue": 100.0
+		},
+		"level": {
+			"bsonType": "string",
+			"description": "私导等级",
+			"enum": ["D", "C", "B", "A"],
+			"default": "D"
+		},
+		"order_count": {
+			"bsonType": "int",
+			"description": "接单数",
+			"defaultValue": 0
+		},
+		"id_card_front": {
+			"bsonType": "string",
+			"description": "身份证正面URL"
+		},
+		"id_card_back": {
+			"bsonType": "string",
+			"description": "身份证反面URL"
+		},
+		"guide_license_home": {
+			"bsonType": "string",
+			"description": "导游证首页URL"
+		},
+		"guide_license_detail": {
+			"bsonType": "string",
+			"description": "导游证详情页URL"
+		},
+		"driver_license": {
+			"bsonType": "string",
+			"description": "驾驶证URL"
+		},
+		"bank_card_img": {
+			"bsonType": "string",
+			"description": "银行卡URL"
+		},
+		"personal_photo": {
+			"bsonType": "string",
+			"description": "个人形象照URL"
+		},
+		"background_image": {
+			"bsonType": "string",
+			"description": "个人主页背景图"
+		},
+		"id_card_number": {
+			"bsonType": "string",
+			"description": "身份证号 (OCR识别)"
+		},
+		"birth_date": {
+			"bsonType": "string",
+			"description": "出生日期"
+		},
+		"first_issue_date": {
+			"bsonType": "string",
+			"description": "初次领证日期"
+		},
+		"license_valid_date": {
+			"bsonType": "string",
+			"description": "驾照有效期截止日 (OCR识别)"
+		},
+		"has_car": {
+			"bsonType": "bool",
+			"description": "是否有车",
+			"defaultValue": false
+		},
+		"vehicle_id": {
+			"bsonType": "string",
+			"description": "关联的主力运营车辆ID",
+			"foreignKey": "b-vehicle-profiles._id"
+		},
+		"equipment": {
+			"bsonType": "array",
+			"description": "拍摄设备",
+			"title": "拍摄设备",
+			"items": {
+				"bsonType": "string",
+				"enum": ["drone", "dslr", "pocket"]
+			}
+		},
+		"bank_card_number": {
+			"bsonType": "string",
+			"description": "银行卡号 (OCR识别)"
+		},
+		"branch_name": {
+			"bsonType": "string",
+			"description": "开户行"
+		},
+		"bank_expire_date": {
+			"bsonType": "string",
+			"description": "有效期"
+		},
+		"alipay_account": {
+			"bsonType": "string",
+			"description": "支付宝账号"
+		},
+		"emergency_name": {
+			"bsonType": "string",
+			"description": "紧急联系人姓名"
+		},
+		"emergency_mobile": {
+			"bsonType": "string",
+			"description": "紧急联系人电话"
+		},
+		"personality_type": {
+			"bsonType": "string",
+			"description": "性格测试结果",
+			"enum": ["沉稳贴心型", "热情全能型", "随和灵活型", "专业适配型"]
+		},
+		"stats": {
+			"bsonType": "object",
+			"description": "绩效统计数据",
+			"properties": {
+				"rejected_orders": {
+					"bsonType": "int",
+					"description": "拒单数",
+					"defaultValue": 0
+				},
+				"cancelled_orders": {
+					"bsonType": "int",
+					"description": "无故取消数",
+					"defaultValue": 0
+				},
+				"lateness_count": {
+					"bsonType": "int",
+					"description": "迟到早退数",
+					"defaultValue": 0
+				},
+				"service_errors": {
+					"bsonType": "int",
+					"description": "服务失误数",
+					"defaultValue": 0
+				},
+				"accounting_delays": {
+					"bsonType": "int",
+					"description": "报账逾漏数",
+					"defaultValue": 0
+				},
+				"minor_violations": {
+					"bsonType": "int",
+					"description": "轻微违章数",
+					"defaultValue": 0
+				},
+				"serious_violations": {
+					"bsonType": "int",
+					"description": "严重违章数",
+					"defaultValue": 0
+				},
+				"photo_quality_score": {
+					"bsonType": "double",
+					"description": "照片质量分(0-100)",
+					"defaultValue": 0
+				},
+				"video_quality_score": {
+					"bsonType": "double",
+					"description": "视频质量分(0-100)",
+					"defaultValue": 0
+				},
+				"promo_materials": {
+					"bsonType": "int",
+					"description": "宣传素材数",
+					"defaultValue": 0
+				}
+			}
+		},
+		"work_status": {
+			"bsonType": "string",
+			"description": "当前工作状态",
+			"enum": ["active", "leave_personal", "leave_sick"],
+			"defaultValue": "active",
+			"title": "工作状态"
+		},
+		"created_at": {
+			"bsonType": "timestamp"
+		},
+		"updated_at": {
+			"bsonType": "timestamp"
+		}
+	}
+}

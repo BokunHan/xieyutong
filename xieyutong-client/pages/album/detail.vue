@@ -40,6 +40,14 @@
 				<view class="filter-tab" :class="{ active: filterMode === 'me' }" @click="setFilterMode('me')">只看我</view>
 				<view class="filter-tab" :class="{ active: filterMode === 'guide' }" @click="setFilterMode('guide')">只看导游</view>
 			</view>
+
+			<view class="day-stats-bar" v-if="filteredPhotos.length > 0 && !isSelectionMode">
+				<text class="stats-text">共 {{ filteredPhotos.length }} 张照片</text>
+				<view class="download-day-btn" @click="handleDownloadDay">
+					<uni-icons type="download" size="14" color="#eb6d20"></uni-icons>
+					<text>一键下载本页</text>
+				</view>
+			</view>
 		</view>
 
 		<scroll-view :scroll-y="true" class="photo-scroll-view">
@@ -53,13 +61,49 @@
 					<text class="empty-text">今天还没有人上传照片哦</text>
 				</view>
 
-				<view v-else class="photo-grid">
-					<view v-for="(photo, index) in filteredPhotos" :key="photo._id" class="photo-item" @click="previewMediaItem(photo, index)" @longpress="handleLongPress(photo)">
-						<image class="photo-image" :src="getGridThumb(photo.compressed_url || photo.original_url)" mode="aspectFill" />
+				<view class="waterfall-container" v-if="filteredPhotos.length > 0">
+					<view class="waterfall-column">
+						<view v-for="(photo, index) in waterfallData.col1" :key="photo._id" class="photo-card" @click="handlePhotoTap(photo)" @longpress="handleLongPress(photo)">
+							<image class="card-image" :src="getGridThumb(photo.compressed_url || photo.original_url)" mode="widthFix" lazy-load />
+							<view v-if="photo.media_type === 'video'" class="video-tag">
+								<uni-icons type="videocam-filled" size="16" color="#fff"></uni-icons>
+								<text class="time-text" v-if="photo.duration">{{ formatDuration(photo.duration) }}</text>
+							</view>
+							<view v-if="isSelectionMode" class="selection-overlay" :class="{ selected: selectedPhotoIds.includes(photo._id) }">
+								<view class="checkbox-circle">
+									<uni-icons v-if="selectedPhotoIds.includes(photo._id)" type="checkmarkempty" size="16" color="#fff"></uni-icons>
+								</view>
+							</view>
+						</view>
+					</view>
 
-						<view v-if="photo.media_type === 'video'" class="video-icon-overlay">
-							<uni-icons type="videocam-filled" size="30" color="rgba(255,255,255,0.5)"></uni-icons>
-							<text class="video-duration" v-if="photo.duration">{{ formatDuration(photo.duration) }}</text>
+					<view class="waterfall-column">
+						<view v-for="(photo, index) in waterfallData.col2" :key="photo._id" class="photo-card" @click="handlePhotoTap(photo)" @longpress="handleLongPress(photo)">
+							<image class="card-image" :src="getGridThumb(photo.compressed_url || photo.original_url)" mode="widthFix" lazy-load />
+							<view v-if="photo.media_type === 'video'" class="video-tag">
+								<uni-icons type="videocam-filled" size="16" color="#fff"></uni-icons>
+								<text class="time-text" v-if="photo.duration">{{ formatDuration(photo.duration) }}</text>
+							</view>
+							<view v-if="isSelectionMode" class="selection-overlay" :class="{ selected: selectedPhotoIds.includes(photo._id) }">
+								<view class="checkbox-circle">
+									<uni-icons v-if="selectedPhotoIds.includes(photo._id)" type="checkmarkempty" size="16" color="#fff"></uni-icons>
+								</view>
+							</view>
+						</view>
+					</view>
+
+					<view class="waterfall-column">
+						<view v-for="(photo, index) in waterfallData.col3" :key="photo._id" class="photo-card" @click="handlePhotoTap(photo)" @longpress="handleLongPress(photo)">
+							<image class="card-image" :src="getGridThumb(photo.compressed_url || photo.original_url)" mode="widthFix" lazy-load />
+							<view v-if="photo.media_type === 'video'" class="video-tag">
+								<uni-icons type="videocam-filled" size="16" color="#fff"></uni-icons>
+								<text class="time-text" v-if="photo.duration">{{ formatDuration(photo.duration) }}</text>
+							</view>
+							<view v-if="isSelectionMode" class="selection-overlay" :class="{ selected: selectedPhotoIds.includes(photo._id) }">
+								<view class="checkbox-circle">
+									<uni-icons v-if="selectedPhotoIds.includes(photo._id)" type="checkmarkempty" size="16" color="#fff"></uni-icons>
+								</view>
+							</view>
 						</view>
 					</view>
 				</view>
@@ -74,6 +118,52 @@
 				<uni-icons type="paperplane" size="30" color="#fff"></uni-icons>
 			</button>
 		</view>
+
+		<view class="batch-bar" v-if="isSelectionMode">
+			<view class="batch-header">
+				<text class="batch-btn cancel" @click="exitSelectionMode">取消</text>
+				<text class="batch-info">已选 {{ selectedPhotoIds.length }} 项</text>
+				<text class="batch-btn select-all" @click="selectAllPhotos">全选</text>
+			</view>
+
+			<view class="batch-actions">
+				<view class="action-item" @click="handleBatchDownload">
+					<view class="icon-box">
+						<uni-icons type="download" size="24" color="#333"></uni-icons>
+					</view>
+					<text>下载</text>
+				</view>
+
+				<view class="action-item" @click="handleBatchDelete">
+					<view class="icon-box delete">
+						<uni-icons type="trash" size="24" color="#FF0000"></uni-icons>
+					</view>
+					<text class="text-delete">删除</text>
+				</view>
+			</view>
+		</view>
+
+		<uni-popup ref="ratingPopup" type="center" :is-mask-click="false">
+			<view class="rating-popup-box">
+				<text class="rating-title">照片下载成功</text>
+				<text class="rating-subtitle">咱们私导这一路拍摄的照片您还满意吗？\n打个分鼓励一下吧！</text>
+
+				<view class="rate-container">
+					<uni-rate v-model="ratingScore" :size="36" margin="15" color="#E5E5E5" active-color="#eb6d20" :touchable="true" />
+				</view>
+
+				<textarea v-model="ratingComment" placeholder="留下几句评价或感谢的话..." class="rating-textarea" placeholder-style="color:#bbb" :disable-default-padding="true" />
+
+				<view class="rating-btn-row">
+					<view class="custom-btn btn-gray" @click="closeRatingPopup">
+						<text>暂不评价</text>
+					</view>
+					<view class="custom-btn btn-orange" @click="submitRating">
+						<text>提交评价</text>
+					</view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
@@ -96,7 +186,12 @@ export default {
 			selectedDay: 1,
 			daysList: [],
 			currentPreviewIndex: 0,
-			filterMode: 'all'
+			filterMode: 'all',
+			isSelectionMode: false,
+			selectedPhotoIds: [],
+			ratingScore: 5,
+			ratingComment: '',
+			hasRated: false
 		};
 	},
 	onLoad(options) {
@@ -105,6 +200,7 @@ export default {
 			const systemInfo = uni.getSystemInfoSync();
 			this.statusBarHeight = systemInfo.statusBarHeight || 0;
 			this.albumId = options.id;
+			console.log('albumId: ', this.albumId);
 			this.loadUserId();
 			this.fetchAlbumDetails();
 		} else {
@@ -161,6 +257,24 @@ export default {
 				return this.currentDayPhotos.filter((p) => p.is_guide === true);
 			}
 			return [];
+		},
+		waterfallData() {
+			const col1 = [];
+			const col2 = [];
+			const col3 = [];
+
+			this.filteredPhotos.forEach((item, index) => {
+				const remainder = index % 3;
+				if (remainder === 0) {
+					col1.push(item);
+				} else if (remainder === 1) {
+					col2.push(item);
+				} else {
+					col3.push(item);
+				}
+			});
+
+			return { col1, col2, col3 };
 		}
 	},
 	methods: {
@@ -197,6 +311,7 @@ export default {
 				if (userRes.result && userRes.result.data && userRes.result.data.length > 0) {
 					this.currentUid = userRes.result.data[0]._id;
 					this.userRole = userRes.result.data[0].role || [];
+					this.checkRemoteRatingStatus();
 				} else {
 					console.error('未找到用户信息');
 					return;
@@ -205,6 +320,34 @@ export default {
 				console.error('加载用户数据失败:', error);
 			} finally {
 				this.loading = false;
+			}
+		},
+
+		async checkRemoteRatingStatus() {
+			if (!this.currentUid || !this.albumId) return;
+
+			try {
+				const db = uniCloud.database();
+				const res = await db
+					.collection('a-group-albums')
+					.where({
+						_id: this.albumId,
+						'guest_ratings.user_id': this.currentUid
+					})
+					.count();
+
+				// 如果查到了记录，说明已经评价过
+				if (res.result.total > 0) {
+					this.hasRated = true;
+					console.log('用户已评价过该相册');
+
+					// 同步更新本地缓存
+					uni.setStorageSync(`album_rated_${this.albumId}`, true);
+				} else {
+					uni.removeStorageSync(`album_rated_${this.albumId}`);
+				}
+			} catch (e) {
+				console.error('检查评价状态失败', e);
 			}
 		},
 
@@ -351,8 +494,27 @@ export default {
 			return `${m}:${s < 10 ? '0' + s : s}`;
 		},
 
+		// 点击照片逻辑：如果是多选模式则切换选中，否则预览
+		handlePhotoTap(photo) {
+			if (this.isSelectionMode) {
+				this.toggleSelection(photo);
+			} else {
+				this.previewMediaItem(photo);
+			}
+		},
+
+		// 切换选中状态
+		toggleSelection(photo) {
+			const index = this.selectedPhotoIds.indexOf(photo._id);
+			if (index > -1) {
+				this.selectedPhotoIds.splice(index, 1);
+			} else {
+				this.selectedPhotoIds.push(photo._id);
+			}
+		},
+
 		// 预览逻辑
-		previewMediaItem(currentPhoto, index) {
+		previewMediaItem(currentPhoto) {
 			// 构造 sources 数组，适配 uni.previewMedia
 			const sources = this.filteredPhotos.map((p) => ({
 				url: p.original_url,
@@ -360,9 +522,7 @@ export default {
 				poster: p.media_type === 'video' ? p.video_poster_url || p.compressed_url : ''
 			}));
 
-			// 找到当前点击项在 filteredPhotos 中的真实 index
-			// 注意：这里需要确保 filteredPhotos 和 sources 是一一对应的
-			const currentIndex = this.filteredPhotos.indexOf(currentPhoto);
+			const currentIndex = this.filteredPhotos.findIndex((p) => p._id === currentPhoto._id);
 
 			uni.previewMedia({
 				sources: sources,
@@ -444,31 +604,228 @@ export default {
 		},
 
 		handleLongPress(photo) {
-			console.log(`[页面] 长按文件: user_id: ${photo.user_id}, currentUid: ${this.currentUid}`);
-			// 动态构建菜单
-			let itemList = ['保存'];
-			if (photo.user_id === this.currentUid || this.userRole.includes('guide')) {
-				itemList.push('删除');
-			}
+			if (this.isSelectionMode) return;
+			uni.vibrateShort(); // 震动反馈
+			this.isSelectionMode = true;
+			this.selectedPhotoIds = [photo._id];
+		},
 
-			if (photo.media_type !== 'video') {
-				itemList.push('分享');
-			}
+		// 退出多选
+		exitSelectionMode() {
+			this.isSelectionMode = false;
+			this.selectedPhotoIds = [];
+		},
 
-			console.log(`[页面] 长按文件:`, photo);
-			uni.showActionSheet({
-				itemList: itemList,
-				itemColor: '#000000', // 默认颜色
+		// 全选/反选
+		selectAllPhotos() {
+			const allIds = this.filteredPhotos.map((p) => p._id);
+			if (this.selectedPhotoIds.length === allIds.length) {
+				this.selectedPhotoIds = [];
+			} else {
+				this.selectedPhotoIds = [...allIds];
+			}
+		},
+
+		// 一键下载整天（根据当前筛选）
+		async handleDownloadDay() {
+			if (this.filteredPhotos.length === 0) return;
+
+			uni.showModal({
+				title: '确认下载',
+				content: `确定要下载当前显示的全部 ${this.filteredPhotos.length} 张照片/视频吗？`,
 				success: (res) => {
-					const tappedItem = itemList[res.tapIndex];
+					if (res.confirm) {
+						// 复用批量下载逻辑，传入所有当前照片
+						this.processDownload(this.filteredPhotos);
+					}
+				}
+			});
+		},
 
-					if (tappedItem === '保存') {
-						this.downloadPhoto(photo);
-					} else if (tappedItem === '分享') {
-						this.shareSinglePhoto(photo);
-					} else if (tappedItem === '删除') {
-						// 此时已确认是自己的照片
-						this.deletePhoto(photo);
+		// 批量下载（选中的）
+		handleBatchDownload() {
+			if (this.selectedPhotoIds.length === 0) return;
+			const selectedPhotos = this.filteredPhotos.filter((p) => this.selectedPhotoIds.includes(p._id));
+			this.processDownload(selectedPhotos);
+		},
+
+		// 下载处理逻辑
+		async processDownload(photos) {
+			const count = photos.length;
+			uni.showLoading({ title: `准备下载 0/${count}` });
+
+			let successCount = 0;
+			let failCount = 0;
+
+			for (let i = 0; i < count; i++) {
+				const photo = photos[i];
+				uni.showLoading({ title: `正在保存 ${i + 1}/${count}` });
+
+				try {
+					// 1. 下载文件
+					const downloadRes = await new Promise((resolve, reject) => {
+						uni.downloadFile({
+							url: photo.original_url || photo.compressed_url,
+							success: (res) => (res.statusCode === 200 ? resolve(res) : reject(res)),
+							fail: reject
+						});
+					});
+
+					// 2. 保存到相册
+					await new Promise((resolve, reject) => {
+						if (photo.media_type === 'video') {
+							uni.saveVideoToPhotosAlbum({ filePath: downloadRes.tempFilePath, success: resolve, fail: reject });
+						} else {
+							uni.saveImageToPhotosAlbum({ filePath: downloadRes.tempFilePath, success: resolve, fail: reject });
+						}
+					});
+
+					successCount++;
+				} catch (err) {
+					console.error('下载失败:', err);
+					failCount++;
+				}
+			}
+
+			uni.hideLoading();
+
+			// 下载完成后，如果是在多选模式下，退出多选
+			if (this.isSelectionMode) {
+				this.exitSelectionMode();
+			}
+
+			// 如果一张都没成功（可能用户取消了授权，或者网络挂了）
+			if (successCount === 0) {
+				uni.showToast({
+					title: '下载已取消或失败',
+					icon: 'none'
+				});
+				return; // 直接结束，不弹评价窗，不弹成功提示
+			}
+
+			// 如果部分失败，给个提示，但仍然可以弹出评价窗
+			if (failCount > 0) {
+				uni.showToast({
+					title: `${successCount}张保存成功，${failCount}张失败`,
+					icon: 'none',
+					duration: 2000
+				});
+				// 稍微延迟一下再弹窗，防止 Toast 被覆盖
+				await new Promise((r) => setTimeout(r, 1500));
+			}
+
+			// 检查是否已经评价过
+			if (this.hasRated) {
+				// 如果已评价（数据库里有记录），直接提示成功，不弹窗
+				uni.showModal({
+					title: '下载完成',
+					content: `成功保存到手机相册。`,
+					showCancel: false
+				});
+				return;
+			}
+
+			// 再次检查本地缓存作为双重保险
+			const storageKey = `album_rated_${this.albumId}`;
+			const localRated = uni.getStorageSync(storageKey);
+
+			if (!localRated) {
+				// 只有 数据库没记录 且 缓存没记录 时，才弹窗
+				this.$refs.ratingPopup.open();
+			} else {
+				// 本地有缓存但 hasRated 没更新（极少情况），也标记为已评价
+				this.hasRated = true;
+				uni.showModal({
+					title: '下载完成',
+					content: `成功保存到手机相册。`,
+					showCancel: false
+				});
+			}
+		},
+
+		closeRatingPopup() {
+			this.$refs.ratingPopup.close();
+			// 关闭评价框后，还是提示一下下载成功，给用户一个交代
+			uni.showToast({ title: '下载已完成', icon: 'success' });
+		},
+
+		async submitRating() {
+			if (this.ratingScore === 0) {
+				uni.showToast({ title: '请点击星星评分', icon: 'none' });
+				return;
+			}
+
+			uni.showLoading({ title: '提交中...' });
+
+			try {
+				// 调用你的云对象方法提交评价
+				await albumService.submitAlbumRating({
+					albumId: this.albumId,
+					score: this.ratingScore,
+					comment: this.ratingComment
+				});
+
+				// 记录本地缓存，避免重复弹窗
+				uni.setStorageSync(`album_rated_${this.albumId}`, true);
+				this.hasRated = true;
+
+				uni.hideLoading();
+				this.$refs.ratingPopup.close();
+				uni.showToast({ title: '感谢您的评价！', icon: 'success' });
+			} catch (e) {
+				uni.hideLoading();
+				console.error(e);
+				// 即使失败也关闭弹窗，不影响用户体验
+				this.$refs.ratingPopup.close();
+				uni.showToast({ title: '评价保存失败', icon: 'none' });
+			}
+		},
+
+		// 批量删除
+		handleBatchDelete() {
+			if (this.selectedPhotoIds.length === 0) return;
+
+			// 筛选出属于当前用户的照片
+			const myPhotos = this.filteredPhotos.filter((p) => this.selectedPhotoIds.includes(p._id) && p.user_id === this.currentUid);
+
+			const othersCount = this.selectedPhotoIds.length - myPhotos.length;
+
+			if (myPhotos.length === 0) {
+				return uni.showToast({ title: '只能删除自己上传的照片', icon: 'none' });
+			}
+
+			let content = `确定要删除选中的 ${myPhotos.length} 个文件吗？`;
+			if (othersCount > 0) {
+				content += `\n(已忽略 ${othersCount} 张他人上传的照片)`;
+			}
+
+			uni.showModal({
+				title: '确认删除',
+				content: content,
+				confirmColor: '#FF0000',
+				success: async (res) => {
+					if (res.confirm) {
+						uni.showLoading({ title: '删除中...' });
+						try {
+							// 并行删除
+							const deletePromises = myPhotos.map((photo) => {
+								return albumService.deletePhoto(photo._id).catch((err) => {
+									console.error(`删除 ${photo._id} 失败`, err);
+									return null;
+								});
+							});
+
+							await Promise.all(deletePromises);
+
+							uni.hideLoading();
+							uni.showToast({ title: '删除成功', icon: 'success' });
+
+							this.exitSelectionMode();
+							this.fetchAlbumDetails(); // 刷新列表
+						} catch (e) {
+							uni.hideLoading();
+							uni.showToast({ title: '删除出错', icon: 'none' });
+						}
 					}
 				}
 			});
@@ -883,5 +1240,292 @@ export default {
 	background-color: rgba(0, 0, 0, 0.5);
 	padding: 2rpx 8rpx;
 	border-radius: 8rpx;
+}
+
+/* 瀑布流容器 */
+.waterfall-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	padding: 0 10rpx; /* 整体左右留白 */
+	box-sizing: border-box;
+}
+
+/* 列样式 */
+.waterfall-column {
+	display: flex;
+	flex-direction: column;
+	width: 32%;
+}
+
+/* 卡片样式 */
+.photo-card {
+	position: relative;
+	width: 100%;
+	margin-bottom: 20rpx; /* 上下间距 */
+	border-radius: 16rpx; /* 大圆角 */
+	background-color: #fff;
+	overflow: hidden;
+	/* 增加轻微阴影增加立体感 */
+	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+	transition: transform 0.1s;
+	/* 解决 Safari/iOS 圆角溢出 bug */
+	transform: translateZ(0);
+}
+.photo-card:active {
+	transform: scale(0.98);
+	opacity: 0.9;
+}
+
+/* 图片样式 */
+.card-image {
+	width: 100%;
+	display: block; /* 消除图片底部默认间隙 */
+	/* 高度自动，由 widthFix 决定 */
+	min-height: 200rpx; /* 防止加载前高度坍塌 */
+	background-color: #f0f0f0; /* 加载占位色 */
+}
+
+/* 视频标识样式 */
+.video-tag {
+	position: absolute;
+	top: 12rpx;
+	right: 12rpx;
+	background-color: rgba(0, 0, 0, 0.5);
+	border-radius: 30rpx;
+	padding: 4rpx 12rpx;
+	display: flex;
+	align-items: center;
+	backdrop-filter: blur(4px);
+}
+
+.time-text {
+	color: #fff;
+	font-size: 20rpx;
+	margin-left: 6rpx;
+	font-weight: 500;
+}
+
+/* 头部一键下载栏 */
+.day-stats-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10rpx 30rpx 20rpx;
+	background-color: #f8f8f8;
+}
+.stats-text {
+	font-size: 24rpx;
+	color: #999;
+}
+.download-day-btn {
+	display: flex;
+	align-items: center;
+	background-color: rgba(235, 109, 32, 0.1);
+	padding: 8rpx 20rpx;
+	border-radius: 30rpx;
+}
+.download-day-btn text {
+	font-size: 24rpx;
+	color: #eb6d20;
+	margin-left: 6rpx;
+	font-weight: 500;
+}
+
+/* 多选遮罩层 (适配瀑布流圆角) */
+.selection-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.1);
+	z-index: 10;
+	transition: all 0.2s;
+	border-radius: 16rpx; /* 需与 photo-card 圆角一致 */
+}
+.selection-overlay.selected {
+	background-color: rgba(0, 0, 0, 0.4);
+	border: 4rpx solid #eb6d20;
+	box-sizing: border-box;
+}
+
+/* 勾选圈圈 */
+.checkbox-circle {
+	position: absolute;
+	top: 16rpx;
+	right: 16rpx;
+	width: 44rpx;
+	height: 44rpx;
+	border-radius: 50%;
+	border: 2rpx solid #fff;
+	background-color: rgba(0, 0, 0, 0.3);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.selection-overlay.selected .checkbox-circle {
+	background-color: #eb6d20;
+	border-color: #eb6d20;
+}
+
+/* 底部批量操作栏 */
+.batch-bar {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	background-color: #fff;
+	border-top: 1rpx solid #eee;
+	z-index: 2000;
+	padding-bottom: constant(safe-area-inset-bottom);
+	padding-bottom: env(safe-area-inset-bottom);
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+.batch-header {
+	height: 80rpx;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 40rpx;
+	border-bottom: 1rpx solid #f5f5f5;
+}
+.batch-info {
+	font-size: 28rpx;
+	font-weight: bold;
+	color: #333;
+}
+.batch-btn {
+	font-size: 28rpx;
+	padding: 10rpx 20rpx;
+}
+.batch-btn.cancel {
+	color: #666;
+}
+.batch-btn.select-all {
+	color: #eb6d20;
+	font-weight: bold;
+}
+
+.batch-actions {
+	height: 140rpx;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+.action-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	height: 100%;
+}
+.action-item:active {
+	background-color: #f9f9f9;
+}
+.icon-box {
+	width: 60rpx;
+	height: 60rpx;
+	border-radius: 50%;
+	background-color: #f0f0f0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 8rpx;
+}
+.icon-box.delete {
+	background-color: #fff0f0;
+}
+.action-item text {
+	font-size: 24rpx;
+	color: #333;
+}
+.action-item .text-delete {
+	color: #ff0000;
+}
+
+/* 评价弹窗样式优化 */
+.rating-popup-box {
+	background-color: #fff;
+	width: 600rpx;
+	border-radius: 24rpx;
+	padding: 40rpx 30rpx;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.rating-title {
+	font-size: 36rpx;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 16rpx;
+}
+
+.rating-subtitle {
+	font-size: 26rpx;
+	color: #888;
+	text-align: center;
+	line-height: 1.5;
+	margin-bottom: 40rpx;
+}
+
+.rate-container {
+	margin-bottom: 40rpx;
+	/* 确保容器高度足够显示星星 */
+	height: 80rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.rating-textarea {
+	width: 100%;
+	height: 180rpx;
+	background-color: #f8f8f8;
+	border-radius: 12rpx;
+	padding: 20rpx;
+	font-size: 28rpx;
+	color: #333;
+	box-sizing: border-box; /* 关键：防止padding撑大 */
+	margin-bottom: 40rpx;
+}
+
+.rating-btn-row {
+	display: flex;
+	width: 100%;
+	justify-content: space-between;
+	gap: 20rpx;
+}
+
+.custom-btn {
+	flex: 1;
+	height: 80rpx; /* 增加高度 */
+	border-radius: 40rpx; /* 大圆角 */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30rpx;
+	font-weight: 500;
+}
+
+.btn-gray {
+	background-color: #f0f0f0;
+	color: #666;
+}
+
+.btn-orange {
+	background-color: #eb6d20;
+	color: #fff;
+	box-shadow: 0 4rpx 10rpx rgba(235, 109, 32, 0.3); /* 添加阴影使其立体 */
+}
+
+/* 点击反馈 */
+.custom-btn:active {
+	opacity: 0.9;
+	transform: scale(0.98);
 }
 </style>

@@ -26,67 +26,93 @@
 				<view v-if="loading" class="p-5 text-center text-gray-500">加载中...</view>
 				<view v-else-if="!rawList.length" class="p-10 text-center text-gray-400">暂无消息队列。如果任务刚创建，请等待程序处理完成。{{ error }}</view>
 
-				<view v-else>
-					<view v-for="(tasks, dateKey) in groupedTasks" :key="dateKey" class="mb-8">
-						<view class="flex items-center justify-center mb-4">
-							<view class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold shadow-sm">📅 {{ dateKey }}</view>
+				<scroll-view v-else scroll-y scroll-with-animation :scroll-into-view="scrollTarget" style="height: calc(100vh - 160px)">
+					<view class="flex flex-row items-start relative" style="align-items: flex-start; min-height: 100%">
+						<view class="sticky-sidebar flex-shrink-0 hidden md:flex flex-col gap-1 pr-2 mr-3 border-r border-gray-100" style="width: 80px">
+							<view
+								v-for="(tasks, dateKey) in groupedTasks"
+								:key="'idx-' + dateKey"
+								@click="scrollToDate(dateKey)"
+								class="cursor-pointer group flex flex-col items-center justify-center p-2 rounded hover:bg-blue-50 transition-colors">
+								<view class="text-xs text-gray-400 font-bold mb-1">{{ dateKey.split('-')[0] }}</view>
+								<view class="text-sm text-blue-600 font-bold bg-blue-100 px-2 py-1 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
+									{{ dateKey.split('-').slice(1).join('/') }}
+								</view>
+								<view class="text-xs text-gray-400 mt-1 scale-90">{{ tasks.length }}条</view>
+							</view>
 						</view>
 
-						<view class="grid grid-cols-1 gap-4">
-							<view
-								v-for="item in tasks"
-								:key="item._id"
-								class="bg-white border rounded-lg p-4 shadow-sm relative transition-all"
-								:class="{ 'opacity-60': item.status === 'manual_stop' }">
-								<view class="absolute top-4 right-4 flex items-center z-10">
-									<text class="text-xs mr-2" :class="item.status === 'pending' ? 'text-blue-600 font-bold' : 'text-gray-400'">
-										{{ item.status === 'pending' ? '已启用' : '未启用' }}
-									</text>
-									<switch :checked="item.status === 'pending'" style="transform: scale(0.7)" color="#2563EB" @change="(e) => toggleTaskStatus(item, e)" />
+						<view class="flex-1" style="min-width: 0">
+							<view v-for="(tasks, dateKey) in groupedTasks" :key="dateKey" class="mb-8">
+								<view :id="'date-header-' + dateKey" class="flex items-center justify-center mb-4">
+									<view class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold shadow-sm">📅 {{ dateKey }}</view>
 								</view>
 
-								<view class="mb-3 border-b pb-2 pr-20">
-									<view class="text-base font-bold text-gray-800 mb-1">
-										📌 {{ item.task_name || '未命名任务' }}
-										<text v-if="item.score" class="ml-2 text-sm text-orange-500 bg-orange-100 px-1 rounded">
-											{{ item.score }}
-										</text>
-									</view>
-									<view class="text-xs text-gray-500 mb-1" v-if="item.start_time">
-										🕒 窗口: {{ formatTimeOnly(item.start_time) }}
-										<span v-if="item.end_time">- {{ formatTimeOnly(item.end_time) }}</span>
-									</view>
-									<view class="text-sm text-gray-600 flex flex-wrap gap-4 mt-2">
-										<view>
-											📅 计划发送:
-											<text class="font-medium text-blue-600">{{ item.send_time || '待定' }}</text>
-										</view>
-									</view>
-								</view>
+								<view class="grid grid-cols-1 gap-4">
+									<view
+										v-for="item in tasks"
+										:key="item._id"
+										:id="'msg-' + item._id"
+										class="bg-white border rounded-lg p-4 shadow-sm relative transition-all duration-500"
+										:class="[item.status === 'manual_stop' ? 'opacity-60' : '', highlightId === item._id ? 'ring-2 ring-red-500 bg-red-50 transform scale-102 shadow-lg' : '']">
+										<view v-if="highlightId === item._id" class="absolute -left-2 -top-2 bg-red-600 text-white text-xs px-2 py-1 rounded z-20 shadow">当前处理项</view>
 
-								<view class="bg-gray-50 p-3 rounded mb-3">
-									<view v-for="(msg, idx) in item.payload" :key="idx" class="mb-3 last:mb-0">
-										<view v-if="msg.type === 'text'" class="text-gray-800 text-sm whitespace-pre-wrap">{{ msg.data }}</view>
-
-										<view v-else-if="msg.type === 'image'" class="mt-2">
-											<image :src="msg.data" mode="aspectFill" class="rounded border bg-gray-200" style="width: 100px; height: 100px" @click.stop="previewImage(msg.data)"></image>
+										<view class="absolute top-4 right-4 flex items-center z-10">
+											<text class="text-xs mr-2" :class="item.status === 'pending' ? 'text-blue-600 font-bold' : 'text-gray-400'">
+												{{ item.status === 'pending' ? '已启用' : '未启用' }}
+											</text>
+											<switch :checked="item.status === 'pending'" style="transform: scale(0.7)" color="#2563EB" @change="(e) => toggleTaskStatus(item, e)" />
 										</view>
 
-										<view v-else-if="msg.type === 'video'" class="text-purple-600 text-xs mt-1">📹 [视频] {{ getFileName(msg.data) }}</view>
+										<view class="mb-3 border-b pb-2 pr-20">
+											<view class="text-base font-bold text-gray-800 mb-1">
+												📌 {{ item.task_name || '未命名任务' }}
+												<text v-if="item.score" class="ml-2 text-sm text-orange-500 bg-orange-100 px-1 rounded">
+													{{ item.score }}
+												</text>
+											</view>
 
-										<view v-else-if="msg.type === 'file'" class="text-blue-600 text-xs mt-1 underline">📎 [文件] {{ getFileName(msg.data) }}</view>
+											<view v-if="item.error_msg" class="text-xs text-red-600 bg-red-50 p-1 rounded mt-1 border border-red-200">❌ 失败原因: {{ item.error_msg }}</view>
+
+											<view class="text-xs text-gray-500 mb-1" v-if="item.start_time">
+												🕒 窗口: {{ formatTimeOnly(item.start_time) }}
+												<span v-if="item.end_time">- {{ formatTimeOnly(item.end_time) }}</span>
+											</view>
+											<view class="text-sm text-gray-600 flex flex-wrap gap-4 mt-2">
+												<view>
+													📅 计划发送:
+													<text class="font-medium text-blue-600">{{ item.send_time || '待定' }}</text>
+												</view>
+											</view>
+										</view>
+
+										<view class="bg-gray-50 p-3 rounded mb-3">
+											<view v-for="(msg, idx) in item.payload" :key="idx" class="mb-3 last:mb-0">
+												<view v-if="msg.type === 'text'" class="text-gray-800 text-sm whitespace-pre-wrap">{{ msg.data }}</view>
+												<view v-else-if="msg.type === 'image'" class="mt-2">
+													<image
+														:src="msg.data"
+														mode="aspectFill"
+														class="rounded border bg-gray-200"
+														style="width: 100px; height: 100px"
+														@click.stop="previewImage(msg.data)"></image>
+												</view>
+												<view v-else-if="msg.type === 'video'" class="text-purple-600 text-xs mt-1">📹 [视频] {{ getFileName(msg.data) }}</view>
+												<view v-else-if="msg.type === 'file'" class="text-blue-600 text-xs mt-1 underline">📎 [文件] {{ getFileName(msg.data) }}</view>
+											</view>
+										</view>
+
+										<view class="flex justify-end gap-2">
+											<button size="mini" type="warn" plain @click="deleteTask(item._id)">删除</button>
+											<button v-if="item.status === 'sent'" size="mini" type="warn" plain @click="confirmResend(item._id)">再次发送</button>
+											<button size="mini" @click="openEditModal(item)">编辑消息</button>
+										</view>
 									</view>
-								</view>
-
-								<view class="flex justify-end gap-2">
-									<button size="mini" type="warn" plain @click="deleteTask(item._id)">删除</button>
-									<button v-if="item.status === 'sent'" size="mini" type="warn" plain @click="confirmResend(item._id)">再次发送</button>
-									<button size="mini" @click="openEditModal(item)">编辑消息</button>
 								</view>
 							</view>
 						</view>
 					</view>
-				</view>
+				</scroll-view>
 			</unicloud-db>
 		</view>
 
@@ -166,12 +192,18 @@ export default {
 			editingId: null,
 			tempPayload: [],
 			tempSendTime: '',
-			rawList: []
+			rawList: [],
+			highlightId: '',
+			scrollTarget: ''
 		};
 	},
 	onLoad(options) {
 		this.taskId = options.id;
 		this.orderId = options.order || '';
+		// 获取传递进来的高亮ID
+		if (options.highlight) {
+			this.highlightId = options.highlight;
+		}
 	},
 	computed: {
 		// 按日期分组逻辑
@@ -180,8 +212,6 @@ export default {
 
 			const groups = {};
 			this.rawList.forEach((item) => {
-				// 提取 send_time 的日期部分 (YYYY-MM-DD)
-				// 如果 send_time 为空，归类为 '待定'
 				const dateKey = item.send_time ? item.send_time.split(' ')[0] : '待定日期';
 
 				if (!groups[dateKey]) {
@@ -190,7 +220,6 @@ export default {
 				groups[dateKey].push(item);
 			});
 
-			// 对日期 Key 进行排序，保证顺序显示
 			const sortedKeys = Object.keys(groups).sort();
 			const sortedGroups = {};
 			sortedKeys.forEach((key) => {
@@ -203,34 +232,73 @@ export default {
 	methods: {
 		onDBLoad(data) {
 			this.rawList = data;
+			// 数据加载后，尝试滚动到高亮位置
+			if (this.highlightId) {
+				this.scrollToHighlight();
+			}
 		},
-		// 只提取时间部分的辅助函数 (去掉日期)
+		// 滚动到指定元素
+		scrollToHighlight() {
+			// 给页面渲染一点时间
+			setTimeout(() => {
+				const query = uni.createSelectorQuery().in(this);
+				query
+					.select('#msg-' + this.highlightId)
+					.boundingClientRect((data) => {
+						if (data) {
+							uni.pageScrollTo({
+								scrollTop: data.top - 100, // 减去头部高度，避免被遮挡
+								duration: 300
+							});
+						}
+					})
+					.exec();
+			}, 600);
+		},
+
+		// 滚动到指定日期
+		scrollToDate(dateKey) {
+			this.scrollTarget = '';
+			this.$nextTick(() => {
+				this.scrollTarget = 'date-header-' + dateKey;
+			});
+		},
+
 		formatTimeOnly(dateTimeStr) {
 			if (!dateTimeStr) return '';
 			const parts = dateTimeStr.split(' ');
 			return parts.length > 1 ? parts[1] : dateTimeStr;
 		},
-		// 勾选框切换状态逻辑
 		toggleTaskStatus(item, e) {
-			// switch 组件 e.detail.value 为 true/false
+			console.log('agent_id: ', item.agent_id);
+			if (!item.agent_id) {
+				// 1. 弹窗提示
+				uni.showModal({
+					title: '无法启用',
+					content: '该任务未绑定有效的管家，无法执行自动发送。\n\n请返回订单列表页，通过分配管家修复此问题。',
+					showCancel: false
+				});
+
+				item.status = 'pending';
+				// 2. 强制将开关视觉状态重置为“关” (manual_stop)
+				this.$nextTick(() => {
+					item.status = 'manual_stop';
+				});
+				return;
+			}
+
 			const isChecked = e.detail.value;
 			const newStatus = isChecked ? 'pending' : 'manual_stop';
-
-			// 1. 乐观更新：先在本地修改状态，让 UI 反应迅速
 			item.status = newStatus;
-
-			// 2. 提交到数据库
 			db.collection('a-task-queue')
 				.doc(item._id)
 				.update({
 					status: newStatus
 				})
 				.then(() => {
-					// 更新成功，静默即可
 					console.log('状态更新成功');
 				})
 				.catch((err) => {
-					// 更新失败，回滚状态并提示
 					item.status = !isChecked ? 'pending' : 'manual_stop';
 					uni.showToast({
 						title: '状态更新失败',
@@ -251,22 +319,21 @@ export default {
 				title: '确认全部重发',
 				content: '此操作会将本队列中的【所有任务】（含已发送成功的）重置为“待发送”状态。\n\n这可能导致消息重复发送，确定要继续吗？',
 				confirmText: '确定重发',
-				confirmColor: '#e64340', // 红色警示
+				confirmColor: '#e64340',
 				success: (res) => {
 					if (res.confirm) {
 						uni.showLoading({ title: '正在重置...' });
-						// 批量更新当前任务单下的所有子任务
 						db.collection('a-task-queue')
 							.where({
 								task_id: this.taskId
 							})
 							.update({
-								status: 'pending', // 重置状态
-								error_msg: '' // 清空错误信息
+								status: 'pending',
+								error_msg: ''
 							})
 							.then((res) => {
 								uni.showToast({ title: '已全部重置', icon: 'success' });
-								this.refresh(); // 刷新列表显示
+								this.refresh();
 							})
 							.catch((err) => {
 								console.error(err);
@@ -321,10 +388,36 @@ export default {
 				}
 			});
 		},
-		refresh() {
-			this.$refs.udb.loadData({
-				clear: true
-			});
+		async refresh() {
+			uni.showLoading({ title: '检查补全中...' });
+			try {
+				// 1. 调用云对象进行智能补全
+				const uniObj = uniCloud.importObject('a-task-rpa');
+				const res = await uniObj.patchMissingTasks(this.taskId);
+
+				if (res.errCode === 0) {
+					if (res.msg.includes('已补全')) {
+						uni.showToast({ title: res.msg, icon: 'success' });
+					}
+				} else {
+					console.error(res);
+				}
+			} catch (e) {
+				console.error('自动补全失败:', e);
+				// 不阻断刷新，继续执行
+			} finally {
+				uni.hideLoading();
+				// 2. 刷新列表数据
+				this.$refs.udb.loadData(
+					{
+						clear: true
+					},
+					() => {
+						// loadData 完成后的回调（如有需要）
+						uni.stopPullDownRefresh();
+					}
+				);
+			}
 		},
 		getFileName(url) {
 			if (!url) return '';
@@ -343,7 +436,6 @@ export default {
 			const map = { pending: 'text-blue-600', sent: 'text-green-600', failed: 'text-red-600', manual_stop: 'text-orange-500' };
 			return map[status] || '';
 		},
-
 		confirmResend(id) {
 			uni.showModal({
 				title: '确认重发',
@@ -355,7 +447,6 @@ export default {
 				}
 			});
 		},
-
 		updateStatus(id, newStatus) {
 			uni.showLoading();
 			db.collection('a-task-queue')
@@ -385,22 +476,17 @@ export default {
 			this.tempPayload = [];
 			this.tempSendTime = '';
 		},
-
-		// --- 编辑逻辑 ---
-
 		addMediaItem(type) {
 			this.handleUpload(type, (url) => {
 				this.tempPayload.push({ type: type, data: url });
 			});
 		},
-
 		replaceMedia(index, type) {
 			this.handleUpload(type, (url) => {
 				this.tempPayload[index].data = url;
 				this.tempPayload[index].type = type;
 			});
 		},
-
 		removePayloadItem(index) {
 			uni.showModal({
 				title: '确认删除',
@@ -412,13 +498,10 @@ export default {
 				}
 			});
 		},
-
 		handleUpload(type, callback) {
 			const successCallback = (res) => {
 				let filePath;
 				let fileName = '';
-
-				// 兼容不同平台的返回值
 				if (type === 'file') {
 					filePath = res.tempFilePaths[0];
 					if (res.tempFiles && res.tempFiles[0]) {
@@ -426,11 +509,9 @@ export default {
 					}
 				} else if (type === 'video') {
 					filePath = res.tempFilePath;
-					// 视频对象通常没有直接的 name 属性，需要自己构造或从 path 提取
 				} else {
 					filePath = res.tempFilePaths[0];
 					if (res.tempFiles && res.tempFiles[0]) {
-						// H5端 tempFiles 包含 File 对象，有 name 属性
 						fileName = res.tempFiles[0].name || '';
 					}
 				}
@@ -444,17 +525,13 @@ export default {
 
 				let ext = '';
 				if (fileName && fileName.includes('.')) {
-					// 优先从真实文件名获取后缀
 					ext = fileName.split('.').pop();
 				} else {
-					// 兜底：如果没名字，尝试从路径获取（但在H5 blob url下无效），或使用默认后缀
-					// blob url 不包含后缀，所以这里必须要有默认值
 					if (type === 'image') ext = 'jpg';
 					else if (type === 'video') ext = 'mp4';
 					else ext = 'bin';
 				}
 
-				// 确保后缀名合法
 				ext = ext.replace(/[^a-zA-Z0-9]/g, '');
 
 				const cloudPath = `manual_upload_${Date.now()}_${Math.floor(Math.random() * 1000)}.${ext}`;
@@ -482,7 +559,6 @@ export default {
 				});
 			};
 
-			// API 调用
 			if (type === 'video') {
 				uni.chooseVideo({ sourceType: ['album', 'camera'], success: successCallback });
 			} else if (type === 'file') {
@@ -490,27 +566,21 @@ export default {
 				uni.chooseFile({ count: 1, success: successCallback });
 				// #endif
 				// #ifndef H5
-				uni.chooseImage({ count: 1, success: successCallback }); // 非H5暂用选图替代
+				uni.chooseImage({ count: 1, success: successCallback });
 				// #endif
 			} else {
 				uni.chooseImage({ count: 1, sourceType: ['album', 'camera'], success: successCallback });
 			}
 		},
-
-		// 打开新建弹窗
 		openCreateModal() {
-			this.editingId = null; // 置空表示新建模式
+			this.editingId = null;
 			this.tempPayload = [{ type: 'text', data: '' }];
-			// 默认时间设为当前时间往后推5分钟，方便直接保存
 			const now = new Date();
 			now.setMinutes(now.getMinutes() + 5);
-			// 简单的格式化 YYYY-MM-DD HH:mm:ss
 			const pad = (n) => (n < 10 ? '0' + n : n);
 			this.tempSendTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 			this.showEditModal = true;
 		},
-
-		// 删除任务
 		deleteTask(id) {
 			uni.showModal({
 				title: '确认删除',
@@ -541,9 +611,7 @@ export default {
 				}
 			});
 		},
-
 		saveEdit() {
-			// 基础校验
 			if (!this.tempSendTime) {
 				return uni.showToast({ title: '请选择发送时间', icon: 'none' });
 			}
@@ -553,7 +621,6 @@ export default {
 
 			uni.showLoading({ title: '保存中...' });
 
-			// 1. 编辑
 			if (this.editingId) {
 				db.collection('a-task-queue')
 					.doc(this.editingId)
@@ -573,29 +640,28 @@ export default {
 					.finally(() => {
 						uni.hideLoading();
 					});
-			}
-			// 2. 新建
-			else {
-				// 尝试从列表中获取默认的 group_name 和 account_name (保持上下文一致)
-				let defaultGroup = this.orderId; // 默认用订单号当群名
+			} else {
+				let defaultGroup = this.orderId;
 				let defaultAccount = '';
+				let defaultAgentId = '';
 
 				if (this.rawList && this.rawList.length > 0) {
-					// 如果列表里有数据，直接抄第一条的配置
 					const sample = this.rawList[0];
 					if (sample.group_name) defaultGroup = sample.group_name;
 					if (sample.account_name) defaultAccount = sample.account_name;
+					if (sample.agent_id) defaultAgentId = sample.agent_id;
 				}
 
 				db.collection('a-task-queue')
 					.add({
-						task_id: this.taskId, // 关联 ID
-						group_name: defaultGroup, // 目标群名
-						account_name: defaultAccount, // 执行账号
-						task_name: '手动新建消息', // 固定名称
-						payload: this.tempPayload, // 内容
-						send_time: this.tempSendTime, // 时间
-						status: 'manual_stop', // 默认状态
+						task_id: this.taskId,
+						agent_id: defaultAgentId,
+						group_name: defaultGroup,
+						account_name: defaultAccount,
+						task_name: '手动新建消息',
+						payload: this.tempPayload,
+						send_time: this.tempSendTime,
+						status: 'manual_stop',
 						priority: 0
 					})
 					.then(() => {
@@ -641,5 +707,25 @@ export default {
 }
 .flex-shrink-0 {
 	flex-shrink: 0;
+}
+
+/* 简单的放大动画 */
+.scale-102 {
+	transform: scale(1.02);
+}
+
+.sticky-sidebar {
+	/* position: -webkit-sticky; */
+	position: sticky;
+	top: 0px;
+	z-index: 10;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+.sticky-sidebar::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+	color: transparent;
 }
 </style>

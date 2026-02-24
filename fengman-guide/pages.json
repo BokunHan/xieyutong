@@ -1,0 +1,173 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/page
+		{
+			"path": "pages/home/home",
+			"style": {
+				"navigationBarTitleText": "首页"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/agreement/index",
+			"style": {
+				"navigationBarTitleText": "协议",
+				"navigationStyle": "default"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/itinerary/itinerary",
+			"style": {
+				"navigationBarTitleText": "行程",
+				"enablePullDownRefresh": true
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/itinerary/itinerary-tips",
+			"style": {
+				"navigationBarTitleText": "行程相关提示",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/register/pending",
+			"style": {
+				"navigationBarTitleText": "资料审核",
+				"navigationStyle": "custom"
+			},
+			"needLogin": false
+		},
+		{
+			"path": "pages/album/list",
+			"style": {
+				"navigationBarTitleText": "我的相册",
+				"enablePullDownRefresh": true
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/album/detail",
+			"style": {
+				"navigationBarTitleText": "相册详情"
+			},
+			"needLogin": true,
+			"require": [
+				"/pages/album/piexif.js"
+			]
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/profile/profile-edit",
+			"style": {
+				"navigationBarTitleText": "编辑资料",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/profile/portfolio",
+			"style": {
+				"navigationBarTitleText": "精彩瞬间",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/order/order-detail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/order/order-supplies",
+			"style": {
+				"navigationBarTitleText": "订单物资管理",
+				"navigationStyle": "custom"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "pages/register/quiz",
+			"style": {
+				"navigationBarTitleText": "私导专属性格测试"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"navigationStyle": "custom"
+	},
+	"uniIdRouter": {
+		"loginPage": "pages/login/login",
+		"needLogin": [
+			"pages/home/.*",
+			"pages/profile/.*",
+			"pages/order/.*",
+			"pages/itinerary/.*",
+			"pages/album/.*"
+		],
+		"resToLogin": true
+	},
+	"navigationStyle": "custom",
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#000000",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [{
+				"pagePath": "pages/home/home",
+				"text": "工作台",
+				"iconPath": "static/tab_icons/home.png",
+				"selectedIconPath": "static/tab_icons/home_cur.png"
+			},
+			{
+				"pagePath": "pages/itinerary/itinerary",
+				"text": "行程",
+				"iconPath": "static/tab_icons/itinerary.png",
+				"selectedIconPath": "static/tab_icons/itinerary_cur.png"
+			},
+			{
+				"pagePath": "pages/album/list",
+				"text": "相册",
+				"iconPath": "static/tab_icons/album.png",
+				"selectedIconPath": "static/tab_icons/album_cur.png"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"text": "我的",
+				"iconPath": "static/tab_icons/my.png",
+				"selectedIconPath": "static/tab_icons/my_cur.png"
+			}
+		]
+	}
+}

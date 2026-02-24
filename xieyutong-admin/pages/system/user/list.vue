@@ -89,26 +89,40 @@
 									borderColor: '#3b82f6'
 								}" />
 						</view>
-
-						<!-- 状态筛选 -->
-						<view class="flex items-center space-x-2">
-							<text class="text-sm text-gray-600 whitespace-nowrap">状态筛选:</text>
-							<select
-								v-model="statusFilter"
-								@change="onStatusFilterChange"
-								class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-								<option value="">全部状态</option>
-								<option value="0">正常</option>
-								<option value="1">禁用</option>
-								<option value="2">审核中</option>
-								<option value="3">审核拒绝</option>
-							</select>
-						</view>
-
 						<button class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center text-base" @click="search">
 							<i class="fas fa-search mr-2"></i>
 							搜索
 						</button>
+
+						<!-- 状态筛选 -->
+						<view class="flex items-center space-x-2">
+							<text class="text-sm text-gray-600 whitespace-nowrap">角色筛选:</text>
+							<select
+								v-model="roleFilter"
+								@change="search"
+								class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+								<option value="">全部角色</option>
+								<option value="null">普通用户</option>
+								<template v-for="(role, index) in rolesList">
+									<option v-if="role.role_id !== 'user'" :key="index" :value="role.role_id">
+										{{ role.role_name }}
+									</option>
+								</template>
+							</select>
+						</view>
+
+						<view class="flex items-center space-x-2">
+							<text class="text-sm text-gray-600 whitespace-nowrap">应用筛选:</text>
+							<select
+								v-model="sourceFilter"
+								@change="search"
+								class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+								<option value="">全部应用</option>
+								<option value="__UNI__5377474">风漫小程序</option>
+								<option value="__UNI__0A2385D">私导小程序</option>
+								<option value="__UNI__F09E2F3">风漫管理系统</option>
+							</select>
+						</view>
 					</view>
 
 					<!-- 操作按钮区域 -->
@@ -120,13 +134,13 @@
 							新增用户
 						</button>
 
-						<button
+						<!-- <button
 							class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center text-base disabled:opacity-50 disabled:cursor-not-allowed"
 							:disabled="!selectedIndexs.length"
 							@click="openTagsPopup">
 							<i class="fas fa-tags mr-2"></i>
 							标签管理 {{ selectedIndexs.length > 0 ? `(${selectedIndexs.length})` : '' }}
-						</button>
+						</button> -->
 
 						<button
 							class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center text-base disabled:opacity-50 disabled:cursor-not-allowed"
@@ -137,13 +151,13 @@
 						</button>
 
 						<!-- #ifdef H5 -->
-						<button
+						<!-- <button
 							class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center text-base disabled:opacity-50 disabled:cursor-not-allowed"
 							:disabled="!selectedIndexs.length"
 							@click="$refs.batchSms.open()">
 							<i class="fas fa-sms mr-2"></i>
 							批量短信
-						</button>
+						</button> -->
 
 						<download-excel :fields="exportExcel.fields" :data="exportExcelData" :type="exportExcel.type" :name="exportExcel.filename">
 							<button class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center text-base">
@@ -212,17 +226,14 @@
 											用户昵称
 											<i class="fas fa-sort text-gray-400 ml-1 cursor-pointer" @click="sortChange({ order: 'ascending' }, 'nickname')"></i>
 										</th>
-										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-36">
+										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-42">
 											手机号码
 											<i class="fas fa-sort text-gray-400 ml-1 cursor-pointer" @click="sortChange({ order: 'ascending' }, 'mobile')"></i>
 										</th>
-										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-48">
-											邮箱地址
-											<i class="fas fa-sort text-gray-400 ml-1 cursor-pointer" @click="sortChange({ order: 'ascending' }, 'email')"></i>
-										</th>
-										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-32">用户状态</th>
-										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-36">用户角色</th>
-										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-40">用户标签</th>
+										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-28">用户状态</th>
+										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-44">用户角色</th>
+										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-48">注册来源</th>
+										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-42">应用权限</th>
 										<th class="px-4 py-4 text-left text-sm font-semibold text-gray-900 w-36">
 											最后登录
 											<i class="fas fa-sort text-gray-400 ml-1 cursor-pointer" @click="sortChange({ order: 'ascending' }, 'last_login_date')"></i>
@@ -301,17 +312,6 @@
 											</view>
 										</td>
 
-										<!-- 邮箱地址 -->
-										<td class="px-4 py-4">
-											<view class="flex items-center" v-if="item.email">
-												<i class="fas fa-envelope text-gray-400 mr-2"></i>
-												<text class="text-sm text-blue-600 hover:text-blue-800 cursor-pointer transition-colors" @click="openEmail(item.email)">
-													{{ item.email }}
-												</text>
-											</view>
-											<text v-else class="text-sm text-gray-400">-</text>
-										</td>
-
 										<!-- 用户状态 -->
 										<td class="px-4 py-4">
 											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="getStatusClass(item.status)">
@@ -324,28 +324,42 @@
 										<td class="px-4 py-4">
 											<view class="flex flex-wrap gap-1">
 												<span
-													v-for="(role, roleIndex) in getRoleArray(item.role)"
+													v-if="item.roleDisplay && item.roleDisplay.length"
+													v-for="(roleName, roleIndex) in item.roleDisplay"
 													:key="roleIndex"
 													class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
 													<i class="fas fa-user-tag mr-1"></i>
-													{{ role }}
+													{{ roleName }}
 												</span>
-												<span v-if="!item.role" class="text-xs text-gray-400">无角色</span>
+												<span v-else class="text-xs text-gray-400">无角色</span>
 											</view>
 										</td>
 
-										<!-- 用户标签 -->
+										<!-- 注册来源 -->
 										<td class="px-4 py-4">
-											<view class="flex flex-wrap gap-1">
-												<span
-													v-for="(tag, tagIndex) in item.tags"
-													:key="tagIndex"
-													class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-													<i class="fas fa-tag mr-1"></i>
-													{{ tag }}
-												</span>
-												<span v-if="!item.tags || !item.tags.length" class="text-xs text-gray-400">无标签</span>
+											<view
+												v-if="item.sourceInfo"
+												class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border border-opacity-10"
+												:class="item.sourceInfo.class">
+												<i :class="item.sourceInfo.icon" class="mr-1.5"></i>
+												{{ item.sourceInfo.text }}
 											</view>
+
+											<text v-else class="text-xs text-gray-400">-</text>
+										</td>
+
+										<!-- 应用权限 -->
+										<td class="px-4 py-4">
+											<view class="flex flex-wrap gap-2" v-if="item.permissionTags && item.permissionTags.length">
+												<view
+													v-for="(tag, tIndex) in item.permissionTags"
+													:key="tIndex"
+													class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-opacity-10 whitespace-nowrap"
+													:class="tag.class">
+													{{ tag.text }}
+												</view>
+											</view>
+											<text v-else class="text-sm text-gray-400">无权限</text>
 										</td>
 
 										<!-- 最后登录 -->
@@ -436,7 +450,7 @@ import { enumConverter, filterToWhere } from '../../../js_sdk/validator/uni-id-u
 
 const db = uniCloud.database();
 const dbOrderBy = 'last_login_date desc'; // 排序字段
-const dbSearchFields = ['username', 'role.role_name', 'mobile', 'email']; // 模糊搜索字段
+const dbSearchFields = ['username', 'nickname', 'role.role_name', 'mobile', 'email']; // 模糊搜索字段
 const pageSize = 15;
 const pageCurrent = 1;
 
@@ -452,7 +466,7 @@ export default {
 				db
 					.collection('uni-id-users')
 					.field(
-						'ali_openid,apple_openid,avatar,avatar_file,comment,dcloud_appid,department_id,email,email_confirmed,gender,invite_time,inviter_uid,last_login_date,last_login_ip,mobile,mobile_confirmed,my_invite_code,nickname,role,score,status,username,wx_unionid,qq_unionid,tags'
+						'ali_openid,apple_openid,avatar,avatar_file,comment,dcloud_appid,department_id,email,email_confirmed,gender,invite_time,inviter_uid,last_login_date,last_login_ip,mobile,mobile_confirmed,my_invite_code,nickname,role,score,status,username,wx_unionid,qq_unionid,tags,register_env'
 					)
 					.getTemp(),
 				db.collection('uni-id-roles').field('role_id, role_name').getTemp()
@@ -462,18 +476,22 @@ export default {
 			orderby: dbOrderBy,
 			orderByFieldName: '',
 			selectedIndexs: [],
+			roleFilter: '',
+			rolesList: [],
 			statusFilter: '', // 状态筛选
+			sourceFilter: '',
 			currentTime: '',
 			tags: {},
+			appsMap: {},
 			managerTags: [],
 			queryTagid: '',
 			queryUserId: '',
 			// 模拟统计数据
 			statistics: {
-				totalUsers: 1247,
-				activeUsers: 856,
-				newUsers: 23,
-				adminUsers: 8
+				totalUsers: 0,
+				activeUsers: 0,
+				newUsers: 0,
+				adminUsers: 0
 			},
 			options: {
 				pageSize,
@@ -536,6 +554,9 @@ export default {
 	},
 	onReady() {
 		this.loadTags();
+		this.loadAppList();
+		this.loadRoles();
+		this.getStatistics();
 		if (!this.queryTagid && !this.queryUserId) {
 			this.$refs.udb.loadData();
 		}
@@ -565,6 +586,84 @@ export default {
 		}
 	},
 	methods: {
+		loadAppList() {
+			db.collection('opendb-app-list')
+				.limit(500)
+				.get()
+				.then((res) => {
+					res.result.data.forEach((item) => {
+						// 建立 appid 到 name 的映射
+						this.$set(this.appsMap, item.appid, item.name);
+					});
+					// 应用列表加载完后，如果列表数据已经存在，强制刷新一下视图
+					if (this.$refs.udb && this.$refs.udb.dataList.length > 0) {
+						this.$forceUpdate();
+					}
+				})
+				.catch((err) => {
+					console.error('加载应用列表失败', err);
+				});
+		},
+
+		loadRoles() {
+			db.collection('uni-id-roles')
+				.field('role_id, role_name')
+				.get()
+				.then((res) => {
+					this.rolesList = res.result.data;
+				})
+				.catch((err) => {
+					console.error('加载角色列表失败', err);
+				});
+		},
+
+		getStatistics() {
+			const db = uniCloud.database();
+			const cmd = db.command;
+
+			// 计算7天前的时间戳
+			const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+			// 1. 查询总用户数
+			const p1 = db.collection('uni-id-users').count();
+
+			// 2. 查询活跃用户 (last_login_date > 7天前)
+			const p2 = db
+				.collection('uni-id-users')
+				.where({
+					last_login_date: cmd.gt(oneWeekAgo)
+				})
+				.count();
+
+			// 3. 查询新注册用户 (register_date > 7天前)
+			const p3 = db
+				.collection('uni-id-users')
+				.where({
+					register_date: cmd.gt(oneWeekAgo)
+				})
+				.count();
+
+			// 4. 查询管理员 (role 包含 "admin" 或 "super_admin")
+			const p4 = db
+				.collection('uni-id-users')
+				.where(cmd.or([{ role: 'admin' }, { role: 'super_admin' }]))
+				.count();
+
+			// 并行执行所有查询
+			Promise.all([p1, p2, p3, p4])
+				.then((results) => {
+					this.statistics = {
+						totalUsers: results[0].result.total,
+						activeUsers: results[1].result.total,
+						newUsers: results[2].result.total,
+						adminUsers: results[3].result.total
+					};
+				})
+				.catch((err) => {
+					console.error('获取统计数据失败', err);
+				});
+		},
+
 		getBaseWhere() {
 			// 返回一个基础的查询条件，目前为空
 			return '';
@@ -623,20 +722,7 @@ export default {
 
 		// 状态筛选变化
 		onStatusFilterChange() {
-			let newWhere = this.getWhere();
-			if (this.statusFilter !== '') {
-				const statusCondition = { status: parseInt(this.statusFilter) };
-				if (newWhere) {
-					newWhere = db.command.and([newWhere, statusCondition]);
-				} else {
-					newWhere = statusCondition;
-				}
-			}
-			this.where = newWhere;
-			this.selectedIndexs = [];
-			this.$nextTick(() => {
-				this.loadData();
-			});
+			this.search();
 		},
 
 		// 复制到剪贴板
@@ -741,17 +827,128 @@ export default {
 		},
 
 		onqueryload(data) {
+			// 定义映射关系配置
+			const appMapConfig = {
+				__UNI__5377474: {
+					text: '风漫小程序',
+					class: 'bg-orange-100 text-orange-800',
+					icon: 'fas fa-map-marked-alt' // 地图图标
+				},
+				__UNI__0A2385D: {
+					text: '私导小程序',
+					class: 'bg-blue-100 text-blue-800',
+					icon: 'fas fa-flag' // 旗子图标
+				},
+				__UNI__F09E2F3: {
+					text: '风漫管理系统',
+					class: 'bg-green-100 text-green-800',
+					icon: 'fas fa-desktop' // 表格图标 (或 fa-desktop)
+				}
+			};
+
+			const guideAppId = '__UNI__0A2385D';
+			const guideUserIds = [];
+
+			const roleNameMap = {};
+			if (this.rolesList && this.rolesList.length) {
+				this.rolesList.forEach((r) => {
+					roleNameMap[r.role_id] = r.role_name;
+				});
+			}
+
 			for (let i = 0; i < data.length; i++) {
 				let item = data[i];
-				const roleArr = item.role && item.role.map((item) => item.role_name);
-				item.role = roleArr ? roleArr.join('、') : '';
+				if (item.role && Array.isArray(item.role) && item.role.length > 0) {
+					// 这里的 item.role 可能是对象数组(联表结果) 也可能是字符串数组(未联表结果)
+					const translatedRoles = item.role.map((r) => {
+						// 1. 如果 r 是对象(联表成功)，直接取 role_name
+						if (typeof r === 'object' && r.role_name) {
+							return r.role_name;
+						}
+						// 2. 如果 r 是字符串ID，去字典里找
+						if (typeof r === 'string') {
+							return roleNameMap[r] || (r === 'user' ? '普通用户' : r);
+						}
+						return '';
+					});
+
+					// 过滤掉空值
+					const finalRoles = translatedRoles.filter((name) => name);
+
+					item.roleDisplay = finalRoles;
+					item.role = finalRoles.join('、');
+				} else {
+					// 如果 role 字段不存在或为空数组，视为普通用户
+					item.roleDisplay = ['普通用户'];
+					item.role = '普通用户';
+				}
+
 				const tagsArr = item.tags && item.tags.map((item) => this.tags[item]);
 				item.tags = tagsArr;
-				if (Array.isArray(item.dcloud_appid)) {
-					item.dcloud_appid = item.dcloud_appid.join('、');
+
+				const appPermissions = [];
+				if (item.dcloud_appid && Array.isArray(item.dcloud_appid)) {
+					item.dcloud_appid.forEach((appid) => {
+						if (appMapConfig[appid]) {
+							appPermissions.push(appMapConfig[appid]);
+						}
+					});
 				}
+				item.permissionTags = appPermissions;
+
+				// 获取注册时的 appid
+				const appid = item.register_env && item.register_env.appid;
+
+				// 根据 appid 匹配配置，如果没有匹配到则显示未知
+				if (appid && appMapConfig[appid]) {
+					item.sourceInfo = appMapConfig[appid];
+
+					if (appid === guideAppId) {
+						guideUserIds.push(item._id);
+					}
+				} else {
+					item.sourceInfo = {
+						text: '未知应用',
+						class: 'bg-gray-100 text-gray-500',
+						icon: 'fas fa-question-circle'
+					};
+				}
+
 				item.last_login_date = this.$formatDate(item.last_login_date);
 			}
+
+			if (guideUserIds.length > 0) {
+				db.collection('b-guide-profiles')
+					.where({
+						user_id: db.command.in(guideUserIds)
+					})
+					.field('user_id, real_name')
+					.get()
+					.then((res) => {
+						if (res.result.data && res.result.data.length > 0) {
+							// 创建 id -> real_name 的映射
+							const nameMap = {};
+							res.result.data.forEach((guide) => {
+								if (guide.real_name) {
+									nameMap[guide.user_id] = guide.real_name;
+								}
+							});
+
+							// 更新视图数据
+							const currentList = this.$refs.udb.dataList;
+							currentList.forEach((user) => {
+								if (nameMap[user._id]) {
+									// 覆盖 nickname
+									this.$set(user, 'nickname', `${nameMap[user._id]}`);
+								}
+							});
+						}
+					})
+					.catch((err) => {
+						console.error('获取私导实名信息失败:', err);
+					});
+			}
+
 			this.exportExcelData = data;
 		},
 
@@ -787,17 +984,46 @@ export default {
 		},
 
 		search() {
-			let newWhere = this.getWhere();
-			// 如果有状态筛选，添加状态条件
-			if (this.statusFilter !== '') {
-				const statusCondition = { status: parseInt(this.statusFilter) };
-				if (newWhere) {
-					newWhere = db.command.and([newWhere, statusCondition]);
-				} else {
-					newWhere = statusCondition;
-				}
+			let whereParts = [];
+
+			// 1. 获取文本模糊搜索条件
+			const textWhere = this.getWhere();
+			if (textWhere) {
+				whereParts.push(textWhere);
 			}
-			this.where = newWhere;
+
+			if (this.roleFilter === 'null') {
+				whereParts.push(
+					db.command.or([
+						{ 'role.role_id': 'user' }, // 1. role 数组里明确包含 'user'
+						{ role: null }, // 2. role 字段不存在
+						{ role: [] } // 3. role 数组为空
+					])
+				);
+			} else if (this.roleFilter) {
+				// 简单数组查询：只要数组里包含这个字符串即可匹配
+				whereParts.push({
+					'role.role_id': this.roleFilter
+				});
+			}
+
+			// 3. 获取来源筛选条件
+			if (this.sourceFilter !== '') {
+				whereParts.push({
+					dcloud_appid: this.sourceFilter
+				});
+			}
+
+			// 组合所有条件
+			if (whereParts.length === 0) {
+				this.where = '';
+			} else if (whereParts.length === 1) {
+				this.where = whereParts[0];
+			} else {
+				// 使用 and 连接所有条件
+				this.where = db.command.and(whereParts);
+			}
+
 			this.selectedIndexs = []; // 清空选择
 			this.$nextTick(() => {
 				this.loadData();
@@ -806,7 +1032,8 @@ export default {
 
 		clearSearch() {
 			this.query = '';
-			this.statusFilter = '';
+			this.roleFilter = '';
+			this.sourceFilter = '';
 			this.where = '';
 			this.selectedIndexs = []; // 清空选择
 			this.$nextTick(() => {

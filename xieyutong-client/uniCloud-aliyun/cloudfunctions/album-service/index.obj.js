@@ -3,9 +3,12 @@ const db = uniCloud.database();
 const dbCmd = db.command;
 const httpclient = uniCloud.httpclient;
 
-module.exports = {
+const albumService = {
 	_before: async function () {
-		this.uniIdCommon = uniIdCommon.createInstance({ context: this });
+		const clientInfo = this.getClientInfo();
+		this.uniIdCommon = uniIdCommon.createInstance({
+			clientInfo: clientInfo
+		});
 	},
 	/**
 	 * 创建群相册
@@ -39,7 +42,7 @@ module.exports = {
 			.get();
 		if (result && result.data.length > 0) {
 			return {
-				errCode: 'ALBUM_EXIST',
+				errCode: 0,
 				errMsg: '该订单的相册已存在',
 				album_id: result.data[0]._id
 			};
@@ -604,6 +607,325 @@ module.exports = {
 	},
 
 	/**
+	 * 为相册列表获取关联的私导信息
+	 * @param {Array} orderIds 订单ID列表
+	 */
+	async getGuidesByOrderIds(orderIds) {
+		if (!orderIds || orderIds.length === 0) return { errCode: 0, data: {} };
+
+		// 1. 从 a-snapshots 查 staves
+		const snapRes = await db
+			.collection('a-snapshots')
+			.where({ order_id: dbCmd.in(orderIds) })
+			.field({ order_id: 1, staves: 1 })
+			.get();
+
+		const guideMap = {}; // order_id -> { real_name, mobile, user_id }
+		const guideUserIds = [];
+
+		// 2. 提取私导 ID
+		for (const snap of snapRes.data) {
+			if (snap.staves) {
+				const guide = snap.staves.find((s) => s.role && s.role.includes('guide'));
+				if (guide && guide.id) {
+					guideMap[snap.order_id] = { user_id: guide.id };
+					guideUserIds.push(guide.id);
+				}
+			}
+		}
+
+		if (guideUserIds.length === 0) return { errCode: 0, data: guideMap };
+
+		// 3. 查私导档案获取真实姓名
+		const profileRes = await db
+			.collection('b-guide-profiles')
+			.where({ user_id: dbCmd.in(guideUserIds) })
+			.field({ user_id: 1, real_name: 1, mobile: 1 })
+			.get();
+
+		const profileMap = {};
+		profileRes.data.forEach((p) => (profileMap[p.user_id] = p));
+
+		// 4. 合并数据
+		Object.keys(guideMap).forEach((orderId) => {
+			const userId = guideMap[orderId].user_id;
+			if (profileMap[userId]) {
+				guideMap[orderId] = { ...guideMap[orderId], ...profileMap[userId] };
+			}
+		});
+
+		return { errCode: 0, data: guideMap };
+	},
+
+	/**
+	 * 根据私导姓名搜索订单ID（用于列表筛选）
+	 */
+	async searchOrdersByGuide(keyword) {
+		if (!keyword) return { errCode: 0, data: [] };
+
+		// 1. 模糊搜索私导档案
+		const profiles = await db
+			.collection('b-guide-profiles')
+			.where({ real_name: new RegExp(keyword, 'i') })
+			.field({ user_id: 1 })
+			.get();
+
+		if (profiles.data.length === 0) return { errCode: 0, data: [] };
+		const guideIds = profiles.data.map((p) => p.user_id);
+
+		// 2. 查找这些私导参与的订单快照
+		const snapshots = await db
+			.collection('a-snapshots')
+			.where({
+				'staves.id': dbCmd.in(guideIds),
+				'staves.role': 'guide'
+			})
+			.field({ order_id: 1 })
+			.limit(500)
+			.get();
+
+		return { errCode: 0, data: snapshots.data.map((s) => s.order_id) };
+	},
+
+	/**
+	 * 获取管理后台相册列表（支持全局排序：有私导 > 无私导 > 出发日期）
+	 */
+	async getAdminAlbumList(params) {
+		const { page = 1, pageSize = 20, query = '', filterMonth = '', filterStatus = '' } = params;
+
+		// 1. 验证管理员权限
+		const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
+		if (checkResult.errCode !== 0) return { errCode: '401', errMsg: '未登录' };
+		// 这里可以加更多权限判断...
+
+		const dbJQL = uniCloud.databaseForJQL({ clientInfo: this.getClientInfo() });
+		const _cmd = dbJQL.command;
+		let conditions = [];
+
+		// --- A. 构建查询条件 ---
+
+		// 1. 月份筛选 (修复原有的筛选Bug)
+		if (filterMonth) {
+			const parts = filterMonth.split('-');
+			if (parts.length === 2) {
+				const year = parseInt(parts[0]);
+				const month = parseInt(parts[1]) - 1; // JS月份 0-11
+				const startDt = new Date(year, month, 1).getTime();
+				// 下个月1号
+				let endDtObj = new Date(year, month, 1);
+				endDtObj.setMonth(endDtObj.getMonth() + 1);
+				const endDt = endDtObj.getTime();
+
+				conditions.push({
+					departure_date: _cmd.gte(startDt).and(_cmd.lt(endDt))
+				});
+			}
+		}
+
+		// 2. 状态筛选
+		const now = Date.now();
+		const oneDay = 24 * 3600 * 1000;
+		const maxDaysBuffer = 30;
+		if (filterStatus === 'pending') {
+			conditions.push({ departure_date: _cmd.gt(now) });
+		} else if (filterStatus === 'active') {
+			conditions.push({
+				departure_date: _cmd.lte(now).and(_cmd.gte(now - maxDaysBuffer * oneDay))
+			});
+		} else if (filterStatus === 'completed') {
+			conditions.push({ departure_date: _cmd.lt(now - maxDaysBuffer * oneDay) });
+		}
+
+		// 3. 关键词搜索 (处理混合逻辑)
+		let guideOrderIds = [];
+		if (query && query.trim()) {
+			// 先尝试搜索私导名字，获取对应的 OrderIDs
+			const guideRes = await albumService.searchOrdersByGuide(query.trim());
+			if (guideRes.data && guideRes.data.length > 0) {
+				guideOrderIds = guideRes.data;
+			}
+
+			const reg = new RegExp(query.trim(), 'i');
+			const orArray = [{ order_id: reg }, { album_name: reg }];
+			if (guideOrderIds.length > 0) {
+				orArray.push({ order_id: _cmd.in(guideOrderIds) });
+			}
+			conditions.push(_cmd.or(orArray));
+		}
+
+		// 组合 Where 子句
+		let whereObj = {};
+		if (conditions.length > 0) {
+			whereObj = _cmd.and(...conditions);
+		}
+
+		// --- B. 获取数据 (为了全局排序，这里需要拉取较多数据) ---
+		// 注意：如果你的数据量非常巨大(>5000)，建议在数据库加字段 is_guide_assigned 来做索引排序
+		// 这里假设管理后台查看的活跃数据在可控范围内，我们拉取最多 1000 条匹配记录进行内存排序
+
+		const countRes = await dbJQL.collection('a-group-albums').where(whereObj).count();
+		const total = countRes.total;
+
+		const listRes = await dbJQL
+			.collection('a-group-albums')
+			.where(whereObj)
+			.limit(1000) // 软限制，确保能覆盖大部分排序需求
+			.orderBy('departure_date', 'desc') // 数据库先按时间粗排
+			.get();
+
+		let allList = listRes.data;
+
+		// --- C. 获取私导信息 ---
+		const orderIds = allList.map((item) => item.order_id);
+		const guideRes = await albumService.getGuidesByOrderIds(orderIds);
+		const guideMap = guideRes.data || {};
+
+		// --- D. 合并与全局排序 (核心逻辑) ---
+		allList.forEach((item) => {
+			item.guideInfo = guideMap[item.order_id] || null;
+			// 标记是否有有效私导
+			item.hasGuide = item.guideInfo && Object.keys(item.guideInfo).length > 0;
+		});
+
+		// 排序规则：有私导 > 无私导，内部按时间倒序
+		allList.sort((a, b) => {
+			if (a.hasGuide !== b.hasGuide) {
+				return a.hasGuide ? -1 : 1; // 有私导排前 (-1)
+			}
+			// 如果私导状态相同，按时间倒序
+			return b.departure_date - a.departure_date;
+		});
+
+		// --- E. 内存分页 ---
+		const startIndex = (page - 1) * pageSize;
+		const endIndex = startIndex + pageSize;
+		const pageData = allList.slice(startIndex, endIndex);
+
+		return {
+			errCode: 0,
+			data: {
+				list: pageData,
+				total: allList.length // 使用实际拉取到的长度作为total，或者使用数据库count
+			}
+		};
+	},
+
+	/**
+	 * 获取相册详情，包含统计数据和任务基准
+	 */
+	async getAlbumDetailWithStats(albumId) {
+		// 1. 获取相册基础信息
+		const albumRes = await db.collection('a-group-albums').doc(albumId).get();
+		if (!albumRes.data || albumRes.data.length === 0) {
+			return { errCode: 'NOT_FOUND', errMsg: '相册不存在' };
+		}
+		const album = albumRes.data[0];
+
+		// 2. 获取私导信息
+		let guideInfo = null;
+		const snapRes = await db.collection('a-snapshots').where({ order_id: album.order_id }).limit(1).get();
+		if (snapRes.data.length > 0) {
+			const snap = snapRes.data[0];
+			const guideStaff = snap.staves ? snap.staves.find((s) => s.role && s.role.includes('guide')) : null;
+			if (guideStaff) {
+				const profileRes = await db.collection('b-guide-profiles').where({ user_id: guideStaff.id }).limit(1).get();
+				if (profileRes.data.length > 0) {
+					guideInfo = { ...profileRes.data[0], _id: undefined }; // 包含 level, real_name 等
+				}
+			}
+		}
+
+		// 3. 获取任务基准配置
+		let standards = null;
+		if (guideInfo && guideInfo.level) {
+			const configRes = await db.collection('a-management-configs').doc('GLOBAL_CONFIG').get();
+			if (configRes.data.length > 0 && configRes.data[0].benchmarks && configRes.data[0].benchmarks.guide_standards) {
+				standards = configRes.data[0].benchmarks.guide_standards[guideInfo.level];
+			}
+		}
+
+		// 4. 统计每日照片/视频数据
+		const photosRes = await db.collection('a-album-photos').where({ album_id: albumId }).field({ shooting_time: 1, media_type: 1, is_guide: 1, is_promo: 1 }).limit(2000).get();
+
+		const dailyStats = {};
+		// 初始化每一天
+		for (let i = 1; i <= album.total_days; i++) {
+			dailyStats[i] = { photo: 0, video: 0, promo: 0 };
+		}
+
+		const GMT8_OFFSET = 8 * 60 * 60 * 1000;
+		const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+		const startDayIndex = Math.floor((album.departure_date + GMT8_OFFSET) / ONE_DAY_MS);
+
+		photosRes.data.forEach((p) => {
+			if (!p.shooting_time) return;
+
+			// 计算照片的“绝对天数索引” (基于 GMT+8)
+			const photoDayIndex = Math.floor((p.shooting_time + GMT8_OFFSET) / ONE_DAY_MS);
+
+			// 计算它是第几天 (索引相减 + 1)
+			const diffDays = photoDayIndex - startDayIndex + 1;
+
+			if (diffDays >= 1 && diffDays <= album.total_days) {
+				// 只统计私导上传的
+				if (p.is_guide) {
+					if (p.media_type === 'video') dailyStats[diffDays].video++;
+					else dailyStats[diffDays].photo++;
+
+					if (p.is_promo) dailyStats[diffDays].promo++;
+				}
+			}
+		});
+
+		// 5. 组装返回
+		return {
+			errCode: 0,
+			data: {
+				album,
+				guideInfo,
+				standards,
+				dailyStats
+			}
+		};
+	},
+
+	/**
+	 * 保存每日评分
+	 */
+	async saveDailyAssessment(params) {
+		const { albumId, dayIndex, photoScore, videoScore, excludeAssessment } = params;
+		const albumDb = db.collection('a-group-albums');
+
+		// 获取当前记录
+		const res = await albumDb.doc(albumId).get();
+		if (!res.data.length) return { errCode: 'NOT_FOUND' };
+
+		let assessments = res.data[0].daily_assessments || [];
+		// 移除旧的当天记录
+		assessments = assessments.filter((a) => a.day_index !== dayIndex);
+		// 添加新的
+		assessments.push({
+			day_index: dayIndex,
+			photo_score: parseFloat(photoScore),
+			video_score: parseFloat(videoScore),
+			exclude_assessment: !!excludeAssessment
+		});
+
+		await albumDb.doc(albumId).update({ daily_assessments: assessments });
+		return { errCode: 0 };
+	},
+
+	/**
+	 * 更新照片属性（设为宣传/设为已读）
+	 */
+	async updatePhotoAttribute(params) {
+		const { photoId, attributes } = params; // attributes: { is_promo: true, is_viewed: true }
+		await db.collection('a-album-photos').doc(photoId).update(attributes);
+		return { errCode: 0 };
+	},
+
+	/**
 	 * 上传照片到指定相册
 	 * @param {object} params - 包含 albumId 和 file 的对象
 	 * @returns {object} - 返回上传结果
@@ -621,10 +943,12 @@ module.exports = {
 		const userRole = checkResult.role;
 		const userPermission = checkResult.permission;
 		console.log(`[相册服务] 用户 ${userId} 尝试上传照片到相册 ${albumId}`);
+		console.log('用户角色：', userRole, ' | 用户权限：', userPermission);
 
 		if (userRole.includes('guide')) {
 			is_guide = true;
 		}
+		console.log('是否是司导：', is_guide);
 
 		// 2. 验证相册状态和成员资格
 		const albumDb = db.collection('a-group-albums');
@@ -633,14 +957,17 @@ module.exports = {
 			console.error(`[相册服务] 上传失败，相册 ${albumId} 不存在`);
 			return { errCode: 'ALBUM_NOT_FOUND', errMsg: '相册不存在' };
 		}
+		console.log('相册数据：', albumList);
 		const albumInfo = albumList[0];
 		if (albumInfo.status !== 1) {
 			console.warn(`[相册服务] 上传失败，相册 ${albumId} 不是进行中状态`);
 			return { errCode: 'ALBUM_NOT_ACTIVE', errMsg: '相册当前不可上传' };
 		}
+		console.log('相册状态：', albumInfo.status);
 
-		const isMember = albumInfo.members.some((member) => member.user_id === userId);
-		if (!is_guide && !userPermission.includes('MANAGE_ALBUMS') && !isMember) {
+		const isMember = albumInfo.members.some((member) => member.id === userId);
+		console.log('是否是相册成员：', isMember);
+		if (!is_guide && !userPermission.includes('MANAGE_ALBUMS') && !userRole.includes('admin') && !userRole.includes('super_admin') && !isMember) {
 			return { errCode: 'NOT_A_MEMBER', errMsg: '不是该相册的成员' };
 		}
 
@@ -768,12 +1095,24 @@ module.exports = {
 		}
 
 		try {
-			// 4. 从云存储中删除文件
-			const fileID = photoInfo.original_url;
-			const deleteFileRes = await uniCloud.deleteFile({
-				fileList: [fileID]
-			});
-			console.log(`[相册服务] 从云存储删除文件完成，结果:`, deleteFileRes);
+			// 4. 从云存储中删除文件 (包括原图/视频 和 压缩图/封面)
+			const fileListToDelete = [];
+
+			// 添加主文件
+			if (photoInfo.original_url) {
+				fileListToDelete.push(photoInfo.original_url);
+			}
+
+			if (photoInfo.compressed_url && photoInfo.compressed_url !== photoInfo.original_url) {
+				fileListToDelete.push(photoInfo.compressed_url);
+			}
+
+			if (fileListToDelete.length > 0) {
+				const deleteFileRes = await uniCloud.deleteFile({
+					fileList: fileListToDelete
+				});
+				console.log(`[相册服务] 从云存储删除文件完成，数量: ${fileListToDelete.length}, 结果:`, deleteFileRes);
+			}
 
 			// 5. 从数据库中删除记录
 			const deleteDbRes = await photosDb.doc(photoId).remove();
@@ -826,13 +1165,18 @@ module.exports = {
 				.where({
 					_id: dbCmd.in(photoIds)
 				})
-				.field({ original_url: 1 })
+				.field({ original_url: 1, compressed_url: 1 })
 				.get();
 
 			photosToDelete.forEach((photo) => {
 				if (photo.original_url) {
 					fileListToDelete.push(photo.original_url);
 				}
+
+				if (photo.compressed_url && photo.compressed_url !== photo.original_url) {
+					fileListToDelete.push(photo.compressed_url);
+				}
+
 				dbIdsToDelete.push(photo._id); // 记录有效的数据库ID
 			});
 
@@ -1053,5 +1397,34 @@ module.exports = {
 				errMsg: e.message || '生成批量下载链接失败'
 			};
 		}
+	},
+
+	async submitAlbumRating(params) {
+		// 1. 验证用户身份
+		const checkResult = await this.uniIdCommon.checkToken(this.getUniIdToken());
+		if (checkResult.errCode !== 0) {
+			console.error('[相册服务] submitAlbumRating 身份验证失败:', checkResult);
+			return { errCode: '401', errMsg: '用户未登录' };
+		}
+		const userId = checkResult.uid;
+
+		const { albumId, score, comment } = params;
+
+		// 将评价推送到数组中
+		await db
+			.collection('a-group-albums')
+			.doc(albumId)
+			.update({
+				guest_ratings: dbCmd.push({
+					user_id: userId,
+					score: score,
+					comment: comment,
+					create_date: Date.now()
+				})
+			});
+
+		return { errCode: 0, errMsg: 'ok' };
 	}
 };
+
+module.exports = albumService;

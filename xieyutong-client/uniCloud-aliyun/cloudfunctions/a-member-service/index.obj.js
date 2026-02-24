@@ -339,8 +339,9 @@ module.exports = {
 	_before: function () {
 		console.log('[_before] 初始化云对象实例');
 		// 初始化 uni-id 实例
+		const clientInfo = this.getClientInfo();
 		this.uniIdCommon = uniIdCommon.createInstance({
-			context: this
+			clientInfo: clientInfo
 		});
 		console.log('[_before] uni-id 实例初始化完成');
 	},

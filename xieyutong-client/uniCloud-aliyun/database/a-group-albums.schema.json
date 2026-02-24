@@ -62,6 +62,52 @@
 				}
 			}
 		},
+		"guest_ratings": {
+			"bsonType": "array",
+			"description": "客人评价列表",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"user_id": {
+						"bsonType": "string"
+					},
+					"score": {
+						"bsonType": "int"
+					},
+					"comment": {
+						"bsonType": "string"
+					},
+					"create_date": {
+						"bsonType": "timestamp"
+					}
+				}
+			}
+		},
+		"daily_assessments": {
+			"bsonType": "array",
+			"description": "每日考核评分",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"day_index": {
+						"bsonType": "int",
+						"description": "第几天"
+					},
+					"photo_score": {
+						"bsonType": "double",
+						"description": "照片评分"
+					},
+					"video_score": {
+						"bsonType": "double",
+						"description": "视频评分"
+					},
+					"exclude_assessment": {
+						"bsonType": "bool",
+						"description": "是否不纳入考核"
+					}
+				}
+			}
+		},
 		"create_date": {
 			"bsonType": "timestamp",
 			"description": "创建时间",

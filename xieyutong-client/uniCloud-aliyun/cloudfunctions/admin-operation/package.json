@@ -1,0 +1,11 @@
+{
+	"name": "admin-operation",
+	"version": "1.0.0",
+	"main": "index.js",
+	"dependencies": {
+		"uni-id": "^3.0.0"
+	},
+	"extensions": {
+		"uni-cloud-jql": {}
+	}
+}

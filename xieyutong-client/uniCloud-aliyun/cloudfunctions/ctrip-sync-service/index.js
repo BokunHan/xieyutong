@@ -361,7 +361,7 @@ async function getProductDetail(event, context) {
 
 		let response = await uniCloud.httpclient.request(requestUrl, {
 			method: 'GET',
-			timeout: 60000, // 增加超时时间到60秒
+			timeout: 360000,
 			headers: {
 				'User-Agent': 'uniCloud-httpclient/1.0',
 				Accept: 'application/json'
@@ -474,7 +474,7 @@ async function getProductItinerary(event, context) {
 
 		const response = await uniCloud.httpclient.request(requestUrl, {
 			method: 'GET',
-			timeout: 60000,
+			timeout: 360000,
 			headers: {
 				'User-Agent': 'uniCloud-httpclient/1.0',
 				Accept: 'application/json'
@@ -872,6 +872,7 @@ async function syncSnapshot(event, context) {
 		ctripId = match[1];
 		orderId = match[2];
 	}
+	console.log('ctripId match: ', ctripId);
 
 	if (!orderId) {
 		return {
@@ -890,7 +891,7 @@ async function syncSnapshot(event, context) {
 	const db = uniCloud.database();
 
 	try {
-		const productRecord = await db.collection('a-products').where({ ctrip_id: ctripId }).field({ _id: true }).getOne();
+		const productRecord = await db.collection('a-products').where({ ctrip_id: ctripId }).field({ _id: true }).get();
 
 		if (productRecord.data.length > 0) {
 			productId = productRecord.data[0]._id;
@@ -934,7 +935,7 @@ async function syncSnapshot(event, context) {
 
 		const response = await uniCloud.httpclient.request(requestUrl, {
 			method: 'POST',
-			timeout: 60000,
+			timeout: 300000,
 			headers: {
 				'User-Agent': 'uniCloud-httpclient/1.0',
 				Accept: 'application/json',
@@ -1000,6 +1001,13 @@ async function syncSnapshot(event, context) {
 			}
 
 			console.log(`[订单快照同步] 订单快照同步成功，订单ID: ${orderId}`);
+
+			try {
+				const supplyService = uniCloud.importObject('a-supply-service');
+				await supplyService.autoInitOrderSupplies(orderId);
+			} catch (e) {
+				console.error(`[订单快照同步] 自动初始化物资失败: ${e.message}`);
+			}
 
 			// --- 开始自动匹配POI ---
 			if (snapshotRecordId) {

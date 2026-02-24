@@ -1,6 +1,6 @@
 {
 	"bsonType": "object",
-	"required": ["order_id", "account_name"],
+	"required": ["order_id"],
 	"permission": {
 		"read": true,
 		"create": true,
@@ -16,11 +16,16 @@
 			"title": "订单号",
 			"trim": "both"
 		},
+		"agent_id": {
+			"bsonType": "string",
+			"title": "管家用户ID",
+			"description": "关联 uni-id-users 的 _id",
+			"foreignKey": "uni-id-users._id"
+		},
 		"account_name": {
 			"bsonType": "string",
 			"title": "执行账号",
-			"description": "指定由哪个本地账号发送",
-			"foreignKey": "a-task-accounts.name"
+			"description": "仅作为显示用的名称"
 		},
 		"target_group_id": {
 			"bsonType": "string",

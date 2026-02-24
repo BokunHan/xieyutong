@@ -206,12 +206,14 @@ export default {
 					const imgVal = this.formData.route_map_image;
 					if (!imgVal || (typeof imgVal === 'object' && Object.keys(imgVal).length === 0)) {
 						res.route_map_image = null;
+					} else {
+						res.route_map_image = JSON.parse(JSON.stringify(imgVal));
 					}
 
 					res.aliases = this.formData.aliases;
 					return this.submitForm(res);
 				})
-				.catch(() => {
+				.catch((err) => {
 					console.log('表单校验失败', err);
 				})
 				.finally(() => {
@@ -222,25 +224,36 @@ export default {
 		/**
 		 * 提交表单
 		 */
-		submitForm(value) {
+		async submitForm(value) {
 			// 使用 clientDB 提交数据
-			return db
-				.collection(dbCollectionName)
-				.doc(this.formDataId)
-				.update(value)
-				.then((res) => {
-					uni.showToast({
-						title: '修改成功'
-					});
-					this.getOpenerEventChannel().emit('refreshData');
-					setTimeout(() => uni.navigateBack(), 500);
-				})
-				.catch((err) => {
-					uni.showModal({
-						content: err.message || '请求服务失败',
-						showCancel: false
-					});
-				});
+			// return db
+			// 	.collection(dbCollectionName)
+			// 	.doc(this.formDataId)
+			// 	.update(value)
+			// 	.then((res) => {
+			// 		uni.showToast({
+			// 			title: '修改成功'
+			// 		});
+			// 		this.getOpenerEventChannel().emit('refreshData');
+			// 		setTimeout(() => uni.navigateBack(), 500);
+			// 	})
+			// 	.catch((err) => {
+			// 		uni.showModal({
+			// 			content: err.message || '请求服务失败',
+			// 			showCancel: false
+			// 		});
+			// 	});
+			try {
+				const poiService = uniCloud.importObject('a-poi-service');
+				// 调用我们刚添加的方法
+				await poiService.updatePoi(this.formDataId, value);
+
+				uni.showToast({ title: '修改成功' });
+				this.getOpenerEventChannel().emit('refreshData');
+				setTimeout(() => uni.navigateBack(), 500);
+			} catch (err) {
+				uni.showModal({ content: err.message || '保存失败', showCancel: false });
+			}
 		},
 
 		/**

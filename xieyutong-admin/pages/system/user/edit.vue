@@ -168,7 +168,11 @@ export default {
 			value.uid = this.formDataId;
 
 			this.$request('updateUser', value)
-				.then(() => {
+				.then(async () => {
+					await db.collection('uni-id-users').doc(this.formDataId).update({
+						mobile_confirmed: 1
+					});
+
 					uni.showToast({
 						title: '修改成功'
 					});

@@ -1,0 +1,68 @@
+{
+	"bsonType": "object",
+	"required": ["plate_number", "model", "seat_count", "status"],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": "auth.uid != null",
+		"delete": "'admin' in auth.role || 'super_admin' in auth.role"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"owner_id": {
+			"bsonType": "string",
+			"description": "车辆所有人/关联司导ID",
+			"foreignKey": "uni-id-users._id"
+		},
+		"plate_number": {
+			"bsonType": "string",
+			"description": "车牌号",
+			"title": "车牌号",
+			"trim": "both"
+		},
+		"model": {
+			"bsonType": "string",
+			"description": "车型描述，如考斯特、阿尔法",
+			"title": "车型"
+		},
+		"seat_count": {
+			"bsonType": "int",
+			"description": "座位数",
+			"title": "座位数"
+		},
+		"vehicle_license": {
+			"bsonType": "string",
+			"description": "行驶证照片URL"
+		},
+		"car_photo_exterior": {
+			"bsonType": "string",
+			"description": "车辆外观照片(45度)"
+		},
+		"car_photo_interior": {
+			"bsonType": "string",
+			"description": "车辆内饰照片"
+		},
+		"status": {
+			"bsonType": "int",
+			"description": "车辆状态：0-运营中 1-维修/停运",
+			"title": "状态",
+			"defaultValue": 0
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"updated_date": {
+			"bsonType": "timestamp",
+			"description": "更改时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+}

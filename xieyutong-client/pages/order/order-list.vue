@@ -154,6 +154,7 @@ import { toRaw } from 'vue';
 const orderService = uniCloud.importObject('a-order-service', {
 	customUI: true
 });
+const qrcodeService = uniCloud.importObject('qrcode-service');
 
 export default {
 	data() {
@@ -359,12 +360,14 @@ export default {
 					if (calculatedEndDate < now) {
 						statusText = '已完成';
 						buttons = [
+							{ text: '服务', type: 'outline', action: 'services' },
 							{ text: '查看详情', type: 'outline', action: 'viewDetail' },
 							{ text: '再次预订', type: 'orange', action: 'bookAgain' }
 						];
 					} else {
 						statusText = '进行中';
 						buttons = [
+							{ text: '服务', type: 'outline', action: 'services' },
 							{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
 							{ text: '联系客服', type: 'primary', action: 'contactService' }
 						];
@@ -372,6 +375,7 @@ export default {
 				} else if (order.status === 'completed') {
 					statusText = '已完成';
 					buttons = [
+						{ text: '服务', type: 'outline', action: 'services' },
 						{ text: '查看详情', type: 'outline', action: 'viewDetail' },
 						{ text: '再次预订', type: 'orange', action: 'bookAgain' }
 					];
@@ -425,6 +429,7 @@ export default {
 				];
 			} else {
 				buttons = [
+					{ text: '服务', type: 'outline', action: 'services' },
 					{ text: '查看行程', type: 'outline', action: 'viewItinerary' },
 					{ text: '联系客服', type: 'primary', action: 'contactService' }
 				];
@@ -534,6 +539,11 @@ export default {
 						}
 					});
 					break;
+				case 'services':
+					uni.navigateTo({
+						url: `/pages/order/order-services?orderId=${order._id}`
+					});
+					break;
 				case 'viewItinerary':
 					this.viewItinerary(order);
 					break;
@@ -594,7 +604,7 @@ export default {
 
 			try {
 				uni.showLoading({ title: '生成中...' });
-				const res = await orderService.getInviteQRCode(order._id);
+				const res = await qrcodeService.generateOrderInviteCode(order._id);
 				uni.hideLoading();
 
 				if (res.errCode === 0) {

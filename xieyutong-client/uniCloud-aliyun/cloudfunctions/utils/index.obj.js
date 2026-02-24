@@ -4,7 +4,10 @@ const dbCmd = db.command;
 
 module.exports = {
 	_before() {
-		this.uniIdCommon = uniIdCommon.createInstance({ context: this });
+		const clientInfo = this.getClientInfo();
+		this.uniIdCommon = uniIdCommon.createInstance({
+			clientInfo: clientInfo
+		});
 	},
 
 	/**

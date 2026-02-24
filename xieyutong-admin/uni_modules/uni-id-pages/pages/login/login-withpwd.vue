@@ -9,7 +9,7 @@
 		<text class="title title-box">账号密码登录</text>
 		<uni-forms>
 			<uni-forms-item name="username">
-				<uni-easyinput :focus="focusUsername" @blur="focusUsername = false" class="input-box" :inputBorder="false" v-model="username" placeholder="请输入手机号/用户名/邮箱" />
+				<uni-easyinput :focus="focusUsername" @blur="focusUsername = false" class="input-box" :inputBorder="false" v-model="username" placeholder="请输入用户名" />
 			</uni-forms-item>
 			<uni-forms-item name="password">
 				<uni-easyinput

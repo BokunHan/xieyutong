@@ -15,9 +15,15 @@
 			"bsonType": "string",
 			"title": "关联任务ID"
 		},
+		"agent_id": {
+			"bsonType": "string",
+			"title": "管家用户ID",
+			"description": "关联 uni-id-users 的 _id",
+			"foreignKey": "uni-id-users._id"
+		},
 		"account_name": {
 			"bsonType": "string",
-			"title": "执行账号"
+			"title": "执行账号名称"
 		},
 		"group_name": {
 			"bsonType": "string",
@@ -77,6 +83,11 @@
 		"error_msg": {
 			"bsonType": "string",
 			"title": "错误信息"
+		},
+		"retry_count": {
+			"bsonType": "int",
+			"title": "已重试次数",
+			"defaultValue": 0
 		},
 		"priority": {
 			"bsonType": "int",

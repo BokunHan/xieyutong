@@ -51,6 +51,16 @@
 			"bsonType": "int",
 			"description": "照片属于行程的第几天"
 		},
+		"is_promo": {
+			"bsonType": "bool",
+			"description": "是否为宣传级素材",
+			"defaultValue": false
+		},
+		"is_viewed": {
+			"bsonType": "bool",
+			"description": "是否已查看",
+			"defaultValue": false
+		},
 		"create_date": {
 			"bsonType": "timestamp",
 			"description": "上传时间",

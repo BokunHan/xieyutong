@@ -1,15 +1,20 @@
 {
-  "name": "a-weather",
-  "version": "1.0.0",
-  "description": "高德天气API云函数",
-  "main": "index.js",
-  "dependencies": {
-    "uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
-    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
-  },
-  "author": "",
-  "license": "ISC",
-  "extensions": {
-    "uni-cloud-jql": {}
-  }
+	"name": "a-weather",
+	"version": "1.0.0",
+	"description": "高德天气API云函数",
+	"main": "index.js",
+	"dependencies": {
+		"uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
+		"uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+	},
+	"author": "",
+	"license": "ISC",
+	"extensions": {
+		"uni-cloud-jql": {}
+	},
+	"cloudfunction-config": {
+		"timeout": 30,
+		"runtime": "Node.js 16",
+		"memorySize": 512
+	}
 }

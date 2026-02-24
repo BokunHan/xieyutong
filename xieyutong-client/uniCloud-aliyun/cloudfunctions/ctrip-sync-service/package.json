@@ -4,9 +4,9 @@
 	"description": "携程商品同步服务",
 	"main": "index.js",
 	"cloudfunction-config": {
-		"timeout": 60,
+		"timeout": 260,
 		"runtime": "Node.js 16",
-		"memorySize": 256,
+		"memorySize": 1024,
 		"permissions": {
 			"http": {
 				"domain": [

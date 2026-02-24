@@ -1,22 +1,27 @@
 {
-  "name": "a-geocoding",
-  "version": "1.0.0",
-  "description": "高德地理编码/逆地理编码云函数",
-  "main": "index.js",
-  "dependencies": {
-    "uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
-    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
-  },
-  "author": "xieyutong-client",
-  "license": "MIT",
-  "keywords": [
-    "geocoding",
-    "amap",
-    "location",
-    "coordinates",
-    "address"
-  ],
-  "extensions": {
-    "uni-cloud-jql": {}
-  }
+	"name": "a-geocoding",
+	"version": "1.0.0",
+	"description": "高德地理编码/逆地理编码云函数",
+	"main": "index.js",
+	"dependencies": {
+		"uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
+		"uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+	},
+	"author": "xieyutong-client",
+	"license": "MIT",
+	"keywords": [
+		"geocoding",
+		"amap",
+		"location",
+		"coordinates",
+		"address"
+	],
+	"extensions": {
+		"uni-cloud-jql": {}
+	},
+	"cloudfunction-config": {
+		"timeout": 30,
+		"runtime": "Node.js 16",
+		"memorySize": 512
+	}
 }

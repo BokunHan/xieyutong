@@ -120,24 +120,38 @@
 					</view>
 				</view>
 
-				<swiper v-if="currentPoiMedia && currentPoiMedia.length > 0" class="poi-swiper-native" indicator-dots circular :autoplay="isSwiperAutoplay" @change="onSwiperChange">
-					<swiper-item v-for="(file, index) in currentPoiMedia" :key="index">
-						<image v-if="isImageFile(file)" :src="getOptimizedImage(file.url, 800, 0)" class="poi-swiper-image-native" mode="aspectFill" @click="previewSwiperImage(file.url)" />
-						<video
-							v-if="isVideoFile(file)"
-							:src="getEncodedUrl(file.url)"
-							:poster="getVideoSnapshotUrl(file.url)"
-							controls
-							class="poi-swiper-video-native"
-							:id="'video-' + index"
-							@play="onVideoPlay"
-							@pause="onVideoPause"
-							@ended="onVideoPause"></video>
-					</swiper-item>
-				</swiper>
-
 				<view class="tips-popup-content-wrapper" @touchstart="onContentTouchStart" @touchend="onContentTouchEnd">
 					<scroll-view class="tips-popup-content" scroll-y :show-scrollbar="false" @scroll="onContentScroll" @touchmove.stop="dummyAllow">
+						<swiper
+							v-if="currentPoiMedia && currentPoiMedia.length > 0"
+							class="poi-swiper-native"
+							indicator-dots
+							circular
+							:autoplay="isSwiperAutoplay"
+							:style="{ height: swiperHeight + 'px' }"
+							@change="onSwiperChange">
+							<swiper-item v-for="(file, index) in currentPoiMedia" :key="index">
+								<image
+									v-if="isImageFile(file)"
+									:src="getOptimizedImage(file.url, 800, 0)"
+									class="poi-swiper-image-native"
+									mode="aspectFill"
+									@click="previewSwiperImage(file.url)"
+									@load="onImageLoad(index, $event)" />
+								<video
+									v-if="isVideoFile(file)"
+									:src="file.url"
+									:poster="getVideoSnapshotUrl(file.url)"
+									controls
+									class="poi-swiper-video-native"
+									:id="'video-' + index"
+									@play="onVideoPlay"
+									@pause="onVideoPause"
+									@ended="onVideoPause"
+									@loadedmetadata="onVideoLoad(index, $event)"></video>
+							</swiper-item>
+						</swiper>
+
 						<rich-content :html="popupContent" :noPadding="true" />
 					</scroll-view>
 				</view>
@@ -176,6 +190,8 @@ export default {
 			daySectionTops: [],
 			isClickScrolling: false,
 			tabScrollTarget: '',
+			swiperHeight: 250, // 默认高度
+			mediaRatios: {},
 
 			popupTitle: '',
 			popupContent: '<p>正在加载...</p>',
@@ -868,6 +884,10 @@ export default {
 			if (!poiId) return;
 			this.popupContent = '<div style="padding: 15px;"><p>正在加载...</p></div>';
 			this.currentPoiMedia = [];
+
+			this.swiperHeight = 250;
+			this.mediaRatios = {};
+
 			this.isSwiperAutoplay = true;
 			this.currentSwiperSlide = 0;
 
@@ -1017,6 +1037,8 @@ export default {
 			const oldIndex = this.currentSwiperSlide;
 			this.currentSwiperSlide = newIndex;
 
+			this.updateSwiperHeight(newIndex);
+
 			const oldMedia = this.currentPoiMedia[oldIndex];
 			if (oldMedia && this.isVideoFile(oldMedia)) {
 				const oldCtx = uni.createVideoContext('video-' + oldIndex, this);
@@ -1031,6 +1053,48 @@ export default {
 				if (newCtx) {
 					newCtx.play();
 				}
+			}
+		},
+
+		// --- 图片加载完成，计算高度 ---
+		onImageLoad(index, e) {
+			const { width, height } = e.detail;
+			this.calculateMediaHeight(index, width, height);
+		},
+
+		// --- 视频元数据加载完成，计算高度 ---
+		onVideoLoad(index, e) {
+			const { width, height } = e.detail;
+			this.calculateMediaHeight(index, width, height);
+		},
+
+		// --- 核心计算逻辑 ---
+		calculateMediaHeight(index, width, height) {
+			if (width && height) {
+				const sysInfo = uni.getSystemInfoSync();
+				const screenWidth = sysInfo.windowWidth; // 获取屏幕宽度
+				const ratio = width / height;
+
+				// 计算适应屏幕宽度的目标高度
+				let targetHeight = screenWidth / ratio;
+
+				// 限制最大高度，避免竖屏图过长 (可选，例如限制为屏幕高度的 60%)
+				// const maxHeight = sysInfo.windowHeight * 0.6;
+				// if (targetHeight > maxHeight) targetHeight = maxHeight;
+
+				this.$set(this.mediaRatios, index, targetHeight);
+
+				// 如果当前显示的是这张图，立即更新 Swiper 高度
+				if (index === this.currentSwiperSlide) {
+					this.swiperHeight = targetHeight;
+				}
+			}
+		},
+
+		// --- 更新 Swiper 高度 ---
+		updateSwiperHeight(index) {
+			if (this.mediaRatios[index]) {
+				this.swiperHeight = this.mediaRatios[index];
 			}
 		},
 
@@ -1076,28 +1140,40 @@ export default {
 			this.isSwiperAutoplay = true;
 		},
 
-		getEncodedUrl(url) {
-			if (!url) return '';
-			return encodeURI(url);
-		},
-
 		// 智能图片压缩 (适配 OSS 和 携程)
 		getOptimizedImage(url, width = 800, height = 0, quality = 80) {
 			if (!url) return '';
-			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) return url;
 
+			// 1. 预处理：判断是否为携程系域名
+			const isCtrip = url.includes('ctrip.com') || url.includes('trip.com') || url.includes('qunar.com');
 			const isAliyun = url.includes('bspapp.com') || url.includes('aliyuncs.com');
-			const isCtrip = url.includes('ctrip.com');
 
+			// 2. 携程图片特殊处理 (清洗旧参数 + 追加新参数)
+			if (isCtrip) {
+				// 正则匹配 _C_800_600 或 _R_800_10000 这类后缀
+				const ctripParamRegex = /_[A-Z]_\d+_\d+.*$/i;
+				// 移除旧参数
+				const cleanUrl = url.replace(ctripParamRegex, '');
+
+				// 重新拼接参数
+				if (height > 0) {
+					// 模式 A: 指定宽高 (裁剪)
+					return cleanUrl + `_C_${width}_${height}_Q${quality}.jpg`;
+				}
+				// 模式 B: 只指定宽度 (限宽，高度自适应)
+				return cleanUrl + `_R_${width}_10000_Q${quality}.jpg`;
+			}
+
+			// 3. 如果已经包含处理参数（非携程），直接返回
+			if (url.includes('x-oss-process') || url.includes('_R_') || url.includes('_C_')) {
+				return url;
+			}
+
+			// 4. 阿里云 OSS 处理
 			if (isAliyun) {
-				// 阿里云：缩放 + WebP + 质量控制
 				return url + `?x-oss-process=image/resize,w_${width}/quality,q_${quality}/format,webp`;
 			}
-			if (isCtrip) {
-				// 携程：_C_ (裁剪) 或 _R_ (限宽)
-				if (height > 0) return url + `_C_${width}_${height}_Q${quality}.jpg`;
-				return url + `_R_${width}_10000_Q${quality}.jpg`;
-			}
+
 			return url;
 		},
 
@@ -1513,7 +1589,7 @@ export default {
 /* 原生 Swiper 样式 */
 .poi-swiper-native {
 	width: 100%;
-	height: 200px;
+	transition: height 0.3s ease;
 }
 .poi-swiper-image-native,
 .poi-swiper-video-native {

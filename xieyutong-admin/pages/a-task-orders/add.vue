@@ -10,22 +10,21 @@
 			<uni-forms-item name="order_id" label="订单编号" required>
 				<uni-easyinput placeholder="请输入订单号" v-model="formData.order_id" trim="both"></uni-easyinput>
 			</uni-forms-item>
-			<uni-forms-item name="account_name" label="执行账号" required>
+			<uni-forms-item name="agent_id" label="分配管家（账号）">
 				<view style="display: flex; align-items: center; gap: 10px">
 					<view style="flex: 1">
 						<uni-data-select
 							v-if="showOptions"
-							v-model="formData.account_name"
-							collection="a-task-accounts"
-							field="name as value, name as text"
-							placeholder="请选择用哪个号发送"></uni-data-select>
+							v-model="formData.agent_id"
+							:localdata="attendantOptions"
+							placeholder="请选择用哪个号发送"
+							@change="onAgentChange"></uni-data-select>
 					</view>
-					<button type="default" size="mini" @click="refreshOptions">
+					<button type="default" size="mini" @click="loadAttendants">
 						<uni-icons type="refreshempty" size="12"></uni-icons>
-						更新账号群列表
+						刷新列表
 					</button>
 				</view>
-				<view class="text-xs text-gray-500 mt-1">* 如果您刚刚新建了客户群，请选择您的账号并点击刷新按钮</view>
 			</uni-forms-item>
 
 			<!-- <uni-forms-item name="target_group_id" label="企业微信群" required>
@@ -48,12 +47,14 @@
 
 <script>
 const db = uniCloud.database();
+const rpa = uniCloud.importObject('a-task-rpa');
 
 export default {
 	data() {
 		return {
 			formData: {
 				order_id: '',
+				agent_id: '',
 				account_name: '',
 				// target_group_id: '',
 				crawl_status: 'pending',
@@ -62,8 +63,7 @@ export default {
 			loading: false,
 			showOptions: true,
 			rules: {
-				order_id: { rules: [{ required: true, errorMessage: '请输入订单号' }] },
-				account_name: { rules: [{ required: true, errorMessage: '请选择执行账号' }] }
+				order_id: { rules: [{ required: true, errorMessage: '请输入订单号' }] }
 				// target_group_id: { rules: [{ required: true, errorMessage: '请选择群组' }] }
 			}
 		};
@@ -77,9 +77,41 @@ export default {
 	// 		return `account_name == '${this.formData.account_name}'`;
 	// 	}
 	// },
+	onLoad() {
+		this.loadAttendants();
+	},
 	methods: {
 		goBack() {
 			uni.navigateBack();
+		},
+		// 调用云对象获取列表
+		async loadAttendants() {
+			uni.showLoading({ title: '加载管家...' });
+			try {
+				const res = await rpa.getAttendantList();
+				if (res.errCode === 0) {
+					// 转换为 uni-data-select 格式 {value, text}
+					this.attendantOptions = res.data.map((item) => ({
+						value: item.id,
+						text: item.name
+					}));
+
+					// 刷新一下组件
+					this.showOptions = false;
+					this.$nextTick(() => (this.showOptions = true));
+				}
+			} catch (e) {
+				uni.showToast({ title: '加载失败: ' + e.message, icon: 'none' });
+			} finally {
+				uni.hideLoading();
+			}
+		},
+		// 选中时同时记录名字
+		onAgentChange(val) {
+			const selected = this.attendantOptions.find((opt) => opt.value === val);
+			if (selected) {
+				this.formData.account_name = selected.text;
+			}
 		},
 		submit() {
 			this.$refs.form.validate().then((res) => {
@@ -99,39 +131,39 @@ export default {
 						this.loading = false;
 					});
 			});
-		},
+		}
 
 		// 请求同步逻辑
-		async refreshOptions() {
-			if (!this.formData.account_name) {
-				return uni.showToast({ title: '请先选择账号', icon: 'none' });
-			}
+		// async refreshOptions() {
+		// 	if (!this.formData.account_name) {
+		// 		return uni.showToast({ title: '请先选择账号', icon: 'none' });
+		// 	}
 
-			uni.showLoading({ title: '正在呼叫本地Agent...' });
+		// 	uni.showLoading({ title: '正在呼叫本地Agent...' });
 
-			try {
-				const rpa = uniCloud.importObject('a-task-rpa');
-				const res = await rpa.triggerSync(this.formData.account_name);
+		// 	try {
+		// 		const rpa = uniCloud.importObject('a-task-rpa');
+		// 		const res = await rpa.triggerSync(this.formData.account_name);
 
-				uni.hideLoading();
+		// 		uni.hideLoading();
 
-				if (res.errCode === 0) {
-					uni.showModal({
-						title: '指令已发送',
-						content: `已通知服务器重新抓取【${this.formData.account_name}】的群列表。\n\n这可能需要几十秒，请稍后再次点击刷新按钮查看最新数据。`,
-						showCancel: false,
-						success: () => {
-							// 稍微重置一下 UI，假装刷新
-							this.showOptions = false;
-							setTimeout(() => (this.showOptions = true), 200);
-						}
-					});
-				}
-			} catch (e) {
-				uni.hideLoading();
-				uni.showToast({ title: '请求失败: ' + e.message, icon: 'none' });
-			}
-		}
+		// 		if (res.errCode === 0) {
+		// 			uni.showModal({
+		// 				title: '指令已发送',
+		// 				content: `已通知服务器重新抓取【${this.formData.account_name}】的群列表。\n\n这可能需要几十秒，请稍后再次点击刷新按钮查看最新数据。`,
+		// 				showCancel: false,
+		// 				success: () => {
+		// 					// 稍微重置一下 UI，假装刷新
+		// 					this.showOptions = false;
+		// 					setTimeout(() => (this.showOptions = true), 200);
+		// 				}
+		// 			});
+		// 		}
+		// 	} catch (e) {
+		// 		uni.hideLoading();
+		// 		uni.showToast({ title: '请求失败: ' + e.message, icon: 'none' });
+		// 	}
+		// }
 	}
 };
 </script>

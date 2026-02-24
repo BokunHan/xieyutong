@@ -27,29 +27,107 @@
 
 // db.collection('a-region-content').doc('6910019e213929eabfee98de').get()
 
-db.collection('a-itineraries')
-	.aggregate()
-	.unwind('$itinerary') // 拆分 itinerary 数组
-	.unwind('$itinerary.activities') // 拆分 activities 数组
-	.project({
-		// 投射我们需要的字段
-		_id: 0,
-		itinerary_id: '$_id',
-		product_id: '$product_id',
-		ctrip_id: '$ctrip_id',
-		day: '$itinerary.day',
-		activity_id: '$itinerary.activities.id',
-		elementType: '$itinerary.activities.elementType',
+// db.collection('a-itineraries')
+// 	.aggregate()
+// 	.unwind('$itinerary') // 拆分 itinerary 数组
+// 	.unwind('$itinerary.activities') // 拆分 activities 数组
+// 	.project({
+// 		// 投射我们需要的字段
+// 		_id: 0,
+// 		itinerary_id: '$_id',
+// 		product_id: '$product_id',
+// 		ctrip_id: '$ctrip_id',
+// 		day: '$itinerary.day',
+// 		activity_id: '$itinerary.activities.id',
+// 		elementType: '$itinerary.activities.elementType',
 
-		linked_poi_id: '$itinerary.activities.linked_poi_id',
-		match_status: '$itinerary.activities.match_status',
+// 		linked_poi_id: '$itinerary.activities.linked_poi_id',
+// 		match_status: '$itinerary.activities.match_status',
 
-		// 提取用于匹配的原始字符串
-		scenic_spots: '$itinerary.activities.elementData.scenic_spots',
-		restaurant_location: '$itinerary.activities.elementData.location',
-		restaurant_remark: '$itinerary.activities.elementData.remark',
-		hotel_name: '$itinerary.activities.elementData.hotelName',
-		alternativeHotels: '$itinerary.activities.elementData.alternativeHotels'
+// 		// 提取用于匹配的原始字符串
+// 		scenic_spots: '$itinerary.activities.elementData.scenic_spots',
+// 		restaurant_location: '$itinerary.activities.elementData.location',
+// 		restaurant_remark: '$itinerary.activities.elementData.remark',
+// 		hotel_name: '$itinerary.activities.elementData.hotelName',
+// 		alternativeHotels: '$itinerary.activities.elementData.alternativeHotels'
+// 	})
+// 	.limit(3)
+// 	.end()
+
+// db.collection('a-snapshots')
+// 	.where(db.command.and([db.command.or([{
+// 			'travel_users.id': '693bd63999c624286a67d7b0'
+// 		}, {
+// 			'staves.id': '693bd63999c624286a67d7b0'
+// 		}]),
+// 		db.command.expr(db.command.aggregate.lte(['$departure_date', Date.now()])),
+// 		db.command.expr(db.command.aggregate.gte([db.command.aggregate.add(['$departure_date', db.command.aggregate
+// 			.multiply(['$total_days', 24 * 60 * 60 * 1000])
+// 		]), Date.now()]))
+// 	]))
+// 	.orderBy('departure_date', 'desc')
+// 	.limit(1).get()
+
+// db.collection('a-task-queue')
+// 	.where({
+// 		task_name: /明日提醒/,
+// 		status: db.command.in(['pending', 'manual_stop']),
+// 		send_time: db.command.gte("2026-02-04 00:00:00").and(db.command.lte("2026-02-04 23:59:00"))
+// 	})
+// 	.limit(100)
+// 	.get();
+// const cmd = db.command;
+// const $ = db.command.aggregate;
+// const now = new Date();
+// const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+// db.collection('a-snapshots')
+// 	.aggregate() // 1. 直接开始聚合，不要先写 where
+// 	.match({ // 2. 在聚合管道里使用 match 进行筛选（等同于 where）
+// 		created_at: cmd.gt(todayStart)
+// 	})
+// 	.group({ // 3. 分组统计
+// 		_id: null,
+// 		totalOrders: $.sum(1),
+// 		totalRevenue: $.sum('$final_amount')
+// 	})
+// 	.end() // 4. 结束聚合构建，发起请求
+// 	.then(res => {
+// 		console.log('统计成功：', res);
+// 		// 获取结果（注意结构可能在 res.result.data[0]）
+// 	})
+// 	.catch(err => {
+// 		console.error('统计失败：', err);
+// 	});
+
+// db.collection('uni-id-users').where(
+// 	db.command.or([{
+// 			mobile: db.command.exists(false)
+// 		}, // 情况1: mobile 字段根本不存在
+// 		{
+// 			mobile: ""
+// 		}, // 情况2: mobile 是空字符串
+// 		{
+// 			mobile: null
+// 		} // 情况3: mobile 是 null
+// 	])
+// ).get()
+
+// db.collection('a-snapshots').where({
+// 	'travel_users.mobile': '13001262273'
+// }).field({
+// 	'_id': true
+// }).get();
+
+const startDate = "2026-02-01 00:00:00";
+const endDate = "2026-02-22 00:00:00";
+
+db.collection('a-task-queue')
+	.where({
+		agent_id: '68fe23eb466d4119e64596c5',
+		send_time: db.command.gte(startDate).and(db.command.lt(endDate))
 	})
-	.limit(3)
-	.end()
+	.field({
+		'_id': true
+	}) // 只返回 _id 字段
+	.count()

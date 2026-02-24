@@ -1,0 +1,7 @@
+{
+  "name": "b-portfolio-service",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

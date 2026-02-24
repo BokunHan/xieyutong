@@ -90,7 +90,7 @@ export default {
 				// 如果登录后准备跳回 "我的" 页面 (tabBar)
 				// 说明用户是从 "我的" 标签页被强制过来的
 				// 此时点返回/暂不登录，应该去首页
-				uni.switchTab({
+				uni.reLaunch({
 					url: '/pages/home/home'
 				});
 			} else {
@@ -200,7 +200,7 @@ export default {
 									url: `/pages/order/bind-confirm?orderId=${this.targetOrderId}`
 								});
 							} else {
-								uni.switchTab({
+								uni.reLaunch({
 									url: '/pages/home/home'
 								});
 							}
@@ -269,7 +269,7 @@ export default {
 									url: `/pages/order/bind-confirm?orderId=${this.targetOrderId}`
 								});
 							} else {
-								uni.switchTab({
+								uni.reLaunch({
 									url: '/pages/home/home'
 								});
 							}

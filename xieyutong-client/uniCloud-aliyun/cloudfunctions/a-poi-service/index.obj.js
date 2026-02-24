@@ -671,6 +671,34 @@ const serviceModule = {
 	},
 
 	/**
+	 * 更新POI信息
+	 * @param {String} id POI的文档ID
+	 * @param {Object} data 表单数据
+	 */
+	async updatePoi(id, data) {
+		if (!id) {
+			throw new Error('缺少POI ID');
+		}
+
+		console.log(`[POI服务] 开始更新 POI: ${id}`);
+
+		// 检查 route_map_image 字段
+		// 1. 如果前端传来了这个字段（无论是 null 还是 对象）
+		if (data.route_map_image !== undefined) {
+			// 2. 使用 dbCmd.set 包裹
+			// 这告诉 MongoDB：不要试图去合并属性(如 route_map_image.cloudPath)，
+			// 而是把数据库里的旧值（哪怕是 null）直接扔掉，替换成这个新值。
+			data.route_map_image = dbCmd.set(data.route_map_image);
+		}
+
+		data.updated_at = Date.now();
+
+		// 执行更新
+		const res = await db.collection('a-poi-database').doc(id).update(data);
+		return res;
+	},
+
+	/**
 	 * 针对单个新POI执行全局反向匹配
 	 * 遍历所有行程，查找包含此POI名称或别名的未匹配项
 	 */
