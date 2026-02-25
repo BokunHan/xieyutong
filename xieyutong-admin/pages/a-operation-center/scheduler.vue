@@ -1051,14 +1051,22 @@ export default {
 				if (role === 'attendant' || role.includes('attendant')) {
 					return true;
 				} else {
-					// 如果需要精确判断是否在行程内的某一天：
+					// 私导：精确判断检查的日期区间内，是否存在“独立包车”或“专车专导”
 					if (s.itinerary && Array.isArray(s.itinerary)) {
-						// 计算这是行程的第几天
-						const dayIndex = Math.floor((checkDateTs - s.start) / (24 * 3600 * 1000));
-						// 只要 index 在 0 到 total_days-1 之间，说明正在带团
-						return dayIndex >= 0 && dayIndex < s.total_days;
+						let hasConflict = false;
+						s.itinerary.forEach((dayItem, index) => {
+							const dayTs = s.start + index * 24 * 3600 * 1000;
+							// 如果这一天落在了我们要检查的时间段内
+							if (dayTs >= checkDateTs && dayTs < checkEnd) {
+								const title = dayItem.day_title || '';
+								if (title.includes('独立包车') || title.includes('专车专导')) {
+									hasConflict = true;
+								}
+							}
+						});
+						return hasConflict;
 					}
-					// 如果没有详细行程数据，但时间重叠，也算忙
+					// 如果没有详细行程数据，但时间重叠，为安全起见算忙
 					return true;
 				}
 			});
@@ -2153,23 +2161,23 @@ export default {
 		prepareAssignmentOptions(orderItem) {
 			// 1. 获取订单结束时间
 			const startTs = orderItem.start;
-			const days = orderItem.total_days || 1;
-			// 订单结束那天的 00:00:00 (粗略计算用于定位月份即可)
-			// 也可以用 startTs + days * 24h - 1s
-			const endTs = startTs + days * 24 * 3600 * 1000;
+			// const days = orderItem.total_days || 1;
+			// // 订单结束那天的 00:00:00 (粗略计算用于定位月份即可)
+			// // 也可以用 startTs + days * 24h - 1s
+			// const endTs = startTs + days * 24 * 3600 * 1000;
 
-			// 2. 使用订单结束时间所在的月份作为统计窗口
-			const d = new Date(endTs - 1000); // 减1秒确保刚好卡在结束当天
+			// // 2. 使用订单结束时间所在的月份作为统计窗口
+			// const d = new Date(endTs - 1000); // 减1秒确保刚好卡在结束当天
+
+			// 2. 使用订单【出发时间】所在的月份作为统计窗口
+			const d = new Date(startTs);
 
 			// 当月1号 00:00:00
 			const windowStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
 			// 当月最后一天 23:59:59
 			const windowEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59).getTime();
 
-			// 辅助函数保持不变
 			const getStatsInWindow = (id, role) => {
-				// ... 代码不变，逻辑是计算 overlap ...
-				// 这里不需要动，因为 windowStart/End 已经变了，内部逻辑会自动计算新窗口下的重叠
 				let groups = 0;
 				let days = 0;
 				const pool = role === 'guide' ? this.occupancyData.guides : this.occupancyData.attendants;
@@ -2185,15 +2193,32 @@ export default {
 					}
 
 					// 2. 天数：按结束时间 (lastServiceDay) 严格筛选
-					if (lastServiceDay >= windowStart && lastServiceDay <= windowEnd) {
+					// if (lastServiceDay >= windowStart && lastServiceDay <= windowEnd) {
+					if (role === 'guide') {
+						// 私导只统计“独立包车”和“专车专导”
+						let validDays = 0;
+						if (o.itinerary && Array.isArray(o.itinerary)) {
+							o.itinerary.forEach((dayItem, index) => {
+								const dayTs = o.start + index * 24 * 3600 * 1000;
+								if (dayTs >= windowStart && dayTs <= windowEnd) {
+									const title = dayItem.day_title || '';
+									if (title.includes('独立包车') || title.includes('专车专导')) {
+										validDays++;
+									}
+								}
+							});
+						}
+						days += validDays;
+					} else {
+						// 管家保持原逻辑
 						const overlapStart = Math.max(o.start, windowStart);
 						const overlapEnd = Math.min(tripEnd, windowEnd);
-
 						if (overlapEnd > overlapStart) {
 							const overlapDays = Math.ceil((overlapEnd - overlapStart) / (24 * 3600 * 1000));
 							if (overlapDays > 0) days += overlapDays;
 						}
 					}
+					// }
 				});
 				return { groups, days };
 			};

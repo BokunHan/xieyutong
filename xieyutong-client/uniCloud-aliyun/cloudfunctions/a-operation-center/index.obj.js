@@ -485,7 +485,7 @@ const operationCenter = {
 				const ordersRes = await db
 					.collection('a-snapshots')
 					.where({ 'staves.id': profile.user_id, departure_date: dbCmd.gte(earliestDate) })
-					.field({ _id: 1, departure_date: 1, itinerary: 1 })
+					.field({ _id: 1, order_id: 1, departure_date: 1, itinerary: 1, rank: 1, total_days: 1 })
 					.get();
 
 				const reviewsRes = await db
@@ -493,18 +493,61 @@ const operationCenter = {
 					.where({ guide_name: profile.real_name, created_at: dbCmd.gte(new Date(earliestDate).toISOString()) })
 					.get();
 
-				const orderIds = ordersRes.data.map((o) => o._id);
+				const businessOrderIds = ordersRes.data.map((o) => o.order_id).filter((id) => id);
+
+				let orderPhotoCountMap = {}; // 记录每个订单实际上传的照片数
 				let albumsCount = 0;
-				if (orderIds.length > 0) {
+
+				if (businessOrderIds.length > 0) {
+					// 3. 查找这些订单对应的相册
 					const albRes = await db
 						.collection('a-group-albums')
-						.where({ order_id: dbCmd.in(orderIds) })
-						.count();
-					albumsCount = albRes.total;
+						.where({ order_id: dbCmd.in(businessOrderIds) })
+						.field({ _id: 1, order_id: 1 })
+						.limit(1000)
+						.get();
+
+					albumsCount = albRes.data.length;
+					const albumIds = albRes.data.length > 0 ? albRes.data.map((a) => a._id) : [];
+
+					// 建立 相册ID -> 订单号 的映射
+					const albumToOrderMap = {};
+					albRes.data.forEach((a) => {
+						albumToOrderMap[a._id] = a.order_id;
+					});
+
+					// 4. 精确查出该私导在这些相册里上传的照片数量
+					if (albumIds.length > 0) {
+						const photosRes = await db
+							.collection('a-album-photos')
+							.where({
+								album_id: dbCmd.in(albumIds),
+								user_id: profile.user_id // 仅统计当前私导自己上传的
+							})
+							.field({ album_id: 1 })
+							.limit(5000) // 限制条数防超载，如果数据量极大可换为分组聚合
+							.get();
+
+						// 累加计算每个订单下的照片总数
+						photosRes.data.forEach((p) => {
+							const oId = albumToOrderMap[p.album_id];
+							if (oId) {
+								orderPhotoCountMap[oId] = (orderPhotoCountMap[oId] || 0) + 1;
+							}
+						});
+					}
 				}
 
-				rawData = { orders: ordersRes.data, reviews: reviewsRes.data, albumsCount };
+				rawData = { orders: ordersRes.data, reviews: reviewsRes.data, albumsCount, orderPhotoCountMap };
 				console.log(`>>> 【DEBUG】原始数据 - 订单数: ${rawData.orders.length}, 评价数: ${rawData.reviews.length}, 相册数: ${albumsCount}`);
+
+				console.log(`\n>>> 【图像质量统计明细】私导: ${profile.real_name}`);
+				console.log(`    - 参与计算的订单数: ${businessOrderIds.length}`);
+				console.log(`    - 关联的相册数: ${albumsCount}`);
+				console.log(`    - 各订单上传照片数汇总:`, JSON.stringify(orderPhotoCountMap));
+				console.log(`    - 档案录入的照片质检分: ${profile.stats.photo_quality_score || 0} (满分通常为10分)`);
+				console.log(`    - 档案录入的视频质检分: ${profile.stats.video_quality_score || 0}`);
+				console.log(`    - 宣传素材采纳数: ${profile.stats.promo_materials || 0}`);
 			} else if (role === 'sale') {
 				const custRes = await db
 					.collection('a-customers')
@@ -581,6 +624,27 @@ const operationCenter = {
 
 					console.log(`  [数值] 周期内订单: ${order_count}, 服务天数: ${service_days}, 评分均值: ${rating_avg}`);
 
+					// --- 精确计算周期内的照片达标率 ---
+					let totalRequiredPhotos = 0;
+					let totalUploadedPhotos = 0;
+
+					dimOrders.forEach((o) => {
+						const days = o.itinerary?.length || o.total_days || 1;
+						const rank = o.rank || 'D';
+						let reqPerDay = 10; // D级默认10张
+						if (rank === 'A') reqPerDay = 100;
+						else if (rank === 'B') reqPerDay = 50;
+						else if (rank === 'C') reqPerDay = 30;
+
+						totalRequiredPhotos += days * reqPerDay;
+						totalUploadedPhotos += rawData.orderPhotoCountMap[o.order_id] || 0;
+					});
+
+					// 防止除以 0，且达标率最高计为 100%
+					const calc_photo_pct = totalRequiredPhotos > 0 ? Math.min(Math.round((totalUploadedPhotos / totalRequiredPhotos) * 100), 100) : 0;
+
+					console.log(`  [图像明细] 照片达标率计算: 周期内总上传 ${totalUploadedPhotos}张 / 规则总需 ${totalRequiredPhotos}张 = ${calc_photo_pct}%`);
+
 					metrics = {
 						order_count,
 						service_days,
@@ -588,7 +652,7 @@ const operationCenter = {
 						rating_avg,
 						rating_5_star: dimReviews.filter((r) => r.rating >= 5).length,
 						rating_bad: dimReviews.filter((r) => r.rating <= 3).length,
-						photo_standard_pct: dimOrders.length > 0 ? Math.round((rawData.albumsCount / dimOrders.length) * 100) : 0,
+						photo_standard_pct: calc_photo_pct,
 						// 手动数据
 						rejected_orders: profile.stats.rejected_orders || 0,
 						cancelled_orders: profile.stats.cancelled_orders || 0,
@@ -601,6 +665,8 @@ const operationCenter = {
 						video_quality_score: profile.stats.video_quality_score || 0,
 						promo_materials: profile.stats.promo_materials || 0
 					};
+
+					console.log(`  [图像明细] 照片达标率计算: (相册数 ${rawData.albumsCount} / 维度周期订单数 ${dimOrders.length || 1}) * 100 = ${metrics.photo_standard_pct}%`);
 				} else if (role === 'sale') {
 					const dimCustomers = rawData.customers.filter((c) => {
 						const t = c.reception_time || c.created_at;
@@ -909,6 +975,18 @@ const operationCenter = {
 						logs.push({ text: `${rule.item_code} ${rule.operator} ${threshold}`, delta: rule.score_change });
 						console.log(`    [规则:触发] Item: ${rule.item_code} (${checkVal}) ${rule.operator} ${threshold}, 变动: ${rule.score_change}`);
 					}
+
+					const imageQualityKeys = ['photo_standard_pct', 'photo_quality_score', 'video_quality_score', 'promo_materials', 'photo_upload_delay'];
+					if (imageQualityKeys.includes(rule.item_code)) {
+						console.log(
+							`    [图像计分过程] 校验项: ${rule.item_code} | 当前值: ${checkVal} | 规则设定: ${rule.operator} ${threshold} -> 是否命中: ${matched || rule.operator === 'per'}`
+						);
+						if (matched || rule.operator === 'per') {
+							// 获取刚刚被推入 logs 数组的最后一条记录，展示具体加扣分
+							const lastLog = logs[logs.length - 1];
+							console.log(`      -> 💰 获得图像维度分数变动: ${lastLog ? (lastLog.delta > 0 ? '+' : '') + lastLog.delta : 0}分`);
+						}
+					}
 				}
 
 				if (dim.max_score !== null && currentScore > dim.max_score) currentScore = dim.max_score;
@@ -1054,9 +1132,14 @@ const operationCenter = {
 		const checkStart = startTime;
 		const checkEnd = startTime + (totalDays || 1) * 24 * 3600 * 1000;
 
-		// B. 统计时间段：以【结束日期】为基准
-		const orderEndTime = startTime + (totalDays || 1) * 24 * 3600 * 1000;
-		const d = new Date(orderEndTime - 1000); // 减1秒取实际结束当天
+		// // B. 统计时间段：以【结束日期】为基准
+		// const orderEndTime = startTime + (totalDays || 1) * 24 * 3600 * 1000;
+		// const d = new Date(orderEndTime - 1000); // 减1秒取实际结束当天
+		// const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+		// const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59).getTime();
+
+		// B. 统计时间段：以【出发日期】为基准
+		const d = new Date(startTime);
 		const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
 		const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59).getTime();
 
@@ -1086,7 +1169,7 @@ const operationCenter = {
 				departure_date: dbCmd.lte(monthEnd) // 出发时间早于月底
 				// 实际还需要筛选“结束时间晚于月初”，这里先查出来再内存过滤，避免复杂索引
 			})
-			.field({ _id: 1, order_id: 1, departure_date: 1, total_days: 1, staves: 1 })
+			.field({ _id: 1, order_id: 1, departure_date: 1, total_days: 1, staves: 1, itinerary: 1 })
 			.limit(2000)
 			.get();
 
@@ -1109,42 +1192,79 @@ const operationCenter = {
 						const uid = staff.id;
 
 						// --- A. 统计当月负载 ---
-						if (oLastDay >= monthStart && oLastDay <= monthEnd) {
-							// 只有结束在当月，才计入 statsMap
-							order.staves?.forEach((staff) => {
-								if (staff.role && (staff.role === role || staff.role.includes(role))) {
-									const uid = staff.id;
-									if (!statsMap[uid]) statsMap[uid] = { groups: 0, days: 0 };
+						// if (oLastDay >= monthStart && oLastDay <= monthEnd) {
+						// 初始化 statsMap
+						if (!statsMap[uid]) statsMap[uid] = { groups: 0, days: 0 };
 
-									// 1. 团数：按出发时间统计 (oStart 在当月)
-									if (oStart >= monthStart && oStart <= monthEnd) {
-										statsMap[uid].groups += 1;
-									}
+						// 1. 团数：按出发时间统计 (oStart 在当月)
+						if (oStart >= monthStart && oStart <= monthEnd) {
+							statsMap[uid].groups += 1;
+						}
 
-									// 2. 天数：按结束时间结算 (oLastDay 在当月)
-									if (oLastDay >= monthStart && oLastDay <= monthEnd) {
-										const overlapStart = Math.max(oStart, monthStart);
-										const overlapEnd = Math.min(oEnd, monthEnd);
-
-										if (overlapEnd > overlapStart) {
-											const days = Math.ceil((overlapEnd - overlapStart) / (24 * 3600 * 1000));
-											statsMap[uid].days += days;
+						if (role === 'guide') {
+							// 私导只统计“独立包车”和“专车专导”
+							let validDays = 0;
+							if (order.itinerary && Array.isArray(order.itinerary)) {
+								order.itinerary.forEach((dayItem, index) => {
+									const dayTs = oStart + index * 24 * 3600 * 1000;
+									if (dayTs >= monthStart && dayTs <= monthEnd) {
+										const title = dayItem.day_title || '';
+										if (title.includes('独立包车') || title.includes('专车专导')) {
+											validDays++;
 										}
 									}
-								}
-							});
+								});
+							}
+							statsMap[uid].days += validDays;
+						} else {
+							// 管家保持原逻辑（按时间交集统计）
+							const overlapStart = Math.max(oStart, monthStart);
+							const overlapEnd = Math.min(oEnd, monthEnd);
+							if (overlapEnd > overlapStart) {
+								const days = Math.ceil((overlapEnd - overlapStart) / (24 * 3600 * 1000));
+								statsMap[uid].days += days;
+							}
 						}
+						// }
 
 						// --- B. 检测时间冲突 (针对当前订单) ---
 						if (Math.max(oStart, checkStart) < Math.min(oEnd, checkEnd)) {
-							// 有交集
-							const sDate = new Date(oStart);
-							const eDate = new Date(oEnd - 1000);
-							const dateStr = `${sDate.getMonth() + 1}.${sDate.getDate()}-${eDate.getMonth() + 1}.${eDate.getDate()}`;
+							let hasRealConflict = false;
 
-							// 记录最早的一个冲突即可，或者拼接
-							if (!statusMap[uid]) {
-								statusMap[uid] = { isBusy: true, conflictText: `带团中(${dateStr})` };
+							if (role === 'guide') {
+								// 私导：精确检查重叠的日期中，是否包含“独立包车”或“专车专导”
+								if (order.itinerary && Array.isArray(order.itinerary)) {
+									for (let i = 0; i < order.itinerary.length; i++) {
+										const dayItem = order.itinerary[i];
+										const dayTs = oStart + i * 24 * 3600 * 1000;
+
+										// 只判断与当前分配订单有时间重叠的这一天
+										if (dayTs >= checkStart && dayTs < checkEnd) {
+											const title = dayItem.day_title || '';
+											if (title.includes('独立包车') || title.includes('专车专导')) {
+												hasRealConflict = true;
+												break; // 只要有一天冲突，就判定为带团中
+											}
+										}
+									}
+								} else {
+									// 兜底：如果没有明细，默认算冲突
+									hasRealConflict = true;
+								}
+							} else {
+								// 管家：保持只要有交集就算冲突
+								hasRealConflict = true;
+							}
+
+							if (hasRealConflict) {
+								const sDate = new Date(oStart);
+								const eDate = new Date(oEnd - 1000);
+								const dateStr = `${sDate.getMonth() + 1}.${sDate.getDate()}-${eDate.getMonth() + 1}.${eDate.getDate()}`;
+
+								// 记录最早的一个冲突即可
+								if (!statusMap[uid]) {
+									statusMap[uid] = { isBusy: true, conflictText: `带团中(${dateStr})` };
+								}
 							}
 						}
 					}

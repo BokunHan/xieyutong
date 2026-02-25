@@ -305,9 +305,7 @@ async function checkExistingProducts(event, context) {
 
 	console.log(`[商品检查] 开始检查 ${route_ids.length} 个商品ID是否存在...`);
 
-	const db = uniCloud.databaseForJQL({
-		clientInfo: event
-	});
+	const db = uniCloud.database();
 	const dbCmd = db.command;
 
 	try {
